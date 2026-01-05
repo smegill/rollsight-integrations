@@ -1,0 +1,98 @@
+<div class="rollsight-roll">
+    {{#if corrected}}
+    <div class="rollsight-corrected-notice">
+        <i class="fas fa-edit"></i> Roll Corrected
+    </div>
+    {{/if}}
+    
+    <div class="rollsight-roll-header">
+        <span class="rollsight-source">🎲 Physical Roll</span>
+    </div>
+    
+    <div class="rollsight-roll-formula">
+        <strong>{{formula}}</strong>
+    </div>
+    
+    <div class="rollsight-roll-dice">
+        {{#each dice}}
+        <div class="rollsight-die-group">
+            <span class="rollsight-die-count">{{number}}d{{faces}}</span>
+            <span class="rollsight-die-results">
+                {{#each results}}
+                <span class="rollsight-die-value">{{this}}</span>
+                {{/each}}
+            </span>
+        </div>
+        {{/each}}
+    </div>
+    
+    <div class="rollsight-roll-total">
+        <strong>Total: {{total}}</strong>
+    </div>
+</div>
+
+<style>
+.rollsight-roll {
+    border: 2px solid #4a5568;
+    border-radius: 4px;
+    padding: 8px;
+    background: rgba(0, 0, 0, 0.1);
+}
+
+.rollsight-corrected-notice {
+    color: #f59e0b;
+    font-size: 0.9em;
+    margin-bottom: 4px;
+}
+
+.rollsight-roll-header {
+    font-size: 0.9em;
+    color: #a0aec0;
+    margin-bottom: 4px;
+}
+
+.rollsight-roll-formula {
+    font-size: 1.1em;
+    margin: 4px 0;
+}
+
+.rollsight-roll-dice {
+    margin: 8px 0;
+}
+
+.rollsight-die-group {
+    margin: 4px 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.rollsight-die-count {
+    font-weight: 600;
+    min-width: 50px;
+}
+
+.rollsight-die-results {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+}
+
+.rollsight-die-value {
+    background: #2d3748;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-family: monospace;
+}
+
+.rollsight-roll-total {
+    font-size: 1.2em;
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid #4a5568;
+}
+</style>
+
+
+
+

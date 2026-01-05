@@ -1,0 +1,28 @@
+{
+  "id": "rollsight-integration",
+  "title": "Rollsight Integration",
+  "description": "Integrate physical dice rolls from Rollsight into Foundry VTT",
+  "version": "1.0.0",
+  "compatibility": {
+    "minimum": "10",
+    "verified": "12"
+  },
+  "authors": [
+    {
+      "name": "Rollsight Team"
+    }
+  ],
+  "esmodules": [
+    "rollsight.js"
+  ],
+  "socket": true,
+  "url": "https://github.com/yourusername/rollsight-foundry",
+  "manifest": "https://raw.githubusercontent.com/yourusername/rollsight-foundry/main/module.json",
+  "download": "https://github.com/yourusername/rollsight-foundry/archive/main.zip",
+  "license": "LICENSE",
+  "readme": "README.md"
+}
+
+
+
+
