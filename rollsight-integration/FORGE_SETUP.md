@@ -2,6 +2,18 @@
 
 This guide explains how to connect Rollsight to a Foundry VTT instance hosted on The Forge, and how to enable it for all players.
 
+## Installing the module on The Forge
+
+The Forge does not give you filesystem access to Foundry. You must install the module using **Manifest URL**:
+
+1. In Foundry (your Forge instance): **Setup** → **Add-on Modules** → **Install Module**.
+2. Paste the **Manifest URL** (get it from the module author or project README; see **FORGE_INSTALL.md** in the parent `foundry_module` folder for details).
+3. Click **Install**, then enable **Rollsight Integration** in your world under **Manage Modules**.
+
+Full steps and how to publish the module so the manifest URL works: **FORGE_INSTALL.md**.
+
+---
+
 ## Overview
 
 When using The Forge (cloud-hosted Foundry), each player needs to:

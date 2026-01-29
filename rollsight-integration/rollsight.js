@@ -1,13 +1,18 @@
 /**
  * Rollsight Integration for Foundry VTT
- * 
+ *
  * Receives physical dice rolls from Rollsight and integrates them into Foundry.
+ * Uses Foundry v12+ Dice Fulfillment so rolls apply in-context (spells, attacks, saves).
  */
 
 import { SocketHandler } from './socket-handler.js';
 import { ChatHandler } from './chat-handler.js';
 import { DiceHandler } from './dice-handler.js';
 import { RollRequestHandler } from './roll-request-handler.js';
+import {
+    registerFulfillmentMethod,
+    tryFulfillActiveResolver
+} from './fulfillment-provider.js';
 
 class RollsightIntegration {
     constructor() {
@@ -38,6 +43,22 @@ class RollsightIntegration {
             game.rollsight = this;
             
             // Listen for messages from browser extension (via window.postMessage)
+            // When RollResolver opens for a roll, optionally notify Rollsight (if URL set)
+            Hooks.on('renderRollResolver', (resolver, _element, _data) => {
+                const url = game.settings.get("rollsight-integration", "rollRequestUrl");
+                if (!url || !String(url).trim()) return;
+                const roll = resolver.roll || resolver.object?.roll;
+                if (!roll?.formula) return;
+                const requestData = {
+                    vtt: "Foundry VTT",
+                    formula: roll.formula,
+                    roll_type: "fulfillment",
+                    context: { description: "Pending roll (Rollsight fulfillment)" },
+                    request_id: (typeof foundry !== 'undefined' && foundry.utils?.randomID) ? foundry.utils.randomID() : crypto.randomUUID?.() ?? `req-${Date.now()}`
+                };
+                this.rollRequestHandler.sendRequest(requestData).catch(() => {});
+            });
+
             window.addEventListener('message', (event) => {
                 // Only accept messages from our extension or same origin
                 if (event.data && event.data.type === 'rollsight-roll') {
@@ -96,14 +117,32 @@ class RollsightIntegration {
     }
     
     /**
-     * Handle incoming roll from Rollsight
+     * Handle incoming roll from Rollsight.
+     * If a RollResolver is active (e.g. attack/spell roll), fulfill it in-context;
+     * otherwise fall back to chat.
      */
     async handleRoll(rollData) {
         console.log("Rollsight Integration | Received roll:", rollData);
-        
+
         try {
-            // Send as /roll command in chat
-            await this.sendRollAsCommand(rollData);
+            const game = (typeof foundry !== 'undefined' && foundry.game) ? foundry.game : globalThis.game;
+            const fallbackToChat = game?.settings?.get("rollsight-integration", "fallbackToChat") !== false;
+
+            // Try to feed the active RollResolver (Foundry v12+ fulfillment)
+            const consumed = tryFulfillActiveResolver(rollData);
+            if (consumed) {
+                console.log("Rollsight Integration | Roll fulfilled in-context (RollResolver)");
+                const foundryRoll = this.createFoundryRoll(rollData);
+                if (foundryRoll) this.diceHandler.animateDice(foundryRoll);
+                return foundryRoll;
+            }
+
+            // No active resolver: fall back to chat if enabled
+            if (fallbackToChat) {
+                await this.sendRollAsCommand(rollData);
+            } else {
+                console.log("Rollsight Integration | No pending roll and fallback disabled; roll not sent.");
+            }
             return null;
             
             /* Original code - commented out for testing
@@ -465,11 +504,14 @@ class RollsightIntegration {
     }
 }
 
-// Register settings in the 'init' hook (before 'ready')
-// Using namespaced API for Foundry v13+ compatibility if available
+// Register fulfillment method in setup (CONFIG.Dice.fulfillment is set there)
 const Hooks = (typeof foundry !== 'undefined' && foundry.Hooks) ? foundry.Hooks : globalThis.Hooks;
+Hooks.once('setup', () => {
+    registerFulfillmentMethod();
+});
+
+// Register settings and initialize in 'init'
 Hooks.once('init', () => {
-    // Register module settings (using namespaced API for Foundry v13+ if available)
     const game = (typeof foundry !== 'undefined' && foundry.game) ? foundry.game : globalThis.game;
     game.settings.register("rollsight-integration", "autoConnect", {
         name: "Auto-connect to Rollsight",
@@ -479,8 +521,23 @@ Hooks.once('init', () => {
         type: Boolean,
         default: false
     });
-    
-    // Initialize the integration
+    game.settings.register("rollsight-integration", "fallbackToChat", {
+        name: "Fallback to chat when no pending roll",
+        hint: "If no RollResolver is open (e.g. no attack/spell roll waiting), send Rollsight rolls to chat. Disable to only fulfill in-context rolls.",
+        scope: "world",
+        config: true,
+        type: Boolean,
+        default: true
+    });
+    game.settings.register("rollsight-integration", "rollRequestUrl", {
+        name: "Roll request URL (optional)",
+        hint: "URL Rollsight listens on for roll requests (e.g. http://localhost:8765/foundry/roll-request). Leave blank to disable.",
+        scope: "world",
+        config: true,
+        type: String,
+        default: ""
+    });
+
     const rollsight = new RollsightIntegration();
     rollsight.init();
 });

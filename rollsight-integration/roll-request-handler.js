@@ -7,15 +7,22 @@
 export class RollRequestHandler {
     constructor(module) {
         this.module = module;
-        this.webhookUrl = "http://localhost:8765/foundry/roll-request";
+        this.defaultWebhookUrl = "http://localhost:8765/foundry/roll-request";
     }
-    
+
+    getWebhookUrl() {
+        const game = (typeof foundry !== 'undefined' && foundry.game) ? foundry.game : globalThis.game;
+        const url = game?.settings?.get("rollsight-integration", "rollRequestUrl");
+        return (url && String(url).trim()) ? String(url).trim() : this.defaultWebhookUrl;
+    }
+
     /**
-     * Send a roll request to Rollsight
+     * Send a roll request to Rollsight (optional; only if rollRequestUrl is set)
      */
     async sendRequest(requestData) {
+        const url = this.getWebhookUrl();
         try {
-            const response = await fetch(this.webhookUrl, {
+            const response = await fetch(url, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
@@ -33,16 +40,10 @@ export class RollRequestHandler {
             }
         } catch (error) {
             console.error("Rollsight Integration | Error sending roll request:", error);
-            ui.notifications.warn("Could not connect to Rollsight. Make sure Rollsight is running.");
+            const ui = (typeof foundry !== 'undefined' && foundry.ui) ? foundry.ui : globalThis.ui;
+            if (ui?.notifications) ui.notifications.warn("Could not connect to Rollsight. Make sure Rollsight is running.");
             return null;
         }
-    }
-    
-    /**
-     * Set webhook URL (for configuration)
-     */
-    setWebhookUrl(url) {
-        this.webhookUrl = url;
     }
 }
 

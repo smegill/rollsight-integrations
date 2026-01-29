@@ -4,20 +4,21 @@ This Foundry VTT module integrates with Rollsight to receive physical dice rolls
 
 ## Features
 
-- **Receive Physical Rolls**: Automatically receives dice rolls from Rollsight
-- **Chat Integration**: Creates chat messages with roll results
-- **3D Dice**: Triggers Foundry's 3D dice animations
-- **Roll Amendments**: Updates chat messages when rolls are corrected
-- **Roll Requests**: Can request rolls from Rollsight (e.g., for spells, attacks)
+- **In-context rolls (Foundry v12+)**: When you choose "Rollsight" in **Dice Configuration** for a die type (e.g. d20), attack/spell/save rolls wait for physical dice and use your Rollsight result in the same roll—no chat-only fallback.
+- **Receive physical rolls**: Rolls from Rollsight are either fed into the active RollResolver (in-context) or, if none is open, sent to chat (configurable).
+- **3D dice**: Triggers Foundry's 3D dice when a roll is fulfilled or sent to chat.
+- **Roll amendments**: Updates chat messages when rolls are corrected in Rollsight.
+- **Roll requests**: Optional: when a RollResolver opens for Rollsight, the module can POST to Rollsight so the app shows "Foundry is waiting for: 1d20" (set **Roll request URL** in module settings).
 
 ## Installation
 
+**Server / host:** For what must be loaded on the Foundry server and install options (manual copy, script, or manifest), see **SERVER_INSTALL.md** in the parent `foundry_module` folder.
+
 ### Method 1: Manual Installation
 
-1. Download or clone this module
-2. Place the `rollsight-integration` folder in your Foundry VTT `Data/modules/` directory
-3. Restart Foundry VTT
-4. Enable the module in your world's module settings
+1. Copy the `rollsight-integration` folder into your Foundry VTT `Data/modules/` directory (see SERVER_INSTALL.md for Data paths).
+2. Restart Foundry VTT (or reload the world).
+3. In the world: **Settings** → **Manage Modules** → enable **Rollsight Integration**.
 
 ### Method 2: Module Manifest (Recommended)
 
@@ -32,27 +33,34 @@ This Foundry VTT module integrates with Rollsight to receive physical dice rolls
 2. Go to **Settings** → **Manage Modules**
 3. Enable **Rollsight Integration**
 
-### 2. Configure Rollsight Connection
+### 2. Dice Configuration (Foundry v12+)
 
-The module will automatically connect to Rollsight when:
-- Rollsight is running on the same machine
-- Rollsight is configured to connect to Foundry (default: `http://localhost:30000`)
+To use physical dice **in-context** (e.g. for attack rolls, spell rolls):
 
-### 3. Configure Webhook (For Roll Requests)
+1. Open **Setup** → **Dice Configuration** (or the equivalent in your Foundry version).
+2. For each die type (d4, d6, d20, etc.) choose **Rollsight (Physical Dice)** as the fulfillment method.
+3. When you roll (e.g. attack), Foundry will open the roll dialog and wait for a result; roll in Rollsight and the value is applied to that same roll.
 
-To enable Foundry → Rollsight roll requests:
+### 3. Configure Rollsight Connection
 
-1. In Rollsight, note the webhook port (default: 8765)
-2. The module will automatically send roll requests to: `http://localhost:8765/foundry/roll-request`
+The module receives rolls via the browser extension (postMessage). For cloud Foundry, use the extension; for self-hosted, the same or a local bridge can be used.
+
+### 4. Configure Webhook (Optional – Roll Requests)
+
+To have Rollsight show "Foundry is waiting for: 1d20" when a roll dialog opens:
+
+1. In module settings, set **Roll request URL** (e.g. `http://localhost:8765/foundry/roll-request`).
+2. When a RollResolver opens for a Rollsight-configured die, the module POSTs the formula to that URL.
 
 ## Usage
 
 ### Automatic Roll Receiving
 
 When dice are rolled in Rollsight:
-- Roll appears in Foundry chat automatically
-- 3D dice animate (if enabled)
-- Roll is attributed to the current user
+
+- **If a RollResolver is open** (e.g. you just clicked "Attack" and chose Rollsight for d20): the result is applied to that roll in-context, then the roll completes (e.g. attack roll with your physical d20).
+- **If no roll is waiting**: the roll is sent to chat (unless **Fallback to chat** is disabled in module settings).
+- 3D dice animate when enabled; the roll is attributed to the current user.
 
 ### Requesting Rolls from Foundry
 
@@ -117,13 +125,17 @@ game.rollsight.isConnected();
 
 ```
 rollsight-integration/
-├── module.json          # Module manifest
-├── rollsight.js         # Main module code
-├── socket-handler.js    # Socket.io event handlers
-├── chat-handler.js     # Chat message creation
-├── dice-handler.js      # 3D dice integration
-└── README.md           # This file
+├── module.json             # Module manifest
+├── rollsight.js            # Main module code
+├── fulfillment-provider.js # Foundry v12+ Dice Fulfillment registration & routing
+├── socket-handler.js       # Socket.io event handlers
+├── chat-handler.js         # Chat message creation
+├── dice-handler.js         # 3D dice integration
+├── roll-request-handler.js # Optional roll-request POST to Rollsight
+└── README.md
 ```
+
+For architecture and options (fulfillment API, communication, fallback), see **FOUNDRY_FULFILLMENT_DESIGN.md** in the parent `foundry_module` folder.
 
 ## Development
 
