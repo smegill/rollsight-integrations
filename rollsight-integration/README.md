@@ -27,11 +27,14 @@ This Foundry VTT module integrates with Rollsight to receive physical dice rolls
 
 ## Configuration
 
-### 1. Enable the Module
+### 1. Enable the Module (GM)
 
-1. Open your world in Foundry VTT
-2. Go to **Settings** → **Manage Modules**
-3. Enable **Rollsight Integration**
+1. Open your world in Foundry VTT (as GM).
+2. Go to **Settings** → **Manage Modules**.
+3. Enable **Rollsight Integration**.
+4. The module then runs for **all users** (GM and players). Players do not need to enable anything; they just need the Rollsight browser extension and Rollsight app to send rolls from their client.
+
+**Making it available to everyone:** Once the GM enables the module in Manage Modules, it is active for every connected client. If your host (e.g. The Forge) has an option like "Include for players" or "Available to players" for this module, ensure it is set so the module loads for players. Players can confirm the module is active by opening **Configure Settings** → **Rollsight Integration** and seeing the "Rollsight Integration (this client)" option.
 
 ### 2. Dice Configuration (Foundry v12+)
 
@@ -59,6 +62,7 @@ To have Rollsight show "Foundry is waiting for: 1d20" when a roll dialog opens:
 When dice are rolled in Rollsight:
 
 - **If a RollResolver is open** (e.g. you just clicked "Attack" and chose Rollsight for d20): the result is applied to that roll in-context, then the roll completes (e.g. attack roll with your physical d20).
+- **If combat has started and you have a combatant with no initiative yet**: a **single d20** roll from Rollsight is applied to that combatant's initiative (so you are not forced to roll inside Foundry). See **INITIATIVE_ROLLS.md** for details.
 - **If no roll is waiting**: the roll is sent to chat (unless **Fallback to chat** is disabled in module settings).
 - 3D dice animate when enabled; the roll is attributed to the current user.
 

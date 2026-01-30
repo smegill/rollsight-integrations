@@ -66,15 +66,15 @@ class RollsightIntegration {
                     this.handleRoll(event.data.rollData).catch(error => {
                         console.error("Rollsight Integration | Error handling roll from postMessage:", error);
                     });
-                } else if (event.data && event.data.type === 'rollsight-amendment') {
-                    console.log("Rollsight Integration | Received amendment via postMessage:", event.data.amendmentData);
-                    this.handleAmendment(event.data.amendmentData).catch(error => {
-                        console.error("Rollsight Integration | Error handling amendment from postMessage:", error);
-                    });
                 } else if (event.data && event.data.type === 'rollsight-test') {
                     console.log("🎲 Rollsight Integration | Received test message request");
                     this.sendTestMessage().catch(error => {
                         console.error("Rollsight Integration | Error sending test message:", error);
+                    });
+                } else if (event.data && event.data.type === 'rollsight-amendment') {
+                    console.log("Rollsight Integration | Received amendment via postMessage:", event.data.amendmentData);
+                    this.handleAmendment(event.data.amendmentData).catch(error => {
+                        console.error("Rollsight Integration | Error handling amendment from postMessage:", error);
                     });
                 }
             });
@@ -137,7 +137,13 @@ class RollsightIntegration {
                 return foundryRoll;
             }
 
-            // No active resolver: fall back to chat if enabled
+            // No active resolver: try to apply to pending initiative (e.g. combat started, player prompted to roll but RollResolver didn't open)
+            const appliedToInitiative = await this.tryApplyToPendingInitiative(rollData);
+            if (appliedToInitiative) {
+                return null;
+            }
+
+            // No active resolver and not initiative: fall back to chat if enabled
             if (fallbackToChat) {
                 await this.sendRollAsCommand(rollData);
             } else {
@@ -361,6 +367,41 @@ class RollsightIntegration {
     }
     
     /**
+     * Try to apply a Rollsight roll to a pending initiative (when combat started but RollResolver didn't open for initiative).
+     * Returns true if the roll was applied to a combatant's initiative; false otherwise.
+     */
+    async tryApplyToPendingInitiative(rollData) {
+        const game = (typeof foundry !== 'undefined' && foundry.game) ? foundry.game : globalThis.game;
+        if (game?.settings?.get("rollsight-integration", "applyRollsToInitiative") === false) return false;
+        if (!game?.combat?.started || !game.user) return false;
+        const combat = game.combat;
+        const total = rollData.total !== undefined ? Number(rollData.total) : NaN;
+        if (Number.isNaN(total) || total < 0) return false;
+        // Only apply single-die initiative-style rolls (e.g. 1d20)
+        const formula = (rollData.formula || '').toLowerCase().replace(/\s/g, '');
+        const isSingleD20 = formula === '1d20' || formula === 'd20' || (rollData.dice?.length === 1 && (rollData.dice[0].shape === 'd20' || rollData.dice[0].faces === 20));
+        if (!isSingleD20 && rollData.dice?.length !== 1) return false;
+        const combatants = combat.turns ?? (Array.isArray(combat.combatants) ? combat.combatants : []);
+        const pending = combatants.filter(c => {
+            const noInitiative = c.initiative === null || c.initiative === undefined;
+            const isPlayerOwned = c.players?.includes(game.user) ?? (c.actor?.testUserPermission?.(game.user, "OWNER") ?? false);
+            return noInitiative && isPlayerOwned;
+        });
+        if (pending.length === 0) return false;
+        const combatant = pending[0];
+        try {
+            await combat.setInitiative(combatant.id, total);
+            console.log("Rollsight Integration | Applied Rollsight roll to initiative:", combatant.name, "=", total);
+            const ui = (typeof foundry !== 'undefined' && foundry.ui) ? foundry.ui : globalThis.ui;
+            if (ui?.notifications) ui.notifications.info(`${combatant.name}: Initiative ${total} (Rollsight)`);
+            return true;
+        } catch (err) {
+            console.warn("Rollsight Integration | Could not set initiative from Rollsight:", err);
+            return false;
+        }
+    }
+    
+    /**
      * Send a test chat message to verify communication works
      */
     async sendTestMessage() {
@@ -536,6 +577,23 @@ Hooks.once('init', () => {
         config: true,
         type: String,
         default: ""
+    });
+    game.settings.register("rollsight-integration", "applyRollsToInitiative", {
+        name: "Apply Rollsight rolls to pending initiative",
+        hint: "When combat has started and a player has no initiative yet, a single d20 roll from Rollsight is applied to their initiative (so they are not forced to roll inside Foundry).",
+        scope: "world",
+        config: true,
+        type: Boolean,
+        default: true
+    });
+    // Client-scoped so players see the module in Configure Settings and know it's active for them
+    game.settings.register("rollsight-integration", "playerActive", {
+        name: "Rollsight Integration (this client)",
+        hint: "This module runs for all users (GM and players) when the GM enables it in Manage Modules. Use the Rollsight browser extension and Rollsight app to send physical dice rolls from this client.",
+        scope: "client",
+        config: true,
+        type: Boolean,
+        default: true
     });
 
     const rollsight = new RollsightIntegration();
