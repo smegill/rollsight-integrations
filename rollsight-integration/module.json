@@ -2,7 +2,7 @@
   "id": "rollsight-integration",
   "title": "Rollsight Integration",
   "description": "Integrate physical dice rolls from Rollsight into Foundry VTT. Uses Foundry v12+ Dice Fulfillment so rolls apply in-context (attacks, spells, saves).",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "compatibility": {
     "minimum": "10",
     "verified": "12"
@@ -18,7 +18,7 @@
   "socket": true,
   "readme": "README.md",
   "url": "https://github.com/smegill/rollsight-integrations",
-  "manifest": "https://cdn.jsdelivr.net/gh/smegill/rollsight-integrations@main/foundry_module/rollsight-integration/module.json",
+  "manifest": "https://raw.githubusercontent.com/smegill/rollsight-integrations/main/foundry_module/rollsight-integration/module.json",
   "download": "https://github.com/smegill/rollsight-integrations/releases/latest/download/rollsight-integration.zip"
 }
 
