@@ -367,7 +367,181 @@ class RollsightIntegration {
     }
     
     /**
-     * Try to apply a Rollsight roll to a pending initiative (when combat started but RollResolver didn't open for initiative).
+     * Try to find an open "Configure Roll" (or similar) dialog and apply the Rollsight d20 using its settings
+     * (formula, situational bonus, advantage, roll mode). Returns true if we did; false otherwise.
+     */
+    async _tryApplyFromOpenRollConfigDialog(d20Value, combatant, combat) {
+        const ui = (typeof foundry !== 'undefined' && foundry.ui) ? foundry.ui : globalThis.ui;
+        if (typeof document === 'undefined') return false;
+
+        let dialogApp = null;
+        let dialogElement = null;
+
+        const checkElement = (root) => {
+            if (!root?.querySelector) return false;
+            const titleEl = root.querySelector('.window-title, [class*="title"], header h2, .dialog-title, h2');
+            const title = (titleEl?.textContent ?? '').trim();
+            if (!/configure roll|roll config/i.test(title)) return false;
+            const form = root.querySelector('form') ?? root.querySelector('[data-form]');
+            return form ? root : null;
+        };
+
+        if (ui?.windows) {
+            const windowsList = Array.isArray(ui.windows) ? ui.windows : Object.values(ui.windows);
+            for (const w of windowsList) {
+                const el = w?.element ?? w?.window?.content;
+                const root = el instanceof HTMLElement ? el : w?.element;
+                const found = checkElement(root);
+                if (found) {
+                    dialogApp = w;
+                    dialogElement = found;
+                    break;
+                }
+            }
+        }
+        if (!dialogElement && document.body) {
+            const candidates = document.body.querySelectorAll('.window, .app, [class*="application"], [class*="dialog"]');
+            for (const el of candidates) {
+                const found = checkElement(el);
+                if (found) {
+                    dialogElement = found;
+                    break;
+                }
+            }
+        }
+
+        if (!dialogElement?.querySelector) return false;
+
+        let formulaStr = '';
+        const formulaEl = dialogElement.querySelector('[name="formula"], .formula, [data-formula]');
+        if (formulaEl) formulaStr = formulaEl.value ?? formulaEl.textContent?.trim() ?? formulaEl.dataset?.formula ?? '';
+        if (!formulaStr) {
+            for (const lb of dialogElement.querySelectorAll('label, .label, .form-group')) {
+                if (/formula/i.test(lb.textContent || '')) {
+                    const next = lb.nextElementSibling ?? lb.parentElement?.querySelector('.value, [data-value], input, .formula');
+                    formulaStr = (next?.value ?? next?.textContent ?? '').toString().trim();
+                    if (formulaStr) break;
+                }
+            }
+        }
+        if (!formulaStr) {
+            const match = dialogElement.innerText?.match(/(\d*d\d+(?:k[hl]\d+)?(?:\s*[+*-]\s*\d+)*)/);
+            if (match) formulaStr = match[1].replace(/\s/g, '');
+        }
+        if (!formulaStr) return false;
+
+        const bonusInput = dialogElement.querySelector('input[placeholder*="Situational"], input[placeholder*="Bonus"], input[name*="bonus"]');
+        const situationalBonus = bonusInput?.value ? parseFloat(String(bonusInput.value).replace(/\s/g, '')) : 0;
+        const bonus = Number.isNaN(situationalBonus) ? 0 : situationalBonus;
+
+        const advantageBtn = dialogElement.querySelector('[data-action="advantage"], [data-advantage="1"], .advantage, button:has([class*="advantage"])');
+        const disadvantageBtn = dialogElement.querySelector('[data-action="disadvantage"], [data-advantage="-1"], .disadvantage');
+        const normalBtn = dialogElement.querySelector('[data-action="normal"], .normal');
+        const hasAdv = advantageBtn?.classList?.contains('active') ?? advantageBtn?.getAttribute?.('aria-pressed') === 'true';
+        const hasDis = disadvantageBtn?.classList?.contains('active') ?? disadvantageBtn?.getAttribute?.('aria-pressed') === 'true';
+
+        const RollClass = (typeof foundry !== 'undefined' && foundry.dice?.rolls?.Roll) ? foundry.dice.rolls.Roll : globalThis.Roll;
+        const DieClass = (typeof foundry !== 'undefined' && foundry.dice?.terms?.Die) ? foundry.dice.terms.Die : globalThis.Die;
+        if (!RollClass || !DieClass) return false;
+
+        let rollFormula = formulaStr.replace(/\s/g, '');
+        if (hasAdv && !/2d20kh|2d20kH/.test(rollFormula)) rollFormula = rollFormula.replace(/(\d*)d20/, '2d20kh1');
+        if (hasDis && !/2d20kl|2d20kL/.test(rollFormula)) rollFormula = rollFormula.replace(/(\d*)d20/, '2d20kl1');
+
+        let roll;
+        try {
+            roll = RollClass.fromFormula ? RollClass.fromFormula(rollFormula) : new RollClass(rollFormula);
+        } catch (_) {
+            return false;
+        }
+
+        let injected = false;
+        for (const term of roll.terms) {
+            if (term instanceof DieClass && term.faces === 20) {
+                const n = Math.max(1, term.number ?? 1);
+                term.results = Array.from({ length: n }, () => ({ result: d20Value, active: true, discarded: false }));
+                term._evaluated = true;
+                injected = true;
+            }
+        }
+        if (!injected) return false;
+
+        roll._evaluated = true;
+        let sum = 0;
+        for (const term of roll.terms) {
+            const v = term.total ?? term.value;
+            if (typeof v === 'number' && !Number.isNaN(v)) sum += v;
+        }
+        const total = (roll._total ?? roll.total ?? sum) + bonus;
+        if (Number.isNaN(total)) return false;
+
+        try {
+            await combat.setInitiative(combatant.id, total);
+            if (ui?.notifications) ui.notifications.info(`${combatant.name}: Initiative ${total} (Rollsight, from dialog)`);
+            if (dialogApp?.close) await dialogApp.close();
+            else if (dialogElement?.closest?.('.app')?.querySelector?.('.header-button.close')) dialogElement.closest('.app').querySelector('.header-button.close').click();
+            console.log("Rollsight Integration | Applied Rollsight roll from Configure Roll dialog:", combatant.name, "=", total);
+            return true;
+        } catch (_) {
+            return false;
+        }
+    }
+
+    /**
+     * Build initiative roll using combatant's formula (bonuses from sheet) with d20 result set to Rollsight value.
+     * Returns { roll, d20Value } or null if not supported.
+     */
+    _buildInitiativeRollWithInjectedD20(combatant, d20Value) {
+        const RollClass = (typeof foundry !== 'undefined' && foundry.dice?.rolls?.Roll)
+            ? foundry.dice.rolls.Roll
+            : globalThis.Roll;
+        const DieClass = (typeof foundry !== 'undefined' && foundry.dice?.terms?.Die)
+            ? foundry.dice.terms.Die
+            : globalThis.Die;
+        if (!combatant?.getInitiativeRoll || !RollClass || !DieClass) return null;
+        let initiativeRoll;
+        try {
+            initiativeRoll = combatant.getInitiativeRoll();
+        } catch (_) {
+            return null;
+        }
+        if (!initiativeRoll?.formula) return null;
+        let roll;
+        if (RollClass.fromFormula) {
+            roll = RollClass.fromFormula(initiativeRoll.formula);
+        } else {
+            roll = new RollClass(initiativeRoll.formula);
+        }
+        let injected = false;
+        for (const term of roll.terms) {
+            if (term instanceof DieClass && term.faces === 20) {
+                const numDice = Math.max(1, term.number ?? 1);
+                term.results = Array.from({ length: numDice }, () => ({
+                    result: d20Value,
+                    active: true,
+                    discarded: false
+                }));
+                term._evaluated = true;
+                injected = true;
+            }
+        }
+        if (!injected) return null;
+        roll._evaluated = true;
+        // Ensure total is correct (sum all terms in case Roll.total doesn't include unevaluated NumericTerms)
+        let sum = 0;
+        for (const term of roll.terms) {
+            const v = term.total ?? term.value;
+            if (typeof v === 'number' && !Number.isNaN(v)) sum += v;
+        }
+        if (Number.isNaN(roll.total) || roll.total === undefined) {
+            roll._total = sum;
+        }
+        return { roll, d20Value };
+    }
+
+    /**
+     * Try to apply a Rollsight roll to a pending initiative: use combatant's initiative formula (so bonuses apply),
+     * inject the Rollsight d20 as the die result, show a dialog with the breakdown, then set initiative to the total.
      * Returns true if the roll was applied to a combatant's initiative; false otherwise.
      */
     async tryApplyToPendingInitiative(rollData) {
@@ -375,9 +549,8 @@ class RollsightIntegration {
         if (game?.settings?.get("rollsight-integration", "applyRollsToInitiative") === false) return false;
         if (!game?.combat?.started || !game.user) return false;
         const combat = game.combat;
-        const total = rollData.total !== undefined ? Number(rollData.total) : NaN;
-        if (Number.isNaN(total) || total < 0) return false;
-        // Only apply single-die initiative-style rolls (e.g. 1d20)
+        const d20Value = rollData.total !== undefined ? Number(rollData.total) : NaN;
+        if (Number.isNaN(d20Value) || d20Value < 1 || d20Value > 20) return false;
         const formula = (rollData.formula || '').toLowerCase().replace(/\s/g, '');
         const isSingleD20 = formula === '1d20' || formula === 'd20' || (rollData.dice?.length === 1 && (rollData.dice[0].shape === 'd20' || rollData.dice[0].faces === 20));
         if (!isSingleD20 && rollData.dice?.length !== 1) return false;
@@ -389,12 +562,73 @@ class RollsightIntegration {
         });
         if (pending.length === 0) return false;
         const combatant = pending[0];
+
+        // Prefer applying from the open "Configure Roll" dialog (formula, situational bonus, advantage, roll mode)
+        const appliedFromDialog = await this._tryApplyFromOpenRollConfigDialog(d20Value, combatant, combat);
+        if (appliedFromDialog) return true;
+
+        const built = this._buildInitiativeRollWithInjectedD20(combatant, d20Value);
+        let total = null;
+        if (built?.roll) {
+            const t = built.roll._total ?? built.roll.total;
+            total = (typeof t === 'number' && !Number.isNaN(t)) ? t : null;
+        }
+        const useFormula = total !== null;
+
+        const applyInitiative = async (finalTotal) => {
+            try {
+                await combat.setInitiative(combatant.id, finalTotal);
+                console.log("Rollsight Integration | Applied Rollsight roll to initiative:", combatant.name, "=", finalTotal);
+                const ui = (typeof foundry !== 'undefined' && foundry.ui) ? foundry.ui : globalThis.ui;
+                if (ui?.notifications) ui.notifications.info(`${combatant.name}: Initiative ${finalTotal} (Rollsight)`);
+                return true;
+            } catch (err) {
+                console.warn("Rollsight Integration | Could not set initiative from Rollsight:", err);
+                return false;
+            }
+        };
+
+        if (useFormula) {
+            const roll = built.roll;
+            const rollResult = typeof roll.result === 'string' ? roll.result : String(roll.total ?? '');
+            const DialogClass = globalThis.Dialog || (typeof foundry !== 'undefined' && foundry.Dialog);
+            if (!DialogClass) {
+                await applyInitiative(total);
+                return true;
+            }
+            return new Promise((resolve) => {
+                new DialogClass({
+                    title: game.i18n?.localize?.("ROLLSIGHT.InitiativeDialogTitle") ?? "Initiative (Rollsight)",
+                    content: `
+                        <p class="rollsight-initiative-breakdown">
+                            <strong>${combatant.name}</strong><br>
+                            ${roll.formula} = <strong>${rollResult}</strong> (d20 from Rollsight: ${built.d20Value})
+                        </p>
+                        <p>Apply this as ${combatant.name}'s initiative?</p>
+                    `,
+                    buttons: {
+                        apply: {
+                            icon: "<i class='fas fa-check'></i>",
+                            label: game.i18n?.localize?.("ROLLSIGHT.ApplyInitiative") ?? "Apply to Initiative",
+                            callback: async () => {
+                                const ok = await applyInitiative(total);
+                                resolve(ok);
+                            }
+                        },
+                        cancel: {
+                            icon: "<i class='fas fa-times'></i>",
+                            label: game.i18n?.localize?.("Cancel") ?? "Cancel",
+                            callback: () => resolve(false)
+                        }
+                    },
+                    default: "apply",
+                    close: () => resolve(false)
+                }, { width: 400 }).render(true);
+            });
+        }
+
         try {
-            await combat.setInitiative(combatant.id, total);
-            console.log("Rollsight Integration | Applied Rollsight roll to initiative:", combatant.name, "=", total);
-            const ui = (typeof foundry !== 'undefined' && foundry.ui) ? foundry.ui : globalThis.ui;
-            if (ui?.notifications) ui.notifications.info(`${combatant.name}: Initiative ${total} (Rollsight)`);
-            return true;
+            return await applyInitiative(d20Value);
         } catch (err) {
             console.warn("Rollsight Integration | Could not set initiative from Rollsight:", err);
             return false;
