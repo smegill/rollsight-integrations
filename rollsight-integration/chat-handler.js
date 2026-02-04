@@ -22,7 +22,6 @@ export class ChatHandler {
             const ChatMessageClass = (typeof foundry !== 'undefined' && foundry.chat?.messages?.ChatMessage)
                 ? foundry.chat.messages.ChatMessage
                 : globalThis.ChatMessage;
-            const CONST = (typeof foundry !== 'undefined' && foundry.CONST) ? foundry.CONST : globalThis.CONST;
             const CONFIG = (typeof foundry !== 'undefined' && foundry.CONFIG) ? foundry.CONFIG : globalThis.CONFIG;
             
             if (!game || !game.user) {
@@ -32,14 +31,16 @@ export class ChatHandler {
             const user = game.user;
             console.log("ChatHandler | User:", user.name, "ID:", user.id);
             
-            // Use Foundry's built-in roll rendering instead of custom template
-            // This ensures compatibility with other modules and proper roll display
+            // v12+ use rolls array only (avoid deprecated CONST.CHAT_MESSAGE_TYPES / CHAT_MESSAGE_STYLES.ROLL)
+            const major = Number(String(game.release?.version ?? game.data?.version ?? "0").split(".")[0]) || 0;
+            const useRollsOnly = major >= 12;
+            const sound = (typeof CONFIG !== "undefined" && CONFIG.sounds?.dice) ? CONFIG.sounds.dice : null;
+            
             const messageData = {
                 user: user.id,
                 speaker: ChatMessageClass.getSpeaker({ user: user }),
-                type: CONST.CHAT_MESSAGE_TYPES.ROLL,
-                roll: roll,  // Foundry will render this automatically
-                sound: CONFIG.sounds.dice,
+                ...(useRollsOnly ? { rolls: [roll] } : { type: "roll", roll }),
+                ...(sound ? { sound } : {}),
                 flags: {
                     "rollsight-integration": {
                         rollId: rollData.roll_id,
@@ -50,7 +51,7 @@ export class ChatHandler {
             
             console.log("ChatHandler | Creating message with data:", {
                 user: messageData.user,
-                type: messageData.type,
+                rolls: messageData.rolls?.length ?? messageData.roll,
                 formula: roll.formula,
                 total: roll.total
             });

@@ -1,6 +1,6 @@
-# Loading Rollsight Integration on the Foundry Server
+# Loading Rollsight Real Dice Reader on the Foundry Server
 
-This guide covers what must be present on the machine where Foundry VTT runs so the Rollsight Integration module can be loaded and used.
+This guide covers what must be present on the machine where Foundry VTT runs so the Rollsight Real Dice Reader module can be loaded and used.
 
 ---
 
@@ -80,7 +80,7 @@ After the module is under `Data/modules/`:
 
 1. Open the **world** in Foundry (as GM).
 2. Go to **Settings** → **Manage Modules**.
-3. Enable **Rollsight Integration**.
+3. Enable **Rollsight Real Dice Reader**.
 4. Click **Update Modules** or reload the world.
 
 The module will load in every client that joins that world.
@@ -89,7 +89,7 @@ The module will load in every client that joins that world.
 
 ## 4. World Settings (Optional)
 
-Once the module is enabled, the GM can configure ( **Settings** → **Configure Settings** → **Rollsight Integration** ):
+Once the module is enabled, the GM can configure ( **Settings** → **Configure Settings** → **Rollsight Real Dice Reader** ):
 
 | Setting | Purpose |
 |--------|--------|
@@ -106,7 +106,7 @@ Players choose **Rollsight (Physical Dice)** per die type in **Setup** → **Dic
 - [ ] Foundry Data directory identified (e.g. `Data/` on the server).
 - [ ] `rollsight-integration` folder copied to `Data/modules/rollsight-integration/` with all JS files and `module.json`.
 - [ ] Foundry restarted or world reloaded.
-- [ ] In the world: **Manage Modules** → **Rollsight Integration** enabled.
+- [ ] In the world: **Manage Modules** → **Rollsight Real Dice Reader** enabled.
 - [ ] (Optional) **Roll request URL** set if using roll-request notifications to Rollsight.
 
 No extra services or ports are required on the Foundry server for the module to load. Rollsight and the browser extension run on the **player’s machine** and communicate with the Foundry **client** in the browser (e.g. via postMessage).

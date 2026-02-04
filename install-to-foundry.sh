@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Copy the Rollsight Integration module into Foundry VTT Data/modules/
+# Copy the Rollsight Real Dice Reader module into Foundry VTT Data/modules/
 # so it can be loaded by the Foundry server.
 #
 # Usage:
@@ -44,7 +44,7 @@ fi
 
 mkdir -p "$(dirname "$TARGET")"
 
-echo "Installing Rollsight Integration module"
+echo "Installing Rollsight Real Dice Reader module"
 echo "  From: $MODULE_SRC"
 echo "  To:   $TARGET"
 echo ""
@@ -60,4 +60,4 @@ else
   cp -R "$MODULE_SRC" "$TARGET"
 fi
 
-echo "Done. Restart Foundry or reload the world, then enable 'Rollsight Integration' in Manage Modules."
+echo "Done. Restart Foundry or reload the world, then enable 'Rollsight Real Dice Reader' in Manage Modules."

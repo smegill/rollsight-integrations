@@ -1,34 +1,21 @@
 /**
  * Fulfillment Provider for Rollsight Integration
  *
- * Registers Rollsight as a CONFIG.Dice.fulfillment method (Foundry v12+)
- * so players can choose "Rollsight" per die type in Dice Configuration.
- * When they roll (e.g. attack), RollResolver opens and we feed results
- * via Roll.registerResult when we receive physical dice.
+ * We do not register Rollsight as a CONFIG.Dice.fulfillment method.
+ * Users set Dice Configuration to Manual for dice they use with Rollsight;
+ * we replace the manual dialog with a Rollsight prompt and feed physical dice
+ * via Roll.registerResult("manual", ...) when we receive them.
  */
 
 const METHOD_ID = "rollsight";
 
 /**
- * Register Rollsight as a dice fulfillment method.
- * Called from init so it runs before Dice Configuration is shown.
+ * No-op: we no longer register Rollsight as a dice fulfillment method.
+ * Only Manual is used; the module feeds rolls into the Manual resolver.
  */
 export function registerFulfillmentMethod() {
-  const CONFIG =
-    typeof foundry !== "undefined" && foundry.CONFIG
-      ? foundry.CONFIG
-      : globalThis.CONFIG;
-  if (!CONFIG?.Dice?.fulfillment?.methods) {
-    console.warn(
-      "Rollsight Integration | CONFIG.Dice.fulfillment.methods not available (Foundry v12+ required for fulfillment)"
-    );
-    return;
-  }
-  CONFIG.Dice.fulfillment.methods[METHOD_ID] = {
-    label: "Rollsight (Physical Dice)",
-    icon: "fas fa-dice-d20",
-  };
-  console.log("Rollsight Integration | Registered fulfillment method:", METHOD_ID);
+  // Intentionally do not add CONFIG.Dice.fulfillment.methods.rollsight.
+  // Users configure dice as Manual; we inject Rollsight results into that resolver.
 }
 
 /**
@@ -77,7 +64,7 @@ export function rollDataToFulfillmentPairs(rollData) {
 
 /**
  * Try to consume roll data with the active RollResolver via Roll.registerResult.
- * Returns true if at least one result was consumed (resolver was active).
+ * Uses "manual" only (Rollsight is not a config option; users set Manual and we feed into it).
  */
 export function tryFulfillActiveResolver(rollData) {
   const Roll =
@@ -87,9 +74,17 @@ export function tryFulfillActiveResolver(rollData) {
   if (!Roll?.registerResult) return false;
   const pairs = rollDataToFulfillmentPairs(rollData);
   let consumed = false;
+  const methodsToTry = ["manual"];
   for (const { denomination, value } of pairs) {
-    const result = Roll.registerResult(METHOD_ID, denomination, value);
-    if (result === true) consumed = true;
+    for (const method of methodsToTry) {
+      try {
+        const result = Roll.registerResult(method, denomination, value);
+        if (result === true) {
+          consumed = true;
+          break;
+        }
+      } catch (_) {}
+    }
   }
   return consumed;
 }

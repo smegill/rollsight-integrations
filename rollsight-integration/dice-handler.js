@@ -13,10 +13,13 @@ export class DiceHandler {
      * Animate 3D dice for a roll
      */
     animateDice(roll) {
-        // Check if 3D dice are enabled (using namespaced API for Foundry v13+ if available)
         const game = (typeof foundry !== 'undefined' && foundry.game) ? foundry.game : globalThis.game;
-        if (!game.settings.get("core", "dice3d")) {
-            return; // 3D dice not enabled
+        try {
+            if (!game?.settings?.get("core", "dice3d")) {
+                return; // 3D dice not enabled or setting not registered
+            }
+        } catch (_) {
+            return; // core.dice3d not registered in this world (e.g. Dice So Nice only)
         }
         
         // Check if Dice3D module is available
