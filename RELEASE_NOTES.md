@@ -114,3 +114,7 @@
 
 - (no Foundry module changes detected)
 
+## v1.1.19 - 2026-02-05
+
+- (no Foundry module changes detected)
+
