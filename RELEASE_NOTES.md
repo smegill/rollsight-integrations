@@ -102,3 +102,7 @@
 
 - (no Foundry module changes detected)
 
+## v1.1.16 - 2026-02-05
+
+- 05206fb Beta Release 1
+
