@@ -17,15 +17,19 @@ export class ChatHandler {
         try {
             console.log("ChatHandler | Creating roll message for:", roll.formula, "=", roll.total);
             
-            // Get Foundry classes (using namespaced API for Foundry v13+ if available)
+            // Get Foundry classes (v12: game.messages.documentClass; v13+: foundry.chat.messages.ChatMessage)
             const game = (typeof foundry !== 'undefined' && foundry.game) ? foundry.game : globalThis.game;
-            const ChatMessageClass = (typeof foundry !== 'undefined' && foundry.chat?.messages?.ChatMessage)
-                ? foundry.chat.messages.ChatMessage
-                : globalThis.ChatMessage;
+            const ChatMessageClass = game?.messages?.documentClass
+                ?? (typeof foundry !== 'undefined' && foundry.chat?.messages?.ChatMessage)
+                ?? globalThis.ChatMessage;
             const CONFIG = (typeof foundry !== 'undefined' && foundry.CONFIG) ? foundry.CONFIG : globalThis.CONFIG;
             
             if (!game || !game.user) {
                 throw new Error("Game or user not available");
+            }
+            
+            if (!ChatMessageClass) {
+                throw new Error("ChatMessage document class not available (Foundry may not be fully ready)");
             }
             
             const user = game.user;
@@ -36,9 +40,18 @@ export class ChatHandler {
             const useRollsOnly = major >= 12;
             const sound = (typeof CONFIG !== "undefined" && CONFIG.sounds?.dice) ? CONFIG.sounds.dice : null;
             
+            let speaker;
+            try {
+                speaker = (typeof ChatMessageClass.getSpeaker === "function")
+                    ? ChatMessageClass.getSpeaker({ user })
+                    : { alias: user?.name ?? "Unknown" };
+            } catch (e) {
+                speaker = { alias: user?.name ?? "Unknown" };
+            }
+            
             const messageData = {
                 user: user.id,
-                speaker: ChatMessageClass.getSpeaker({ user: user }),
+                speaker,
                 ...(useRollsOnly ? { rolls: [roll] } : { type: "roll", roll }),
                 ...(sound ? { sound } : {}),
                 flags: {

@@ -460,10 +460,25 @@ class RollsightIntegration {
         const title = _t("ROLLSIGHT.RollDialogTitle", `Rollsight: Roll ${formula}`);
         const prompt = _t("ROLLSIGHT.RollDialogPrompt", `Roll <strong>${formula}</strong> in Rollsight to fill in the result, or click below to complete with digital rolls.`);
         const labelDigital = _t("ROLLSIGHT.CompleteWithDigital", "Complete with Digital Rolls");
-        const labelCancel = _t("Cancel", "Cancel");
+        const labelCancel = _t("ROLLSIGHT.Cancel", "Cancel");
 
         const slotsHtml = this._buildRollSlotHtml(resolver);
-        const content = `<p class="rollsight-dialog-prompt">${prompt}</p>${slotsHtml}`;
+        const content = `<p class="rollsight-dialog-prompt rollsight-dialog-marker">${prompt}</p>${slotsHtml}`;
+
+        const stripButtonPrefix = () => {
+            const run = () => {
+                const el = document.querySelector(".rollsight-dialog-marker");
+                const dialog = el?.closest(".window-app") ?? el?.closest("[data-appid]") ?? el?.closest(".app");
+                if (!dialog) return;
+                dialog.querySelectorAll("button").forEach((btn) => {
+                    const raw = btn.textContent || "";
+                    if (raw.startsWith("> ")) btn.textContent = raw.slice(2);
+                    else if (raw.startsWith(">")) btn.textContent = raw.slice(1);
+                });
+            };
+            requestAnimationFrame(run);
+            setTimeout(run, 100);
+        };
 
         const DialogV2 = (typeof foundry !== "undefined" && foundry.applications?.api?.DialogV2) ? foundry.applications.api.DialogV2 : null;
         if (DialogV2) {
@@ -476,6 +491,7 @@ class RollsightIntegration {
                 ]
             });
             dlg.render({ force: true });
+            stripButtonPrefix();
             return dlg;
         }
 
@@ -492,6 +508,7 @@ class RollsightIntegration {
                 close: () => { if (resolveOutcome) resolveOutcome("cancelled"); }
             }, { width: 380 });
             dlg.render(true);
+            stripButtonPrefix();
             return dlg;
         }
         return null;

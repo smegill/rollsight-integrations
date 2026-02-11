@@ -15,8 +15,12 @@ export class SocketHandler {
      * Register socket handlers
      */
     register() {
-        // Register custom socket events (using namespaced API for Foundry v13+ if available)
+        // Register custom socket events (using namespaced API for Foundry v13+ if available).
+        // In v12, game.socket may not be available at setup; callers should wrap in try/catch.
         const game = (typeof foundry !== 'undefined' && foundry.game) ? foundry.game : globalThis.game;
+        if (!game?.socket) {
+            throw new Error("game.socket not available (Foundry may not be ready)");
+        }
         game.socket.on("module.rollsight-integration", this.handleSocketEvent.bind(this));
     }
     

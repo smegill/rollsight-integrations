@@ -106,8 +106,12 @@ class RollsightIntegration {
     init() {
         console.log("Rollsight Real Dice Reader | Initializing...");
         
-        // Register socket handlers
-        this.socketHandler.register();
+        // Register socket handlers (defensive: v12+ may expose socket differently)
+        try {
+            this.socketHandler.register();
+        } catch (err) {
+            console.warn("Rollsight Real Dice Reader | Socket registration skipped (rolls via extension/postMessage still work):", err?.message ?? err);
+        }
         
         // Fix chat message roll data when Foundry creates a message with wrong/multiplied dice (e.g. after we close resolver without submit).
         const Hooks = (typeof foundry !== 'undefined' && foundry.Hooks) ? foundry.Hooks : globalThis.Hooks;
@@ -245,6 +249,23 @@ class RollsightIntegration {
                     }
                 }, true);
             }
+            const v = game?.release?.version ?? game?.data?.version ?? game?.version ?? "?";
+            console.log("Rollsight Real Dice Reader | Fully loaded (Foundry " + v + "). Settings: Configure Settings → Module Settings → Rollsight Real Dice Reader. Use Manual dice in Dice Configuration for physical Rollsight dice.");
+            // One-time check: is the Rollsight extension on this tab? (so we can log a clear hint if rolls never arrive)
+            const statusTimeout = setTimeout(() => {
+                window.removeEventListener('message', onStatusResponse);
+                console.warn("Rollsight Real Dice Reader | Extension not detected on this tab. If rolls don't reach Foundry: install/reload the Rollsight VTT Bridge extension, ensure Rollsight app + bridge are running, then refresh this page.");
+            }, 2500);
+            function onStatusResponse(event) {
+                if (event.data?.type !== 'rollsight-status-response') return;
+                clearTimeout(statusTimeout);
+                window.removeEventListener('message', onStatusResponse);
+                if (event.data?.contentScriptLoaded) {
+                    console.log("Rollsight Real Dice Reader | Extension is active on this tab. Roll in Rollsight to send rolls here.");
+                }
+            }
+            window.addEventListener('message', onStatusResponse);
+            window.postMessage({ type: 'rollsight-status-request' }, '*');
         });
     }
 
@@ -699,10 +720,25 @@ class RollsightIntegration {
         const title = _t("ROLLSIGHT.RollDialogTitle", `Rollsight: Roll ${formula}`);
         const prompt = _t("ROLLSIGHT.RollDialogPrompt", `Roll <strong>${formula}</strong> in Rollsight to fill in the result, or click below to complete with digital rolls.`);
         const labelDigital = _t("ROLLSIGHT.CompleteWithDigital", "Complete with Digital Rolls");
-        const labelCancel = _t("Cancel", "Cancel");
+        const labelCancel = _t("ROLLSIGHT.Cancel", "Cancel");
 
         const slotsHtml = this._buildRollSlotHtml(resolver);
-        const content = `<p class="rollsight-dialog-prompt">${prompt}</p>${slotsHtml}`;
+        const content = `<p class="rollsight-dialog-prompt rollsight-dialog-marker">${prompt}</p>${slotsHtml}`;
+
+        const stripButtonPrefix = () => {
+            const run = () => {
+                const el = document.querySelector(".rollsight-dialog-marker");
+                const dialog = el?.closest(".window-app") ?? el?.closest("[data-appid]") ?? el?.closest(".app");
+                if (!dialog) return;
+                dialog.querySelectorAll("button").forEach((btn) => {
+                    const raw = btn.textContent || "";
+                    if (raw.startsWith("> ")) btn.textContent = raw.slice(2);
+                    else if (raw.startsWith(">")) btn.textContent = raw.slice(1);
+                });
+            };
+            requestAnimationFrame(run);
+            setTimeout(run, 100);
+        };
 
         const DialogV2 = (typeof foundry !== "undefined" && foundry.applications?.api?.DialogV2) ? foundry.applications.api.DialogV2 : null;
         if (DialogV2) {
@@ -715,6 +751,7 @@ class RollsightIntegration {
                 ]
             });
             dlg.render({ force: true });
+            stripButtonPrefix();
             return dlg;
         }
 
@@ -731,6 +768,7 @@ class RollsightIntegration {
                 close: () => { if (resolveOutcome) resolveOutcome("cancelled"); }
             }, { width: 380 });
             dlg.render(true);
+            stripButtonPrefix();
             return dlg;
         }
         return null;
@@ -1668,17 +1706,16 @@ class RollsightIntegration {
                 await ui.chat.processMessage(rollCommand);
                 console.log("✅ Rollsight Real Dice Reader | Roll command processed successfully");
             } else {
-                // Fallback: create a ChatMessage with the command as content
-                const ChatMessageClass = (typeof foundry !== 'undefined' && foundry.chat?.messages?.ChatMessage)
-                    ? foundry.chat.messages.ChatMessage
-                    : globalThis.ChatMessage;
-                
+                // Fallback: create a ChatMessage with the command as content (v12: game.messages.documentClass)
+                const ChatMessageClass = game?.messages?.documentClass ?? (typeof foundry !== 'undefined' && foundry.chat?.messages?.ChatMessage) ?? globalThis.ChatMessage;
+                const speaker = (ChatMessageClass?.getSpeaker && typeof ChatMessageClass.getSpeaker === "function")
+                    ? (() => { try { return ChatMessageClass.getSpeaker({ user }); } catch (_) { return { alias: user?.name ?? "Unknown" }; } })()
+                    : { alias: user?.name ?? "Unknown" };
                 const messageData = {
                     user: user.id,
-                    speaker: ChatMessageClass.getSpeaker({ user: user }),
+                    speaker,
                     content: rollCommand
                 };
-                
                 const message = await ChatMessageClass.create(messageData);
                 console.log("✅ Rollsight Real Dice Reader | Roll command sent as message, ID:", message.id);
             }
@@ -2530,7 +2567,7 @@ class RollsightIntegration {
                         },
                         cancel: {
                             icon: "<i class='fas fa-times'></i>",
-                            label: game.i18n?.localize?.("Cancel") ?? "Cancel",
+                            label: game.i18n?.localize?.("ROLLSIGHT.Cancel") ?? "Cancel",
                             callback: () => resolve(false)
                         }
                     },
@@ -2555,23 +2592,26 @@ class RollsightIntegration {
         try {
             console.log("🎲 Rollsight Real Dice Reader | Sending test chat message...");
             
-            // Get Foundry classes (using namespaced API for Foundry v13+ if available)
+            // Get Foundry classes (v12: game.messages.documentClass; v13+: foundry.chat.messages.ChatMessage)
             const game = (typeof foundry !== 'undefined' && foundry.game) ? foundry.game : globalThis.game;
-            const ChatMessageClass = (typeof foundry !== 'undefined' && foundry.chat?.messages?.ChatMessage)
-                ? foundry.chat.messages.ChatMessage
-                : globalThis.ChatMessage;
-            
+            const ChatMessageClass = game?.messages?.documentClass ?? (typeof foundry !== 'undefined' && foundry.chat?.messages?.ChatMessage) ?? globalThis.ChatMessage;
             if (!game || !game.user) {
                 throw new Error("Game or user not available");
             }
-            
             const user = game.user;
             console.log("🎲 Rollsight Real Dice Reader | User:", user.name, "ID:", user.id);
-            
+            let speaker;
+            try {
+                speaker = (ChatMessageClass?.getSpeaker && typeof ChatMessageClass.getSpeaker === "function")
+                    ? ChatMessageClass.getSpeaker({ user })
+                    : { alias: user?.name ?? "Unknown" };
+            } catch (_) {
+                speaker = { alias: user?.name ?? "Unknown" };
+            }
             // Create a simple text message
             const messageData = {
                 user: user.id,
-                speaker: ChatMessageClass.getSpeaker({ user: user }),
+                speaker,
                 content: "<p><strong>🎲 Rollsight Test Message</strong><br/>If you see this, communication is working!</p>",
                 sound: null
             };
