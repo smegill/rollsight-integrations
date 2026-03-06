@@ -1,7 +1,7 @@
 /**
- * HTTP Handler for Rollsight Integration
+ * HTTP Handler for RollSight Integration
  * 
- * Handles HTTP POST requests from Rollsight (for cloud-hosted Foundry instances).
+ * Handles HTTP POST requests from RollSight (for cloud-hosted Foundry instances).
  */
 
 export class HTTPHandler {
@@ -14,7 +14,7 @@ export class HTTPHandler {
      */
     register() {
         // Register HTTP endpoint for receiving rolls
-        // This allows external clients (like Rollsight) to send rolls via HTTP
+        // This allows external clients (like RollSight) to send rolls via HTTP
         // instead of requiring Socket.io connection
         
         Hooks.once('ready', () => {
@@ -24,7 +24,7 @@ export class HTTPHandler {
             
             // For now, we'll document that the module needs to be set up
             // to receive HTTP requests via a proxy or custom server
-            console.log("Rollsight Integration | HTTP handler ready");
+            console.log("RollSight Integration | HTTP handler ready");
         });
     }
     

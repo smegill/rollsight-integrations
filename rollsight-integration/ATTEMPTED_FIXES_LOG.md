@@ -2,7 +2,7 @@
 
 **Problem:** Chat rolls and initiative rolls show duplicate/extra dice values (e.g. 2d20kh displays 6–8 dice instead of 2, 1d20 displays 3 dice instead of 1). Duplicate chat messages. Resolver dialog sometimes stays open.
 
-**Context:** Dice Config is **Manual**. Foundry opens RollResolver. Rollsight injects physical dice via postMessage. We replace the resolver UI.
+**Context:** Dice Config is **Manual**. Foundry opens RollResolver. RollSight injects physical dice via postMessage. We replace the resolver UI.
 
 ---
 
@@ -72,13 +72,13 @@
 
 ### 11a. Route Manual dice through our flow (_handleChatRollWithFulfillment)
 **Why tried:** For chat/initiative that goes through processMessage, handle ourselves; never call Foundry → no wrong message.
-**Implementation:** `usesRollsight = denominations.some(d => getMethodForDenomination(d) === 'rollsight' || getMethodForDenomination(d) === 'manual')`.
+**Implementation:** `usesRollSight = denominations.some(d => getMethodForDenomination(d) === 'rollsight' || getMethodForDenomination(d) === 'manual')`.
 
 ### 11b. Patch Roll.evaluate to return our corrected roll
 **Why tried:** Initiative that calls evaluate() directly bypasses processMessage; we must fix the roll at the source before it gets used.
 **Implementation:** When we complete a replaced resolver, store `_correctedRollForEvaluate = { roll, formula, at }`. Roll.evaluate patch: when Promise resolves, if we have a recent corrected roll with matching formula, return it instead of Foundry's result.
 
-### 11c. Include Manual in rollHasRollsightTerms
+### 11c. Include Manual in rollHasRollSightTerms
 **Why tried:** Force allowInteractive for Manual dice so RollResolver opens when initiative uses evaluate() directly.
 **Implementation:** In fulfillment-provider.js, `if (method === METHOD_ID || method === "manual") return true`.
 

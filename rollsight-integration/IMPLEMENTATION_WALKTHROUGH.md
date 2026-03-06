@@ -1,15 +1,15 @@
 # Foundry VTT Module Implementation Walkthrough
 
-This document provides a step-by-step walkthrough for implementing the Rollsight integration module for Foundry VTT.
+This document provides a step-by-step walkthrough for implementing the RollSight integration module for Foundry VTT.
 
 ## Understanding the Communication
 
-### How Rollsight Connects to Foundry
+### How RollSight Connects to Foundry
 
-1. **Rollsight** (Python) uses `python-socketio` to connect to Foundry
+1. **RollSight** (Python) uses `python-socketio` to connect to Foundry
 2. Foundry runs a Socket.io server (usually on port 30000)
-3. Rollsight connects to: `http://localhost:30000/socket.io`
-4. Rollsight emits events that Foundry modules can listen for
+3. RollSight connects to: `http://localhost:30000/socket.io`
+4. RollSight emits events that Foundry modules can listen for
 
 ### Foundry's Socket System
 
@@ -42,7 +42,7 @@ Create `module.json`:
 ```json
 {
   "id": "rollsight-integration",
-  "title": "Rollsight Integration",
+  "title": "RollSight Integration",
   "version": "1.0.0",
   "compatibility": {
     "minimum": "10",
@@ -65,7 +65,7 @@ In `rollsight.js`:
 ```javascript
 Hooks.once('init', () => {
     // Initialize module
-    const rollsight = new RollsightIntegration();
+    const rollsight = new RollSightIntegration();
     rollsight.init();
     
     // Make API available
@@ -97,7 +97,7 @@ game.socket.on("module.rollsight-integration", (data) => {
 Use Foundry's hook system:
 
 ```javascript
-// Rollsight emits: socket.emit('hook', {hook: 'rollsight.roll', data: rollData})
+// RollSight emits: socket.emit('hook', {hook: 'rollsight.roll', data: rollData})
 Hooks.on("rollsight.roll", (rollData) => {
     game.rollsight.handleRoll(rollData);
 });
@@ -109,7 +109,7 @@ Hooks.on("rollsight.roll", (rollData) => {
 
 When a roll arrives:
 
-1. **Parse Roll Data**: Convert Rollsight format to Foundry format
+1. **Parse Roll Data**: Convert RollSight format to Foundry format
 2. **Create Roll Object**: Use Foundry's `Roll` class
 3. **Create Chat Message**: Use `ChatMessage.create()`
 4. **Animate Dice**: Trigger 3D dice if available
@@ -162,7 +162,7 @@ handleAmendment(amendmentData) {
 
 ### Step 7: Sending Roll Requests
 
-To request a roll from Rollsight:
+To request a roll from RollSight:
 
 ```javascript
 async requestRoll(formula, options) {
@@ -203,7 +203,7 @@ Use a combination:
 If Socket.io doesn't work, use Foundry's REST API:
 
 ```javascript
-// In Rollsight (Python)
+// In RollSight (Python)
 import requests
 
 def send_roll_via_api(foundry_url, roll_data):
@@ -231,7 +231,7 @@ This would require creating a Foundry API endpoint (more complex).
 ## Next Steps
 
 1. **Install Module**: Copy to Foundry modules directory
-2. **Test Basic Roll**: Send a test roll from Rollsight
+2. **Test Basic Roll**: Send a test roll from RollSight
 3. **Debug Connection**: Check console for errors
 4. **Refine Formatting**: Customize chat message appearance
 5. **Add Features**: Roll history, settings UI, etc.

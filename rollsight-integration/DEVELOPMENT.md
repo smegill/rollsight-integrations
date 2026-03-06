@@ -1,25 +1,25 @@
-# Development Guide for Rollsight Foundry Module
+# Development Guide for RollSight Foundry Module
 
 ## Architecture Overview
 
-The module uses Foundry's hook system and socket events to communicate with Rollsight.
+The module uses Foundry's hook system and socket events to communicate with RollSight.
 
 ## Communication Flow
 
-### Rollsight → Foundry (Rolls)
+### RollSight → Foundry (Rolls)
 
-1. Rollsight connects to Foundry via Socket.io
-2. When dice are rolled, Rollsight emits: `rollsight:roll` or `hook` event
+1. RollSight connects to Foundry via Socket.io
+2. When dice are rolled, RollSight emits: `rollsight:roll` or `hook` event
 3. Foundry module receives the event
 4. Creates Foundry Roll object
 5. Creates chat message
 6. Triggers 3D dice animation
 
-### Foundry → Rollsight (Requests)
+### Foundry → RollSight (Requests)
 
 1. Foundry module calls `game.rollsight.requestRoll()`
-2. Sends HTTP POST to Rollsight webhook
-3. Rollsight receives request
+2. Sends HTTP POST to RollSight webhook
+3. RollSight receives request
 4. Shows dialog to user
 5. User rolls dice
 6. Roll sent back to Foundry (see above)
@@ -52,7 +52,7 @@ Creates and updates chat messages:
 - Handles dice term conversion
 
 ### roll-request-handler.js
-Sends roll requests to Rollsight:
+Sends roll requests to RollSight:
 - HTTP POST to webhook
 - Error handling
 - Response processing
@@ -126,7 +126,7 @@ Hooks.on("rollsight.roll", (rollData) => {
 
 1. Start Foundry VTT locally
 2. Enable module in test world
-3. Use Rollsight to send test rolls
+3. Use RollSight to send test rolls
 4. Check Foundry console and chat
 
 ### Debug Mode

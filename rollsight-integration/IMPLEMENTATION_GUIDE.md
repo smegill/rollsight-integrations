@@ -1,22 +1,22 @@
 # Foundry VTT Module Implementation Guide
 
-This guide walks you through implementing the Rollsight integration module for Foundry VTT.
+This guide walks you through implementing the RollSight integration module for Foundry VTT.
 
 ## Overview
 
-The Rollsight integration works by:
-1. **Receiving Rolls**: Rollsight connects to Foundry via Socket.io and emits roll events
-2. **Sending Requests**: Foundry sends HTTP POST requests to Rollsight's webhook server
+The RollSight integration works by:
+1. **Receiving Rolls**: RollSight connects to Foundry via Socket.io and emits roll events
+2. **Sending Requests**: Foundry sends HTTP POST requests to RollSight's webhook server
 
 ## Architecture
 
-### Socket.io Communication (Rollsight → Foundry)
+### Socket.io Communication (RollSight → Foundry)
 
-Rollsight connects to Foundry's Socket.io server and emits events:
+RollSight connects to Foundry's Socket.io server and emits events:
 - `rollsight:roll` - When dice are rolled
 - `rollsight:amendment` - When a roll is corrected
 
-### HTTP Webhook (Foundry → Rollsight)
+### HTTP Webhook (Foundry → RollSight)
 
 Foundry sends HTTP POST requests to:
 - `http://localhost:8765/foundry/roll-request`
@@ -48,7 +48,7 @@ The `module.json` file defines your module:
 ```json
 {
   "id": "rollsight-integration",
-  "title": "Rollsight Integration",
+  "title": "RollSight Integration",
   "version": "1.0.0",
   "compatibility": {
     "minimum": "10",
@@ -73,10 +73,10 @@ The main module file:
 
 **Option A: Use Foundry Hooks (Recommended)**
 
-Rollsight will call Foundry hooks directly:
+RollSight will call Foundry hooks directly:
 
 ```javascript
-// In Rollsight (Python)
+// In RollSight (Python)
 # After connecting to Foundry via socket.io
 socket.emit('hook', {
     hook: 'rollsight.roll',
@@ -111,16 +111,16 @@ Triggers 3D dice animations:
 
 ### Step 7: Roll Request Handler (roll-request-handler.js)
 
-Sends roll requests to Rollsight:
+Sends roll requests to RollSight:
 - HTTP POST to webhook URL
 - Includes formula and context
 - Returns response
 
-## Integration with Rollsight
+## Integration with RollSight
 
 ### Connecting to Foundry
 
-Rollsight connects to Foundry's Socket.io server. The connection happens in `foundry.py`:
+RollSight connects to Foundry's Socket.io server. The connection happens in `foundry.py`:
 
 ```python
 # In foundry.py
@@ -129,7 +129,7 @@ socket.connect(f"{foundry_url}/socket.io")
 
 ### Emitting Roll Events
 
-When a roll is sent, Rollsight emits:
+When a roll is sent, RollSight emits:
 
 ```python
 socket.emit('hook', {
@@ -146,16 +146,16 @@ socket.emit('rollsight:roll', foundry_roll_data)
 
 ### Receiving Roll Requests
 
-Rollsight's webhook server listens on port 8765 and handles POST requests from Foundry.
+RollSight's webhook server listens on port 8765 and handles POST requests from Foundry.
 
 ## Testing
 
 ### Test Roll Receiving
 
 1. Start Foundry VTT
-2. Enable the Rollsight module
-3. Start Rollsight and connect to Foundry
-4. Roll dice in Rollsight
+2. Enable the RollSight module
+3. Start RollSight and connect to Foundry
+4. Roll dice in RollSight
 5. Check Foundry chat for the roll
 
 ### Test Roll Requests
@@ -164,12 +164,12 @@ Rollsight's webhook server listens on port 8765 and handles POST requests from F
    ```javascript
    game.rollsight.requestRoll("8d6", {description: "Test roll"});
    ```
-2. Check Rollsight for the request dialog
+2. Check RollSight for the request dialog
 
 ### Test Amendments
 
-1. Roll dice in Rollsight (appears in Foundry)
-2. Correct a die in Rollsight
+1. Roll dice in RollSight (appears in Foundry)
+2. Correct a die in RollSight
 3. Check Foundry chat - message should update
 
 ## Troubleshooting
@@ -178,12 +178,12 @@ Rollsight's webhook server listens on port 8765 and handles POST requests from F
 
 - Check Foundry console (F12) for errors
 - Verify module is enabled
-- Check that Rollsight is connected
+- Check that RollSight is connected
 - Verify socket events are being received
 
 ### "Socket.io connection issues"
 
-- Check Foundry URL in Rollsight settings
+- Check Foundry URL in RollSight settings
 - Verify Foundry is running
 - Check firewall settings
 - Review Foundry console for connection errors

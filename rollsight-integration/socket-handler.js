@@ -1,7 +1,7 @@
 /**
- * Socket Handler for Rollsight Integration
+ * Socket Handler for RollSight Integration
  * 
- * Handles Socket.io communication with Rollsight.
+ * Handles Socket.io communication with RollSight.
  */
 
 export class SocketHandler {
@@ -25,17 +25,17 @@ export class SocketHandler {
     }
     
     /**
-     * Connect to Rollsight via Socket.io
+     * Connect to RollSight via Socket.io
      * 
      * Note: This is a placeholder - actual connection would be established
-     * by Rollsight connecting to Foundry, not the other way around.
-     * Rollsight emits events that Foundry listens for.
+     * by RollSight connecting to Foundry, not the other way around.
+     * RollSight emits events that Foundry listens for.
      */
     connect() {
-        // Rollsight connects to Foundry, so we just mark as ready
+        // RollSight connects to Foundry, so we just mark as ready
         this.connected = true;
         this.module.connected = true;
-        console.log("Rollsight Integration | Ready to receive rolls from Rollsight");
+        console.log("RollSight Integration | Ready to receive rolls from RollSight");
     }
     
     /**
@@ -47,9 +47,9 @@ export class SocketHandler {
     }
     
     /**
-     * Handle socket events from Rollsight
+     * Handle socket events from RollSight
      * 
-     * Rollsight will emit events via Foundry's socket system.
+     * RollSight will emit events via Foundry's socket system.
      * We listen for 'rollsight:roll' and 'rollsight:amendment' events.
      */
     handleSocketEvent(data) {
@@ -65,7 +65,7 @@ export class SocketHandler {
      */
     handleRoll(rollData) {
         if (!this.connected) {
-            console.warn("Rollsight Integration | Received roll but not connected");
+            console.warn("RollSight Integration | Received roll but not connected");
             return;
         }
         
@@ -77,7 +77,7 @@ export class SocketHandler {
      */
     handleAmendment(amendmentData) {
         if (!this.connected) {
-            console.warn("Rollsight Integration | Received amendment but not connected");
+            console.warn("RollSight Integration | Received amendment but not connected");
             return;
         }
         
@@ -86,10 +86,10 @@ export class SocketHandler {
 }
 
 /**
- * Hook into Foundry's socket system to receive Rollsight events
+ * Hook into Foundry's socket system to receive RollSight events
  * 
- * Rollsight will emit events that we can catch via Foundry's hook system.
- * We'll use a custom hook that Rollsight can call.
+ * RollSight will emit events that we can catch via Foundry's hook system.
+ * We'll use a custom hook that RollSight can call.
  * (Using namespaced API for Foundry v13+ if available)
  */
 const Hooks = (typeof foundry !== 'undefined' && foundry.Hooks) ? foundry.Hooks : globalThis.Hooks;
@@ -100,7 +100,7 @@ Hooks.on("rollsight.roll", async (rollData) => {
         try {
             await module.handleRoll(rollData);
         } catch (error) {
-            console.error("Rollsight Integration | Error in hook handler:", error);
+            console.error("RollSight Integration | Error in hook handler:", error);
         }
     }
 });

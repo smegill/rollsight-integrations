@@ -1,4 +1,4 @@
-# Rollsight → Foundry Roll Pipeline: Thorough Walkthrough and Bug Audit
+# RollSight → Foundry Roll Pipeline: Thorough Walkthrough and Bug Audit
 
 Step-by-step flow from “user sends `/r 2d20kh`” to “chat message appears,” then where bugs can occur.
 
@@ -11,18 +11,18 @@ Step-by-step flow from “user sends `/r 2d20kh`” to “chat message appears,�
 | 1.1 | `ui.chat.processMessage(message)` is our wrapper; Foundry’s original is not called yet. |
 | 1.2 | We match roll command + formula with `ROLL_CMD_REGEX`. If no match → `return false` → `original(message)` runs (normal Foundry). |
 | 1.3 | We create `roll = RollClass.fromFormula(formula)`. One Roll object; for `2d20kh` it has one Die term with `term.number = 2`. |
-| 1.4 | We get denominations from the roll and check Dice Config: `usesRollsight = denominations.some(d => getMethodForDenomination(d) === 'rollsight')`. If **false** (e.g. “manual”) → `return false` → normal Foundry path. |
+| 1.4 | We get denominations from the roll and check Dice Config: `usesRollSight = denominations.some(d => getMethodForDenomination(d) === 'rollsight')`. If **false** (e.g. “manual”) → `return false` → normal Foundry path. |
 | 1.5 | We set `_handlingChatRollMessage = msg` to block duplicate handling of the same message. |
 | 1.6 | We create `resolver = new RollResolverClass({ roll })`. Foundry’s resolver keeps a reference to the **same** `roll`. We do **not** call `resolver.render()`. |
 | 1.7 | We set `_pendingChatResolver = { resolver, roll, formula, description, rollMode, resolveOutcome, resolverNotRendered: true, consumedFingerprints: new Set() }`. So `resolver.roll` and `_pendingChatResolver.roll` are the same object. |
 | 1.8 | We register `Roll.RESOLVERS.set(roll, resolver)`. |
-| 1.9 | We show our dialog via `_showRollsightWaitDialog(formula, resolver, resolveOutcome, game)` and **await** `outcomePromise` (resolved when user cancels, clicks “Complete with Digital,” or we call `resolveOutcome("fulfilled")` from `handleRoll`). |
+| 1.9 | We show our dialog via `_showRollSightWaitDialog(formula, resolver, resolveOutcome, game)` and **await** `outcomePromise` (resolved when user cancels, clicks “Complete with Digital,” or we call `resolveOutcome("fulfilled")` from `handleRoll`). |
 
 **State after 1:** One Roll, one Resolver (not rendered), one dialog. No chat message yet.
 
 ---
 
-## 2. Physical roll arrives (Rollsight → Foundry)
+## 2. Physical roll arrives (RollSight → Foundry)
 
 | Step | Code / behavior |
 |------|------------------|

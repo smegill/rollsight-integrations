@@ -1,5 +1,5 @@
 /**
- * Chat Handler for Rollsight Integration
+ * Chat Handler for RollSight Integration
  * 
  * Handles creation and updating of chat messages for rolls.
  */
@@ -105,7 +105,7 @@ export class ChatHandler {
         
         // Show notification (using namespaced API for Foundry v13+ if available)
         const ui = (typeof foundry !== 'undefined' && foundry.ui) ? foundry.ui : globalThis.ui;
-        ui.notifications.info("Roll corrected by Rollsight");
+        ui.notifications.info("Roll corrected by RollSight");
     }
 }
 

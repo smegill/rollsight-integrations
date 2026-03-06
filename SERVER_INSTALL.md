@@ -1,6 +1,6 @@
-# Loading Rollsight Real Dice Reader on the Foundry Server
+# Loading RollSight Real Dice Reader on the Foundry Server
 
-This guide covers what must be present on the machine where Foundry VTT runs so the Rollsight Real Dice Reader module can be loaded and used.
+This guide covers what must be present on the machine where Foundry VTT runs so the RollSight Real Dice Reader module can be loaded and used.
 
 ---
 
@@ -80,7 +80,7 @@ After the module is under `Data/modules/`:
 
 1. Open the **world** in Foundry (as GM).
 2. Go to **Settings** → **Manage Modules**.
-3. Enable **Rollsight Real Dice Reader**.
+3. Enable **RollSight Real Dice Reader**.
 4. Click **Update Modules** or reload the world.
 
 The module will load in every client that joins that world.
@@ -89,15 +89,15 @@ The module will load in every client that joins that world.
 
 ## 4. World Settings (Optional)
 
-Once the module is enabled, the GM can configure ( **Settings** → **Configure Settings** → **Rollsight Real Dice Reader** ):
+Once the module is enabled, the GM can configure ( **Settings** → **Configure Settings** → **RollSight Real Dice Reader** ):
 
 | Setting | Purpose |
 |--------|--------|
-| **Auto-connect to Rollsight** | Legacy; can be left off. Connection is via browser extension / postMessage. |
-| **Fallback to chat when no pending roll** | When no RollResolver is open, send Rollsight rolls to chat. Default: on. |
-| **Roll request URL** | If set, when a RollResolver opens for Rollsight the module POSTs the formula here (e.g. `http://localhost:8765/foundry/roll-request`) so Rollsight can show “Foundry is waiting for: 1d20”. |
+| **Auto-connect to RollSight** | Legacy; can be left off. Connection is via browser extension / postMessage. |
+| **Fallback to chat when no pending roll** | When no RollResolver is open, send RollSight rolls to chat. Default: on. |
+| **Roll request URL** | If set, when a RollResolver opens for RollSight the module POSTs the formula here (e.g. `http://localhost:8765/foundry/roll-request`) so RollSight can show “Foundry is waiting for: 1d20”. |
 
-Players choose **Rollsight (Physical Dice)** per die type in **Setup** → **Dice Configuration** (Foundry v12+).
+Players choose **RollSight (Physical Dice)** per die type in **Setup** → **Dice Configuration** (Foundry v12+).
 
 ---
 
@@ -106,7 +106,7 @@ Players choose **Rollsight (Physical Dice)** per die type in **Setup** → **Dic
 - [ ] Foundry Data directory identified (e.g. `Data/` on the server).
 - [ ] `rollsight-integration` folder copied to `Data/modules/rollsight-integration/` with all JS files and `module.json`.
 - [ ] Foundry restarted or world reloaded.
-- [ ] In the world: **Manage Modules** → **Rollsight Real Dice Reader** enabled.
-- [ ] (Optional) **Roll request URL** set if using roll-request notifications to Rollsight.
+- [ ] In the world: **Manage Modules** → **RollSight Real Dice Reader** enabled.
+- [ ] (Optional) **Roll request URL** set if using roll-request notifications to RollSight.
 
-No extra services or ports are required on the Foundry server for the module to load. Rollsight and the browser extension run on the **player’s machine** and communicate with the Foundry **client** in the browser (e.g. via postMessage).
+No extra services or ports are required on the Foundry server for the module to load. RollSight and the browser extension run on the **player’s machine** and communicate with the Foundry **client** in the browser (e.g. via postMessage).

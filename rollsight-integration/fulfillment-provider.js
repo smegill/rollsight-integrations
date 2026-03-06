@@ -1,25 +1,25 @@
 /**
- * Fulfillment Provider for Rollsight Integration
+ * Fulfillment Provider for RollSight Integration
  *
- * We do not register Rollsight as a CONFIG.Dice.fulfillment method.
- * Users set Dice Configuration to Manual for dice they use with Rollsight;
- * we replace the manual dialog with a Rollsight prompt and feed physical dice
+ * We do not register RollSight as a CONFIG.Dice.fulfillment method.
+ * Users set Dice Configuration to Manual for dice they use with RollSight;
+ * we replace the manual dialog with a RollSight prompt and feed physical dice
  * via Roll.registerResult("manual", ...) when we receive them.
  */
 
 const METHOD_ID = "rollsight";
 
 /**
- * No-op: we no longer register Rollsight as a dice fulfillment method.
+ * No-op: we no longer register RollSight as a dice fulfillment method.
  * Only Manual is used; the module feeds rolls into the Manual resolver.
  */
 export function registerFulfillmentMethod() {
   // Intentionally do not add CONFIG.Dice.fulfillment.methods.rollsight.
-  // Users configure dice as Manual; we inject Rollsight results into that resolver.
+  // Users configure dice as Manual; we inject RollSight results into that resolver.
 }
 
 /**
- * Map Rollsight die shape to Foundry denomination string.
+ * Map RollSight die shape to Foundry denomination string.
  * Handles d10p (percentile tens) as "d10" for fulfillment;
  * d100 is typically built from d10p + d10 in RollResolver.
  */
@@ -33,7 +33,7 @@ export function shapeToDenomination(shape) {
 }
 
 /**
- * Build ordered list of { denomination, value } from Rollsight roll payload.
+ * Build ordered list of { denomination, value } from RollSight roll payload.
  * Preserves order so we can feed RollResolver one result per fulfillable term.
  */
 export function rollDataToFulfillmentPairs(rollData) {
@@ -64,7 +64,7 @@ export function rollDataToFulfillmentPairs(rollData) {
 
 /**
  * Try to consume roll data with the active RollResolver via Roll.registerResult.
- * Uses "manual" only (Rollsight is not a config option; users set Manual and we feed into it).
+ * Uses "manual" only (RollSight is not a config option; users set Manual and we feed into it).
  */
 export function tryFulfillActiveResolver(rollData) {
   const Roll =

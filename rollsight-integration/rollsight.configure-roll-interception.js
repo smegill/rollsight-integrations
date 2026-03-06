@@ -1,7 +1,7 @@
 /**
- * Rollsight Real Dice Reader for Foundry VTT
+ * RollSight Real Dice Reader for Foundry VTT
  *
- * Receives physical dice rolls from Rollsight and integrates them into Foundry.
+ * Receives physical dice rolls from RollSight and integrates them into Foundry.
  * Uses Foundry v12+ Dice Fulfillment so rolls apply in-context (spells, attacks, saves).
  */
 
@@ -11,12 +11,12 @@ import { DiceHandler } from './dice-handler.js';
 import {
     registerFulfillmentMethod,
     tryFulfillActiveResolver,
-    rollHasRollsightTerms,
+    rollHasRollSightTerms,
     getMethodForDenomination,
     rollDataToFulfillmentPairs
 } from './fulfillment-provider.js';
 
-class RollsightIntegration {
+class RollSightIntegration {
     constructor() {
         this.socketHandler = new SocketHandler(this);
         this.chatHandler = new ChatHandler(this);
@@ -24,7 +24,7 @@ class RollsightIntegration {
         
         this.connected = false;
         this.rollHistory = new Map(); // Track rolls by ID for amendments
-        /** When we opened RollResolver from chat /roll, so we can feed Rollsight rolls into it. */
+        /** When we opened RollResolver from chat /roll, so we can feed RollSight rolls into it. */
         this._pendingChatResolver = null;
         /** Message string we're currently handling (dedupe: chat can call processMessage twice for the same send). */
         this._handlingChatRollMessage = null;
@@ -68,7 +68,7 @@ class RollsightIntegration {
      * Initialize the module
      */
     init() {
-        console.log("Rollsight Real Dice Reader | Initializing...");
+        console.log("RollSight Real Dice Reader | Initializing...");
         
         // Register socket handlers
         this.socketHandler.register();
@@ -82,7 +82,7 @@ class RollsightIntegration {
             game.rollsight = this;
             
             // Listen for messages from browser extension (via window.postMessage)
-            // When RollResolver opens for a roll: optionally notify Rollsight (if URL set) and inject "Complete with Digital Rolls" button
+            // When RollResolver opens for a roll: optionally notify RollSight (if URL set) and inject "Complete with Digital Rolls" button
             Hooks.on('renderRollResolver', (resolver, element, _data) => {
                 this._injectCompleteWithDigitalButton(resolver, element);
             });
@@ -90,25 +90,25 @@ class RollsightIntegration {
             window.addEventListener('message', (event) => {
                 // Only accept messages from our extension or same origin
                 if (event.data && event.data.type === 'rollsight-roll') {
-                    console.log("Rollsight Real Dice Reader | Received roll via postMessage:", event.data.rollData);
+                    console.log("RollSight Real Dice Reader | Received roll via postMessage:", event.data.rollData);
                     this.handleRoll(event.data.rollData).catch(error => {
-                        console.error("Rollsight Real Dice Reader | Error handling roll from postMessage:", error);
+                        console.error("RollSight Real Dice Reader | Error handling roll from postMessage:", error);
                     });
                 } else if (event.data && event.data.type === 'rollsight-test') {
-                    console.log("🎲 Rollsight Real Dice Reader | Received test message request");
+                    console.log("🎲 RollSight Real Dice Reader | Received test message request");
                     this.sendTestMessage().catch(error => {
-                        console.error("Rollsight Real Dice Reader | Error sending test message:", error);
+                        console.error("RollSight Real Dice Reader | Error sending test message:", error);
                     });
                 } else if (event.data && event.data.type === 'rollsight-amendment') {
-                    console.log("Rollsight Real Dice Reader | Received amendment via postMessage:", event.data.amendmentData);
+                    console.log("RollSight Real Dice Reader | Received amendment via postMessage:", event.data.amendmentData);
                     this.handleAmendment(event.data.amendmentData).catch(error => {
-                        console.error("Rollsight Real Dice Reader | Error handling amendment from postMessage:", error);
+                        console.error("RollSight Real Dice Reader | Error handling amendment from postMessage:", error);
                     });
                 }
             });
 
-            // 1) Patch Roll.evaluate so Rollsight dice always use interactive (RollResolver) path.
-            this._patchRollEvaluateForRollsight();
+            // 1) Patch Roll.evaluate so RollSight dice always use interactive (RollResolver) path.
+            this._patchRollEvaluateForRollSight();
             // 2) Intercept chat /roll so we open RollResolver when evaluate() isn't used (e.g. chat/initiative).
             this._wrapChatProcessMessage();
             // 3) Intercept "Configure Roll" (e.g. initiative) dialog Roll button so we open RollResolver instead of digital roll.
@@ -130,11 +130,11 @@ class RollsightIntegration {
     }
 
     /**
-     * Patch Roll.evaluate so that any roll with dice set to Rollsight in Dice Configuration
+     * Patch Roll.evaluate so that any roll with dice set to RollSight in Dice Configuration
      * always uses allowInteractive: true, so Foundry opens RollResolver (same as manual entry).
      * Patch both base Roll and any game-system classes in CONFIG.Dice.rolls.
      */
-    _patchRollEvaluateForRollsight() {
+    _patchRollEvaluateForRollSight() {
         const CONFIG = (typeof foundry !== 'undefined' && foundry.CONFIG) ? foundry.CONFIG : globalThis.CONFIG;
         const rollClasses = [];
         const baseRoll = (typeof foundry !== 'undefined' && foundry.dice?.rolls?.Roll) ? foundry.dice.rolls.Roll : globalThis.Roll;
@@ -150,14 +150,14 @@ class RollsightIntegration {
             if (RollClass.prototype._rollsightEvaluatePatched) continue;
             const originalEvaluate = RollClass.prototype.evaluate;
             RollClass.prototype.evaluate = function evaluate(options = {}) {
-                const hasRollsight = rollHasRollsightTerms(this);
+                const hasRollSight = rollHasRollSightTerms(this);
                 if (game?.settings?.get("rollsight-integration", "debugLogging")) {
-                    console.log("Rollsight Real Dice Reader | [debug] Roll.evaluate", this.formula, "hasRollsight:", hasRollsight, "allowInteractive:", options?.allowInteractive);
+                    console.log("RollSight Real Dice Reader | [debug] Roll.evaluate", this.formula, "hasRollSight:", hasRollSight, "allowInteractive:", options?.allowInteractive);
                 }
-                if (hasRollsight) {
+                if (hasRollSight) {
                     options = { ...options, allowInteractive: true };
                     if (game?.settings?.get("rollsight-integration", "debugLogging")) {
-                        console.log("Rollsight Real Dice Reader | [debug] Forcing allowInteractive: true for", this.formula);
+                        console.log("RollSight Real Dice Reader | [debug] Forcing allowInteractive: true for", this.formula);
                     }
                 }
                 return originalEvaluate.call(this, options);
@@ -167,14 +167,14 @@ class RollsightIntegration {
         if (game?.settings?.get("rollsight-integration", "debugLogging")) {
             const CONFIG = (typeof foundry !== 'undefined' && foundry.CONFIG) ? foundry.CONFIG : globalThis.CONFIG;
             const coreDice = game?.settings?.get("core", "diceConfiguration");
-            console.log("Rollsight Real Dice Reader | [debug] CONFIG.Dice.fulfillment.dice at ready:", JSON.stringify(CONFIG?.Dice?.fulfillment?.dice ?? {}));
-            console.log("Rollsight Real Dice Reader | [debug] game.settings.get('core','diceConfiguration'):", coreDice);
+            console.log("RollSight Real Dice Reader | [debug] CONFIG.Dice.fulfillment.dice at ready:", JSON.stringify(CONFIG?.Dice?.fulfillment?.dice ?? {}));
+            console.log("RollSight Real Dice Reader | [debug] game.settings.get('core','diceConfiguration'):", coreDice);
         }
-        console.log("Rollsight Real Dice Reader | Roll.evaluate patched for", rollClasses.length, "Roll class(es) (RollResolver for Rollsight dice)");
+        console.log("RollSight Real Dice Reader | Roll.evaluate patched for", rollClasses.length, "Roll class(es) (RollResolver for RollSight dice)");
     }
 
     /**
-     * Wrap ui.chat.processMessage so /roll <formula> opens RollResolver when Dice Config uses Rollsight.
+     * Wrap ui.chat.processMessage so /roll <formula> opens RollResolver when Dice Config uses RollSight.
      * Fallback for when chat (or other code) doesn't use Roll.evaluate() with interactive path.
      */
     _wrapChatProcessMessage() {
@@ -188,15 +188,15 @@ class RollsightIntegration {
                 const handled = await self._handleChatRollWithFulfillment(message, original);
                 if (handled) return;
                 if (game?.settings?.get("rollsight-integration", "debugLogging") && typeof message === "string" && /^\/(?:roll|r|gmroll|gmr|blindroll|br|broll|selfroll|sr|publicroll|pr)\s/i.test(message)) {
-                    console.log("Rollsight Real Dice Reader | [debug] Chat roll command not handled by Rollsight, passing to default:", message.slice(0, 60));
+                    console.log("RollSight Real Dice Reader | [debug] Chat roll command not handled by RollSight, passing to default:", message.slice(0, 60));
                 }
                 return original(message);
             } catch (err) {
-                console.error("Rollsight Real Dice Reader | Chat interceptor error (falling back to default):", err);
+                console.error("RollSight Real Dice Reader | Chat interceptor error (falling back to default):", err);
                 return original(message);
             }
         };
-        console.log("Rollsight Real Dice Reader | Chat /roll and /r interceptor active");
+        console.log("RollSight Real Dice Reader | Chat /roll and /r interceptor active");
     }
 
     /**
@@ -216,7 +216,7 @@ class RollsightIntegration {
     }
 
     /**
-     * If message is a roll command (<cmd> <formula> [# description]) and any die uses Rollsight in Dice Config,
+     * If message is a roll command (<cmd> <formula> [# description]) and any die uses RollSight in Dice Config,
      * open RollResolver, await fulfillment, then post to chat with the correct roll visibility.
      * Supports: /roll, /r, /gmroll, /gmr, /blindroll, /br, /broll, /selfroll, /sr, /publicroll, /pr.
      * Formulas: advantage (2d20kh), disadvantage (2d20kl), modifiers (2d20kh + 5).
@@ -235,8 +235,8 @@ class RollsightIntegration {
         let formula = match[2].trim().replace(/\s+/g, ' ');
         const description = match[3]?.trim() || '';
 
-        if (description && /Rollsight/i.test(description)) {
-            if (debug) console.log("Rollsight Real Dice Reader | [debug] Chat /roll skipped (Rollsight-originated)");
+        if (description && /RollSight/i.test(description)) {
+            if (debug) console.log("RollSight Real Dice Reader | [debug] Chat /roll skipped (RollSight-originated)");
             return false;
         }
 
@@ -247,7 +247,7 @@ class RollsightIntegration {
         if (debug) {
             const game = (typeof foundry !== 'undefined' && foundry.game) ? foundry.game : globalThis.game;
             const rawSetting = game?.settings?.get("core", "diceConfiguration");
-            console.log("Rollsight Real Dice Reader | [debug] Chat roll check:", { command: rollCommand, rollMode, formula, hasFulfillmentDice: !!CONFIG?.Dice?.fulfillment?.dice, hasRollClass: !!RollClass, hasRollResolverClass: !!RollResolverClass, coreDiceConfig: rawSetting });
+            console.log("RollSight Real Dice Reader | [debug] Chat roll check:", { command: rollCommand, rollMode, formula, hasFulfillmentDice: !!CONFIG?.Dice?.fulfillment?.dice, hasRollClass: !!RollClass, hasRollResolverClass: !!RollResolverClass, coreDiceConfig: rawSetting });
         }
         if (!RollClass || !RollResolverClass) return false;
 
@@ -255,25 +255,25 @@ class RollsightIntegration {
         try {
             roll = RollClass.fromFormula ? RollClass.fromFormula(formula) : new RollClass(formula);
         } catch (_) {
-            if (debug) console.log("Rollsight Real Dice Reader | [debug] Chat /roll parse failed for formula:", formula);
+            if (debug) console.log("RollSight Real Dice Reader | [debug] Chat /roll parse failed for formula:", formula);
             return false;
         }
 
         const denominations = this._getDenominationsFromRoll(roll);
-        const usesRollsight = denominations.some(denom => getMethodForDenomination(denom) === 'rollsight');
+        const usesRollSight = denominations.some(denom => getMethodForDenomination(denom) === 'rollsight');
         if (debug) {
-            console.log("Rollsight Real Dice Reader | [debug] Chat roll denominations:", denominations, "usesRollsight:", usesRollsight, "methods:", denominations.map(d => getMethodForDenomination(d)));
+            console.log("RollSight Real Dice Reader | [debug] Chat roll denominations:", denominations, "usesRollSight:", usesRollSight, "methods:", denominations.map(d => getMethodForDenomination(d)));
         }
-        if (!usesRollsight) return false;
+        if (!usesRollSight) return false;
 
         if (this._handlingChatRollMessage === msg) {
-            if (debug) console.log("Rollsight Real Dice Reader | [debug] Chat /roll duplicate call, skipping (already handling this message)");
+            if (debug) console.log("RollSight Real Dice Reader | [debug] Chat /roll duplicate call, skipping (already handling this message)");
             return true;
         }
         this._handlingChatRollMessage = msg;
 
         try {
-            if (debug) console.log("Rollsight Real Dice Reader | [debug] Chat /roll opening RollResolver for", formula);
+            if (debug) console.log("RollSight Real Dice Reader | [debug] Chat /roll opening RollResolver for", formula);
             this._pendingChatResolver = null;
             this._clearConsumedRollState();
             const resolver = new RollResolverClass({ roll });
@@ -285,19 +285,19 @@ class RollsightIntegration {
             const RollClassRef = (typeof foundry !== 'undefined' && foundry.dice?.rolls?.Roll) ? foundry.dice.rolls.Roll : globalThis.Roll;
             if (RollClassRef?.RESOLVERS instanceof Map) {
                 RollClassRef.RESOLVERS.set(roll, resolver);
-                if (debug) console.log("Rollsight Real Dice Reader | [debug] Chat /roll registered resolver in Roll.RESOLVERS");
+                if (debug) console.log("RollSight Real Dice Reader | [debug] Chat /roll registered resolver in Roll.RESOLVERS");
             }
-            // Don't render the RollResolver window — show only our Rollsight dialog so the user sees one dialog, not two.
+            // Don't render the RollResolver window — show only our RollSight dialog so the user sees one dialog, not two.
             const game = (typeof foundry !== 'undefined' && foundry.game) ? foundry.game : globalThis.game;
             const ui = (typeof foundry !== 'undefined' && foundry.ui) ? foundry.ui : globalThis.ui;
 
-            const fallbackDialog = this._showRollsightWaitDialog(formula, resolver, resolveOutcomeForPending, game);
+            const fallbackDialog = this._showRollSightWaitDialog(formula, resolver, resolveOutcomeForPending, game);
             if (fallbackDialog) this._pendingChatResolver.dialog = fallbackDialog;
             if (!fallbackDialog && ui?.notifications) {
-                ui.notifications.info(`Rollsight: Roll ${formula} — roll the dice in Rollsight to fill in the result.`);
+                ui.notifications.info(`RollSight: Roll ${formula} — roll the dice in RollSight to fill in the result.`);
             }
 
-            // Wait only on our dialog outcome (Complete / Cancel / or handleRoll will resolve when Rollsight roll is injected).
+            // Wait only on our dialog outcome (Complete / Cancel / or handleRoll will resolve when RollSight roll is injected).
             // Do NOT race with resolver.awaitFulfillment() — in v13 the resolver can have empty fulfillable when opened from chat, so awaitFulfillment() resolves immediately and the dialog would flash and disappear.
             const winner = await outcomePromise;
 
@@ -325,7 +325,7 @@ class RollsightIntegration {
             }
             return true;
         } catch (err) {
-            console.error("Rollsight Real Dice Reader | Chat /roll fulfillment error:", err);
+            console.error("RollSight Real Dice Reader | Chat /roll fulfillment error:", err);
             return false;
         } finally {
             if (this._pendingChatResolver?.roll) {
@@ -340,13 +340,13 @@ class RollsightIntegration {
     }
 
     /**
-     * Build a user-facing message for remaining dice (e.g. "Roll 5 more d6 in Rollsight for 8d6").
+     * Build a user-facing message for remaining dice (e.g. "Roll 5 more d6 in RollSight for 8d6").
      * @param {Map<string, object>} fulfillable - resolver.fulfillable (term key -> descriptor; descriptor may have denomination)
      * @param {string} formula - e.g. "8d6"
      */
     _formatRemainingDicePrompt(fulfillable, formula) {
         if (!fulfillable || !(fulfillable instanceof Map) || fulfillable.size === 0) {
-            return `Rollsight: result received. Still need more for ${formula}.`;
+            return `RollSight: result received. Still need more for ${formula}.`;
         }
         const n = fulfillable.size;
         const byDenom = new Map();
@@ -356,13 +356,13 @@ class RollsightIntegration {
             byDenom.set(d, (byDenom.get(d) || 0) + 1);
         }
         if (byDenom.size === 0) {
-            return `Rollsight: Roll ${n} more dice in Rollsight for ${formula}.`;
+            return `RollSight: Roll ${n} more dice in RollSight for ${formula}.`;
         }
         const parts = [];
         for (const [denom, count] of byDenom) {
             parts.push(count === 1 ? `1 ${denom}` : `${count} ${denom}`);
         }
-        return `Rollsight: Roll ${parts.join(", ")} more in Rollsight for ${formula}.`;
+        return `RollSight: Roll ${parts.join(", ")} more in RollSight for ${formula}.`;
     }
 
     /**
@@ -390,7 +390,7 @@ class RollsightIntegration {
     }
 
     /**
-     * Show Foundry native "wait for Rollsight" dialog. Prefer DialogV2 (v13) to avoid V1 deprecation warning.
+     * Show Foundry native "wait for RollSight" dialog. Prefer DialogV2 (v13) to avoid V1 deprecation warning.
      * @param {string} formula - e.g. "1d20"
      * @param {object} resolver - RollResolver instance
      * @param {function} resolveOutcome - ( "fulfilled" | "cancelled" ) => void
@@ -452,13 +452,13 @@ class RollsightIntegration {
         }
     }
 
-    _showRollsightWaitDialog(formula, resolver, resolveOutcome, game) {
+    _showRollSightWaitDialog(formula, resolver, resolveOutcome, game) {
         const _t = (key, fallback) => {
             const s = game.i18n?.localize?.(key);
             return (s && s !== key) ? s : fallback;
         };
-        const title = _t("ROLLSIGHT.RollDialogTitle", `Rollsight: Roll ${formula}`);
-        const prompt = _t("ROLLSIGHT.RollDialogPrompt", `Roll <strong>${formula}</strong> in Rollsight to fill in the result, or click below to complete with digital rolls.`);
+        const title = _t("ROLLSIGHT.RollDialogTitle", `RollSight: Roll ${formula}`);
+        const prompt = _t("ROLLSIGHT.RollDialogPrompt", `Roll <strong>${formula}</strong> in RollSight to fill in the result, or click below to complete with digital rolls.`);
         const labelDigital = _t("ROLLSIGHT.CompleteWithDigital", "Complete with Digital Rolls");
         const labelCancel = _t("ROLLSIGHT.Cancel", "Cancel");
 
@@ -546,7 +546,7 @@ class RollsightIntegration {
     }
 
     /**
-     * Inject Rollsight results into the resolver's roll (merge into existing results). Does not submit.
+     * Inject RollSight results into the resolver's roll (merge into existing results). Does not submit.
      * Pairs are matched to terms by denomination. After injecting, applies term modifiers (kh, kl, etc.) so keep-highest/lowest are correct.
      * @param {object} resolver - RollResolver instance
      * @param {{ denomination: string, value: number }[]} pairs - from rollDataToFulfillmentPairs
@@ -560,7 +560,7 @@ class RollsightIntegration {
         const game = (typeof foundry !== "undefined" && foundry.game) ? foundry.game : globalThis.game;
         const debug = game?.settings?.get("rollsight-integration", "debugLogging");
         if (!roll?.terms || !pairs.length) {
-            if (debug) console.log("Rollsight Real Dice Reader | [debug] inject failed: no roll.terms or no pairs");
+            if (debug) console.log("RollSight Real Dice Reader | [debug] inject failed: no roll.terms or no pairs");
             return { injected: false, complete: false };
         }
         const Die = (typeof foundry !== "undefined" && foundry.dice?.terms?.Die) ? foundry.dice.terms.Die : (typeof foundry !== "undefined" && foundry.dice?.terms?.die?.Die) ? foundry.dice.terms.die.Die : null;
@@ -598,7 +598,7 @@ class RollsightIntegration {
                 placed = true;
                 break;
             }
-            if (!placed && debug) console.log("Rollsight Real Dice Reader | [debug] inject: no matching term for", wantD, "pair value", pair.value);
+            if (!placed && debug) console.log("RollSight Real Dice Reader | [debug] inject: no matching term for", wantD, "pair value", pair.value);
         }
         for (const term of roll.terms) {
             if (!isDiceTerm(term)) continue;
@@ -608,8 +608,8 @@ class RollsightIntegration {
         }
         if (!injected) {
             const termInfo = roll.terms?.map(t => ({ denom: this._termDenom(t), faces: t?.faces, number: t?.number })) ?? [];
-            console.log("Rollsight Real Dice Reader | Injection failed: no term matched pairs. Roll terms:", termInfo, "pairs:", pairs.map(p => p.denomination + "=" + p.value));
-            if (debug) console.log("Rollsight Real Dice Reader | [debug] inject: no new pairs to merge (roll.terms:", roll.terms?.length, "pairs:", pairs.length, ")");
+            console.log("RollSight Real Dice Reader | Injection failed: no term matched pairs. Roll terms:", termInfo, "pairs:", pairs.map(p => p.denomination + "=" + p.value));
+            if (debug) console.log("RollSight Real Dice Reader | [debug] inject: no new pairs to merge (roll.terms:", roll.terms?.length, "pairs:", pairs.length, ")");
             return { injected: false, complete: false };
         }
         // Apply term modifiers (kh, kl, etc.) so keep-highest/lowest are applied; otherwise we'd sum all results.
@@ -620,7 +620,7 @@ class RollsightIntegration {
                 try {
                     await term._evaluateModifiers();
                 } catch (e) {
-                    if (debug) console.log("Rollsight Real Dice Reader | [debug] _evaluateModifiers threw:", e);
+                    if (debug) console.log("RollSight Real Dice Reader | [debug] _evaluateModifiers threw:", e);
                 }
             }
         }
@@ -641,7 +641,7 @@ class RollsightIntegration {
     }
 
     /**
-     * Inject Rollsight results and submit when complete (one-shot; use _injectRollIntoResolver for partial + _updatePendingDialogSlots for UI).
+     * Inject RollSight results and submit when complete (one-shot; use _injectRollIntoResolver for partial + _updatePendingDialogSlots for UI).
      */
     async _injectRollIntoResolverAndSubmit(resolver, pairs) {
         const result = await this._injectRollIntoResolver(resolver, pairs);
@@ -668,7 +668,7 @@ class RollsightIntegration {
 
     /**
      * Inject a "Complete with Digital Rolls" button into the RollResolver dialog when there are unfulfilled terms.
-     * Lets the user fill any remaining dice with Foundry's digital RNG instead of rolling more in Rollsight.
+     * Lets the user fill any remaining dice with Foundry's digital RNG instead of rolling more in RollSight.
      */
     _injectCompleteWithDigitalButton(resolver, element) {
         const root = element?.nodeType === 1 ? element : resolver?.element;
@@ -686,7 +686,7 @@ class RollsightIntegration {
         btn.type = "button";
         btn.className = "rollsight-complete-digital";
         btn.innerHTML = "<i class=\"fas fa-dice\"></i> Complete with Digital Rolls";
-        btn.title = "Fill remaining dice with Foundry's digital rolls (for any Rollsight hasn't already filled).";
+        btn.title = "Fill remaining dice with Foundry's digital rolls (for any RollSight hasn't already filled).";
         btn.addEventListener("click", async () => {
             btn.disabled = true;
             btn.textContent = "Filling…";
@@ -789,7 +789,7 @@ class RollsightIntegration {
      * Called when Foundry is ready
      */
     onReady() {
-        console.log("Rollsight Real Dice Reader | Ready");
+        console.log("RollSight Real Dice Reader | Ready");
         
         // Periodic cleanup of stale state so connection auto-recovers (e.g. after timeout or stuck resolver)
         const CLEANUP_INTERVAL_MS = 30000; // every 30s
@@ -815,7 +815,7 @@ class RollsightIntegration {
             
             // Clear pending chat resolver if it's been open too long (user may have abandoned it)
             if (this._pendingChatResolver && this._pendingChatResolverCreatedAt > 0 && (now - this._pendingChatResolverCreatedAt) > this._PENDING_RESOLVER_STALE_MS) {
-                if (debug) console.log("Rollsight Real Dice Reader | [debug] Clearing stale pending chat resolver (older than 5 min)");
+                if (debug) console.log("RollSight Real Dice Reader | [debug] Clearing stale pending chat resolver (older than 5 min)");
                 const resolver = this._pendingChatResolver?.resolver;
                 const roll = this._pendingChatResolver?.roll;
                 if (roll) {
@@ -834,37 +834,37 @@ class RollsightIntegration {
             
             // Clear sent-roll debounce so new rolls can go to chat again after 60s
             if (this._lastSentRollTime > 0 && (now - this._lastSentRollTime) > this._SENT_ROLL_STALE_MS) {
-                if (debug) console.log("Rollsight Real Dice Reader | [debug] Clearing stale last-sent-roll state (older than 60s)");
+                if (debug) console.log("RollSight Real Dice Reader | [debug] Clearing stale last-sent-roll state (older than 60s)");
                 this._lastSentRollFingerprint = null;
                 this._lastSentRollTime = 0;
             }
             
             // Clear consumed-roll state so duplicate suppression doesn't block forever
             if (this._lastConsumedRollTime > 0 && (now - this._lastConsumedRollTime) > this._CONSUMED_STALE_MS) {
-                if (debug) console.log("Rollsight Real Dice Reader | [debug] Clearing stale consumed-roll state (older than 60s)");
+                if (debug) console.log("RollSight Real Dice Reader | [debug] Clearing stale consumed-roll state (older than 60s)");
                 this._clearConsumedRollState();
             }
         } catch (err) {
-            console.error("Rollsight Real Dice Reader | Stale state cleanup error:", err);
+            console.error("RollSight Real Dice Reader | Stale state cleanup error:", err);
         }
     }
     
     /**
-     * Connect to Rollsight
+     * Connect to RollSight
      */
     connect() {
         this.socketHandler.connect();
     }
     
     /**
-     * Disconnect from Rollsight
+     * Disconnect from RollSight
      */
     disconnect() {
         this.socketHandler.disconnect();
     }
     
     /**
-     * Check if connected to Rollsight
+     * Check if connected to RollSight
      */
     isConnected() {
         return this.connected;
@@ -872,7 +872,7 @@ class RollsightIntegration {
     
     /**
      * Fingerprint for duplicate detection: formula + total (and dice values if multi-die) so we can ignore a roll that was just consumed for a pending resolver.
-     * @param {object} rollData - Rollsight roll payload
+     * @param {object} rollData - RollSight roll payload
      * @returns {string}
      */
     _rollFingerprint(rollData) {
@@ -891,12 +891,12 @@ class RollsightIntegration {
     }
 
     /**
-     * Handle incoming roll from Rollsight.
+     * Handle incoming roll from RollSight.
      * If a RollResolver is active (e.g. attack/spell roll), fulfill it in-context;
      * otherwise fall back to chat.
      */
     async handleRoll(rollData) {
-        console.log("Rollsight Real Dice Reader | Received roll:", rollData);
+        console.log("RollSight Real Dice Reader | Received roll:", rollData);
 
         try {
             const game = (typeof foundry !== 'undefined' && foundry.game) ? foundry.game : globalThis.game;
@@ -907,7 +907,7 @@ class RollsightIntegration {
 
             // If pending resolver exists but its roll is already complete (e.g. completed elsewhere or stale), clear it so this roll can go to chat.
             if (this._pendingChatResolver && this._isResolverComplete(this._pendingChatResolver.resolver)) {
-                if (debug) console.log("Rollsight Real Dice Reader | [debug] Pending resolver already complete; clearing so roll can fall through to chat");
+                if (debug) console.log("RollSight Real Dice Reader | [debug] Pending resolver already complete; clearing so roll can fall through to chat");
                 const roll = this._pendingChatResolver.roll;
                 this._pendingChatResolver.resolveOutcome?.("fulfilled");
                 this._pendingChatResolver = null;
@@ -918,7 +918,7 @@ class RollsightIntegration {
                 }
             }
 
-            // When we opened RollResolver from chat /roll, feed Rollsight roll into it (so it fulfills the waiting dialog).
+            // When we opened RollResolver from chat /roll, feed RollSight roll into it (so it fulfills the waiting dialog).
             // Prefer direct injection first so we don't depend on Foundry's fulfillable map (which can be empty in v13 when resolver is opened from chat).
             if (this._pendingChatResolver) {
                 let pairs = rollDataToFulfillmentPairs(rollData);
@@ -927,15 +927,15 @@ class RollsightIntegration {
                     const firstDenoms = this._getDenominationsFromRoll(this._pendingChatResolver.roll);
                     if (firstDenoms.length > 0) {
                         pairs = [{ denomination: firstDenoms[0], value: Number(rollData.total) }];
-                        if (debug) console.log("Rollsight Real Dice Reader | [debug] Inferred 1 pair from total for", firstDenoms[0], ":", rollData.total);
+                        if (debug) console.log("RollSight Real Dice Reader | [debug] Inferred 1 pair from total for", firstDenoms[0], ":", rollData.total);
                     }
                 }
-                console.log("Rollsight Real Dice Reader | Pending resolver for", this._pendingChatResolver.formula, "— feeding", pairs.length, "dice value(s)");
-                if (debug) console.log("Rollsight Real Dice Reader | [debug] Pending chat resolver present, feeding", pairs.length, "pairs for", this._pendingChatResolver.formula);
+                console.log("RollSight Real Dice Reader | Pending resolver for", this._pendingChatResolver.formula, "— feeding", pairs.length, "dice value(s)");
+                if (debug) console.log("RollSight Real Dice Reader | [debug] Pending chat resolver present, feeding", pairs.length, "pairs for", this._pendingChatResolver.formula);
                 if (pairs.length > 0) {
                     const rollFp = this._rollFingerprint(rollData);
                     if (this._pendingChatResolver.consumedFingerprints?.has(rollFp)) {
-                        if (debug) console.log("Rollsight Real Dice Reader | [debug] Ignoring duplicate roll for this resolver (already used):", rollFp);
+                        if (debug) console.log("RollSight Real Dice Reader | [debug] Ignoring duplicate roll for this resolver (already used):", rollFp);
                         return null;
                     }
                     const { injected, complete } = await this._injectRollIntoResolver(this._pendingChatResolver.resolver, pairs);
@@ -952,7 +952,7 @@ class RollsightIntegration {
                             this._lastPendingResolverFormula = this._pendingChatResolver.formula;
                             this._lastConsumedRollFormula = (rollData?.formula ?? "").toString().trim().toLowerCase().replace(/\s/g, "");
                             this._lastConsumedRollTotal = rollData?.total != null ? Number(rollData.total) : null;
-                            console.log("Rollsight Real Dice Reader | Injected roll into pending RollResolver for", this._pendingChatResolver.formula);
+                            console.log("RollSight Real Dice Reader | Injected roll into pending RollResolver for", this._pendingChatResolver.formula);
                             this._pendingChatResolver.resolveOutcome?.("fulfilled");
                         }
                         return null;
@@ -960,7 +960,7 @@ class RollsightIntegration {
                     // Resolver was already complete (e.g. late roll or duplicate): clear pending so this roll can go to chat instead of being dropped
                     const resolverAlreadyComplete = this._isResolverComplete(this._pendingChatResolver.resolver);
                     if (resolverAlreadyComplete) {
-                        if (debug) console.log("Rollsight Real Dice Reader | [debug] Resolver already complete; clearing pending so roll can fall through to chat");
+                        if (debug) console.log("RollSight Real Dice Reader | [debug] Resolver already complete; clearing pending so roll can fall through to chat");
                         const roll = this._pendingChatResolver.roll;
                         this._pendingChatResolver.resolveOutcome?.("fulfilled");
                         this._pendingChatResolver = null;
@@ -975,16 +975,16 @@ class RollsightIntegration {
                 // Try resolver.registerResult as fallback when injection didn't complete (works even when resolver not rendered if API accepts it)
                 const fulfillableBefore = this._pendingChatResolver.resolver?.fulfillable;
                 const sizeBefore = fulfillableBefore instanceof Map ? fulfillableBefore.size : 0;
-                if (debug) console.log("Rollsight Real Dice Reader | [debug] Trying registerResult fallback; fulfillable.size:", sizeBefore);
+                if (debug) console.log("RollSight Real Dice Reader | [debug] Trying registerResult fallback; fulfillable.size:", sizeBefore);
                 let anyConsumed = false;
                 for (const { denomination, value } of pairs) {
                     let ok = false;
                     try {
                         ok = this._pendingChatResolver.resolver.registerResult("rollsight", denomination, value);
                     } catch (e) {
-                        if (debug) console.log("Rollsight Real Dice Reader | [debug] registerResult threw:", e);
+                        if (debug) console.log("RollSight Real Dice Reader | [debug] registerResult threw:", e);
                     }
-                    if (debug) console.log("Rollsight Real Dice Reader | [debug] registerResult(rollsight,", denomination + ",", value + "):", ok);
+                    if (debug) console.log("RollSight Real Dice Reader | [debug] registerResult(rollsight,", denomination + ",", value + "):", ok);
                     if (ok) anyConsumed = true;
                 }
                 if (anyConsumed) {
@@ -997,7 +997,7 @@ class RollsightIntegration {
                     } else if (remaining === 0) {
                         this._pendingChatResolver.resolveOutcome?.("fulfilled");
                     }
-                    console.log("Rollsight Real Dice Reader | Fed roll into pending RollResolver for", this._pendingChatResolver.formula);
+                    console.log("RollSight Real Dice Reader | Fed roll into pending RollResolver for", this._pendingChatResolver.formula);
                     return null;
                 }
             }
@@ -1005,7 +1005,7 @@ class RollsightIntegration {
             // Try to feed the active RollResolver (Foundry v12+; e.g. attack/spell roll opened by system).
             const consumed = tryFulfillActiveResolver(rollData);
             if (consumed) {
-                console.log("Rollsight Real Dice Reader | Roll fulfilled in-context (RollResolver)");
+                console.log("RollSight Real Dice Reader | Roll fulfilled in-context (RollResolver)");
                 if (this._pendingChatResolver) {
                     const fulfillable = this._pendingChatResolver.resolver?.fulfillable;
                     const remaining = fulfillable instanceof Map ? fulfillable.size : 0;
@@ -1013,7 +1013,7 @@ class RollsightIntegration {
                         const msg = this._formatRemainingDicePrompt(fulfillable, this._pendingChatResolver.formula);
                         ui.notifications.info(msg);
                     }
-                    if (debug) console.log("Rollsight Real Dice Reader | [debug] Fed roll into pending RollResolver for", this._pendingChatResolver.formula, "remaining:", remaining);
+                    if (debug) console.log("RollSight Real Dice Reader | [debug] Fed roll into pending RollResolver for", this._pendingChatResolver.formula, "remaining:", remaining);
                 }
                 const foundryRoll = this.createFoundryRoll(rollData);
                 if (foundryRoll) this.diceHandler.animateDice(foundryRoll);
@@ -1035,22 +1035,22 @@ class RollsightIntegration {
                     && fingerprint === this._lastSentRollFingerprint
                     && (now - this._lastSentRollTime) < this._SENT_ROLL_DEBOUNCE_MS;
                 if (isDuplicateOfLastSent) {
-                    if (debug) console.log("Rollsight Real Dice Reader | [debug] Ignoring duplicate of last sent roll:", fingerprint);
+                    if (debug) console.log("RollSight Real Dice Reader | [debug] Ignoring duplicate of last sent roll:", fingerprint);
                     return null;
                 }
                 this._lastSentRollFingerprint = fingerprint;
                 this._lastSentRollTime = now;
                 await this.sendRollAsCommand(rollData);
             } else {
-                console.log("Rollsight Real Dice Reader | No pending roll and fallback disabled; roll not sent.");
+                console.log("RollSight Real Dice Reader | No pending roll and fallback disabled; roll not sent.");
             }
             return null;
             
             /* Original code - commented out for testing
             // Create Foundry Roll from roll data
-            console.log("Rollsight Real Dice Reader | Creating Foundry Roll...");
+            console.log("RollSight Real Dice Reader | Creating Foundry Roll...");
             const foundryRoll = this.createFoundryRoll(rollData);
-            console.log("Rollsight Real Dice Reader | Roll created:", foundryRoll.formula, "=", foundryRoll.total);
+            console.log("RollSight Real Dice Reader | Roll created:", foundryRoll.formula, "=", foundryRoll.total);
             
             // Store in history for potential amendments
             if (rollData.roll_id) {
@@ -1062,9 +1062,9 @@ class RollsightIntegration {
             }
             
             // Create chat message (await to ensure it's created before continuing)
-            console.log("Rollsight Real Dice Reader | Creating chat message...");
+            console.log("RollSight Real Dice Reader | Creating chat message...");
             const chatMessage = await this.chatHandler.createRollMessage(foundryRoll, rollData);
-            console.log("Rollsight Real Dice Reader | Chat message created:", chatMessage.id);
+            console.log("RollSight Real Dice Reader | Chat message created:", chatMessage.id);
             
             // Store chat message reference
             if (rollData.roll_id && this.rollHistory.has(rollData.roll_id)) {
@@ -1074,12 +1074,12 @@ class RollsightIntegration {
             // Trigger 3D dice (after message is created)
             this.diceHandler.animateDice(foundryRoll);
             
-            console.log("✅ Rollsight Real Dice Reader | Roll processed successfully and should appear in chat");
+            console.log("✅ RollSight Real Dice Reader | Roll processed successfully and should appear in chat");
             return foundryRoll;
             */
         } catch (error) {
-            console.error("❌ Rollsight Real Dice Reader | Error handling roll:", error);
-            console.error("❌ Rollsight Real Dice Reader | Error stack:", error.stack);
+            console.error("❌ RollSight Real Dice Reader | Error handling roll:", error);
+            console.error("❌ RollSight Real Dice Reader | Error stack:", error.stack);
             throw error;
         }
     }
@@ -1089,7 +1089,7 @@ class RollsightIntegration {
      */
     async sendRollAsCommand(rollData) {
         try {
-            console.log("🎲 Rollsight Real Dice Reader | Sending roll as /roll command...");
+            console.log("🎲 RollSight Real Dice Reader | Sending roll as /roll command...");
             
             // Get Foundry classes (using namespaced API for Foundry v13+ if available)
             const game = (typeof foundry !== 'undefined' && foundry.game) ? foundry.game : globalThis.game;
@@ -1107,7 +1107,7 @@ class RollsightIntegration {
             // Build description using same logic as Pico display
             // - Pair d10p + d10 for percentile (d100)
             // - Handle 2 d20s as advantage/disadvantage
-            let description = 'Rollsight Roll';
+            let description = 'RollSight Roll';
             
             if (rollData.dice && rollData.dice.length > 0) {
                 // Separate dice by type
@@ -1182,23 +1182,23 @@ class RollsightIntegration {
                 });
                 
                 if (parts.length > 0) {
-                    description = `Rollsight Roll: ${parts.join(', ')}`;
+                    description = `RollSight Roll: ${parts.join(', ')}`;
                 }
             } else if (formula) {
-                description = `Rollsight Roll: ${formula}`;
+                description = `RollSight Roll: ${formula}`;
             }
             
             // Create /roll command: /roll [total] # [description]
             const rollCommand = `/roll ${total} # ${description}`;
             
-            console.log("🎲 Rollsight Real Dice Reader | Sending roll command:", rollCommand);
+            console.log("🎲 RollSight Real Dice Reader | Sending roll command:", rollCommand);
             
             // Send the command to chat - Foundry will process it as a roll
             // Use ui.chat.processMessage to process the command
             const ui = (typeof foundry !== 'undefined' && foundry.ui) ? foundry.ui : globalThis.ui;
             if (ui && ui.chat && ui.chat.processMessage) {
                 await ui.chat.processMessage(rollCommand);
-                console.log("✅ Rollsight Real Dice Reader | Roll command processed successfully");
+                console.log("✅ RollSight Real Dice Reader | Roll command processed successfully");
             } else {
                 // Fallback: create a ChatMessage with the command as content
                 const ChatMessageClass = (typeof foundry !== 'undefined' && foundry.chat?.messages?.ChatMessage)
@@ -1212,26 +1212,26 @@ class RollsightIntegration {
                 };
                 
                 const message = await ChatMessageClass.create(messageData);
-                console.log("✅ Rollsight Real Dice Reader | Roll command sent as message, ID:", message.id);
+                console.log("✅ RollSight Real Dice Reader | Roll command sent as message, ID:", message.id);
             }
         } catch (error) {
-            console.error("❌ Rollsight Real Dice Reader | Error sending roll as command:", error);
-            console.error("❌ Rollsight Real Dice Reader | Error stack:", error.stack);
+            console.error("❌ RollSight Real Dice Reader | Error sending roll as command:", error);
+            console.error("❌ RollSight Real Dice Reader | Error stack:", error.stack);
             throw error;
         }
     }
     
     /**
-     * Handle roll amendment from Rollsight
+     * Handle roll amendment from RollSight
      */
     async handleAmendment(amendmentData) {
-        console.log("Rollsight Real Dice Reader | Received amendment:", amendmentData);
+        console.log("RollSight Real Dice Reader | Received amendment:", amendmentData);
         
         const rollId = amendmentData.roll_id;
         const historyEntry = this.rollHistory.get(rollId);
         
         if (!historyEntry) {
-            console.warn("Rollsight Real Dice Reader | Amendment for unknown roll:", rollId);
+            console.warn("RollSight Real Dice Reader | Amendment for unknown roll:", rollId);
             return Promise.resolve(); // Return resolved promise instead of undefined
         }
         
@@ -1255,14 +1255,14 @@ class RollsightIntegration {
             // Re-animate dice with corrected values
             this.diceHandler.animateDice(correctedRoll);
         } catch (error) {
-            console.error("❌ Rollsight Real Dice Reader | Error handling amendment:", error);
-            console.error("❌ Rollsight Real Dice Reader | Error stack:", error.stack);
+            console.error("❌ RollSight Real Dice Reader | Error handling amendment:", error);
+            console.error("❌ RollSight Real Dice Reader | Error stack:", error.stack);
             throw error;
         }
     }
     
     /**
-     * Try to find an open "Configure Roll" (or similar) dialog and apply the Rollsight d20 using its settings
+     * Try to find an open "Configure Roll" (or similar) dialog and apply the RollSight d20 using its settings
      * (formula, situational bonus, advantage, roll mode). Returns true if we did; false otherwise.
      */
     async _tryApplyFromOpenRollConfigDialog(d20Value, combatant, combat) {
@@ -1372,10 +1372,10 @@ class RollsightIntegration {
 
         try {
             await combat.setInitiative(combatant.id, total);
-            if (ui?.notifications) ui.notifications.info(`${combatant.name}: Initiative ${total} (Rollsight, from dialog)`);
+            if (ui?.notifications) ui.notifications.info(`${combatant.name}: Initiative ${total} (RollSight, from dialog)`);
             if (dialogApp?.close) await dialogApp.close();
             else if (dialogElement?.closest?.('.app')?.querySelector?.('.header-button.close')) dialogElement.closest('.app').querySelector('.header-button.close').click();
-            console.log("Rollsight Real Dice Reader | Applied Rollsight roll from Configure Roll dialog:", combatant.name, "=", total);
+            console.log("RollSight Real Dice Reader | Applied RollSight roll from Configure Roll dialog:", combatant.name, "=", total);
             return true;
         } catch (_) {
             return false;
@@ -1483,7 +1483,7 @@ class RollsightIntegration {
 
     /**
      * Mousedown handler (capture phase). When user clicks the Roll button in a "Configure Roll" dialog and Dice Config
-     * uses Rollsight for d20, prevent the default digital roll and open RollResolver so they can roll in Rollsight.
+     * uses RollSight for d20, prevent the default digital roll and open RollResolver so they can roll in RollSight.
      */
     _onConfigureRollDialogClick(ev) {
         const game = (typeof foundry !== 'undefined' && foundry.game) ? foundry.game : globalThis.game;
@@ -1492,7 +1492,7 @@ class RollsightIntegration {
         if (ev.type === 'mousedown' && Date.now() - this._configureRollInterceptedAt < 100) return;
         // Allow interception even before combat.started (initiative often rolled when setting up combat)
         if (!game?.combat || !game.user) {
-            if (debug) console.log("Rollsight Real Dice Reader | [debug] Configure Roll skip: no combat or user");
+            if (debug) console.log("RollSight Real Dice Reader | [debug] Configure Roll skip: no combat or user");
             return;
         }
         const target = ev.target;
@@ -1508,15 +1508,15 @@ class RollsightIntegration {
         if (!isRollTrigger) return;
         const found = this._findConfigureRollDialogFromClick(target);
         if (!found) {
-            if (debug) console.log("Rollsight Real Dice Reader | [debug] Configure Roll skip: no matching dialog for", btnText, dataAction);
+            if (debug) console.log("RollSight Real Dice Reader | [debug] Configure Roll skip: no matching dialog for", btnText, dataAction);
             return;
         }
         const { dialogElement, dialogApp } = found;
         const parsed = this._parseConfigureRollDialog(dialogElement, button);
         if (!parsed) return;
         const denominations = (parsed.rollFormula.match(/\d*d\d+/gi) || []).map(s => s.toLowerCase().replace(/\d+d/, 'd'));
-        const usesRollsight = denominations.some(d => getMethodForDenomination(d) === 'rollsight');
-        if (!usesRollsight) return;
+        const usesRollSight = denominations.some(d => getMethodForDenomination(d) === 'rollsight');
+        if (!usesRollSight) return;
         const combat = game.combat;
         const combatants = combat.turns ?? (Array.isArray(combat.combatants) ? combat.combatants : []);
         const isGM = game.user?.isGM;
@@ -1532,14 +1532,14 @@ class RollsightIntegration {
         ev.stopImmediatePropagation();
         this._configureRollInterceptedAt = Date.now();
         this._configureRollInterceptedTarget = button;
-        if (debug) console.log("Rollsight Real Dice Reader | [debug] Configure Roll intercepted:", parsed.rollFormula, "for", combatant?.name);
+        if (debug) console.log("RollSight Real Dice Reader | [debug] Configure Roll intercepted:", parsed.rollFormula, "for", combatant?.name);
         this._openRollResolverForConfigureRollDialog(dialogElement, dialogApp, combatant, combat, parsed).catch(err => {
-            console.warn("Rollsight Real Dice Reader | Configure Roll interception error:", err);
+            console.warn("RollSight Real Dice Reader | Configure Roll interception error:", err);
         });
     }
 
     /**
-     * Open RollResolver for the Configure Roll dialog formula; when Rollsight roll is fulfilled, set initiative and close dialog.
+     * Open RollResolver for the Configure Roll dialog formula; when RollSight roll is fulfilled, set initiative and close dialog.
      */
     async _openRollResolverForConfigureRollDialog(dialogElement, dialogApp, combatant, combat, parsed) {
         const game = (typeof foundry !== 'undefined' && foundry.game) ? foundry.game : globalThis.game;
@@ -1575,10 +1575,10 @@ class RollsightIntegration {
         if (RollClassRef?.RESOLVERS instanceof Map) {
             RollClassRef.RESOLVERS.set(roll, resolver);
         }
-        const fallbackDialog = this._showRollsightWaitDialog(formula, resolver, resolveOutcomeForPending, game);
+        const fallbackDialog = this._showRollSightWaitDialog(formula, resolver, resolveOutcomeForPending, game);
         if (fallbackDialog) this._pendingChatResolver.dialog = fallbackDialog;
         if (!fallbackDialog && ui?.notifications) {
-            ui.notifications.info(`Rollsight: Roll ${formula} — roll the dice in Rollsight.`);
+            ui.notifications.info(`RollSight: Roll ${formula} — roll the dice in RollSight.`);
         }
         const winner = await outcomePromise;
         if (fallbackDialog?.close) fallbackDialog.close();
@@ -1597,20 +1597,20 @@ class RollsightIntegration {
         if (total !== null && combat && combatant) {
             try {
                 await combat.setInitiative(combatant.id, total);
-                if (ui?.notifications) ui.notifications.info(`${combatant.name}: Initiative ${total} (Rollsight)`);
+                if (ui?.notifications) ui.notifications.info(`${combatant.name}: Initiative ${total} (RollSight)`);
                 if (dialogApp?.close) await dialogApp.close();
                 else if (dialogElement?.closest?.('.app')?.querySelector?.('.header-button.close')) {
                     dialogElement.closest('.app').querySelector('.header-button.close').click();
                 }
-                console.log("Rollsight Real Dice Reader | Initiative from Configure Roll (Rollsight):", combatant.name, "=", total);
+                console.log("RollSight Real Dice Reader | Initiative from Configure Roll (RollSight):", combatant.name, "=", total);
             } catch (e) {
-                console.warn("Rollsight Real Dice Reader | setInitiative failed:", e);
+                console.warn("RollSight Real Dice Reader | setInitiative failed:", e);
             }
         }
     }
 
     /**
-     * Build initiative roll using combatant's formula (bonuses from sheet) with d20 result set to Rollsight value.
+     * Build initiative roll using combatant's formula (bonuses from sheet) with d20 result set to RollSight value.
      * Returns { roll, d20Value } or null if not supported.
      */
     _buildInitiativeRollWithInjectedD20(combatant, d20Value) {
@@ -1662,8 +1662,8 @@ class RollsightIntegration {
     }
 
     /**
-     * Try to apply a Rollsight roll to a pending initiative: use combatant's initiative formula (so bonuses apply),
-     * inject the Rollsight d20 as the die result, show a dialog with the breakdown, then set initiative to the total.
+     * Try to apply a RollSight roll to a pending initiative: use combatant's initiative formula (so bonuses apply),
+     * inject the RollSight d20 as the die result, show a dialog with the breakdown, then set initiative to the total.
      * Returns true if the roll was applied to a combatant's initiative; false otherwise.
      */
     async tryApplyToPendingInitiative(rollData) {
@@ -1701,12 +1701,12 @@ class RollsightIntegration {
         const applyInitiative = async (finalTotal) => {
             try {
                 await combat.setInitiative(combatant.id, finalTotal);
-                console.log("Rollsight Real Dice Reader | Applied Rollsight roll to initiative:", combatant.name, "=", finalTotal);
+                console.log("RollSight Real Dice Reader | Applied RollSight roll to initiative:", combatant.name, "=", finalTotal);
                 const ui = (typeof foundry !== 'undefined' && foundry.ui) ? foundry.ui : globalThis.ui;
-                if (ui?.notifications) ui.notifications.info(`${combatant.name}: Initiative ${finalTotal} (Rollsight)`);
+                if (ui?.notifications) ui.notifications.info(`${combatant.name}: Initiative ${finalTotal} (RollSight)`);
                 return true;
             } catch (err) {
-                console.warn("Rollsight Real Dice Reader | Could not set initiative from Rollsight:", err);
+                console.warn("RollSight Real Dice Reader | Could not set initiative from RollSight:", err);
                 return false;
             }
         };
@@ -1721,11 +1721,11 @@ class RollsightIntegration {
             }
             return new Promise((resolve) => {
                 new DialogClass({
-                    title: game.i18n?.localize?.("ROLLSIGHT.InitiativeDialogTitle") ?? "Initiative (Rollsight)",
+                    title: game.i18n?.localize?.("ROLLSIGHT.InitiativeDialogTitle") ?? "Initiative (RollSight)",
                     content: `
                         <p class="rollsight-initiative-breakdown">
                             <strong>${combatant.name}</strong><br>
-                            ${roll.formula} = <strong>${rollResult}</strong> (d20 from Rollsight: ${built.d20Value})
+                            ${roll.formula} = <strong>${rollResult}</strong> (d20 from RollSight: ${built.d20Value})
                         </p>
                         <p>Apply this as ${combatant.name}'s initiative?</p>
                     `,
@@ -1753,7 +1753,7 @@ class RollsightIntegration {
         try {
             return await applyInitiative(d20Value);
         } catch (err) {
-            console.warn("Rollsight Real Dice Reader | Could not set initiative from Rollsight:", err);
+            console.warn("RollSight Real Dice Reader | Could not set initiative from RollSight:", err);
             return false;
         }
     }
@@ -1763,7 +1763,7 @@ class RollsightIntegration {
      */
     async sendTestMessage() {
         try {
-            console.log("🎲 Rollsight Real Dice Reader | Sending test chat message...");
+            console.log("🎲 RollSight Real Dice Reader | Sending test chat message...");
             
             // Get Foundry classes (using namespaced API for Foundry v13+ if available)
             const game = (typeof foundry !== 'undefined' && foundry.game) ? foundry.game : globalThis.game;
@@ -1776,30 +1776,30 @@ class RollsightIntegration {
             }
             
             const user = game.user;
-            console.log("🎲 Rollsight Real Dice Reader | User:", user.name, "ID:", user.id);
+            console.log("🎲 RollSight Real Dice Reader | User:", user.name, "ID:", user.id);
             
             // Create a simple text message
             const messageData = {
                 user: user.id,
                 speaker: ChatMessageClass.getSpeaker({ user: user }),
-                content: "<p><strong>🎲 Rollsight Test Message</strong><br/>If you see this, communication is working!</p>",
+                content: "<p><strong>🎲 RollSight Test Message</strong><br/>If you see this, communication is working!</p>",
                 sound: null
             };
             
-            console.log("🎲 Rollsight Real Dice Reader | Creating test message with data:", messageData);
+            console.log("🎲 RollSight Real Dice Reader | Creating test message with data:", messageData);
             
             const message = await ChatMessageClass.create(messageData);
-            console.log("✅ Rollsight Real Dice Reader | Test message created successfully, ID:", message.id);
+            console.log("✅ RollSight Real Dice Reader | Test message created successfully, ID:", message.id);
             return message;
         } catch (error) {
-            console.error("❌ Rollsight Real Dice Reader | Error sending test message:", error);
-            console.error("❌ Rollsight Real Dice Reader | Error stack:", error.stack);
+            console.error("❌ RollSight Real Dice Reader | Error sending test message:", error);
+            console.error("❌ RollSight Real Dice Reader | Error stack:", error.stack);
             throw error;
         }
     }
     
     /**
-     * Create a Foundry Roll from Rollsight roll data
+     * Create a Foundry Roll from RollSight roll data
      * Uses Foundry's manual dice entry approach - create terms with results already set
      */
     createFoundryRoll(rollData) {
@@ -1882,7 +1882,7 @@ class RollsightIntegration {
     }
     
     /**
-     * Request a roll from Rollsight (no-op; roll requests no longer sent to app)
+     * Request a roll from RollSight (no-op; roll requests no longer sent to app)
      */
     async requestRoll(_formula, _options = {}) {
         return Promise.resolve(null);
@@ -1905,23 +1905,23 @@ Hooks.once('ready', () => {
 // Register settings and create module in 'setup' so game.settings exists and our Hooks.once('ready') will fire later.
 // (In 'init', game can be missing; deferring to ready then meant we registered Hooks.once('ready') after ready had already fired, so the module never ran.)
 Hooks.once('setup', () => {
-    registerRollsightSettings();
+    registerRollSightSettings();
 });
 
-function registerRollsightSettings() {
+function registerRollSightSettings() {
     const game = (typeof foundry !== 'undefined' && foundry.game) ? foundry.game : globalThis.game;
     if (!game?.settings) return;
     game.settings.register("rollsight-integration", "debugLogging", {
         name: "Debug logging (console)",
-        hint: "Log extra diagnostics to the browser console (F12) to troubleshoot Rollsight not pausing for physical dice.",
+        hint: "Log extra diagnostics to the browser console (F12) to troubleshoot RollSight not pausing for physical dice.",
         scope: "client",
         config: true,
         type: Boolean,
         default: false
     });
     game.settings.register("rollsight-integration", "autoConnect", {
-        name: "Auto-connect to Rollsight",
-        hint: "Automatically connect to Rollsight when the game loads",
+        name: "Auto-connect to RollSight",
+        hint: "Automatically connect to RollSight when the game loads",
         scope: "world",
         config: true,
         type: Boolean,
@@ -1929,15 +1929,15 @@ function registerRollsightSettings() {
     });
     game.settings.register("rollsight-integration", "fallbackToChat", {
         name: "Fallback to chat when no pending roll",
-        hint: "If no RollResolver is open (e.g. no attack/spell roll waiting), send Rollsight rolls to chat. Disable to only fulfill in-context rolls.",
+        hint: "If no RollResolver is open (e.g. no attack/spell roll waiting), send RollSight rolls to chat. Disable to only fulfill in-context rolls.",
         scope: "world",
         config: true,
         type: Boolean,
         default: true
     });
     game.settings.register("rollsight-integration", "applyRollsToInitiative", {
-        name: "Apply Rollsight rolls to pending initiative",
-        hint: "When combat has started and a player has no initiative yet, a single d20 roll from Rollsight is applied to their initiative (so they are not forced to roll inside Foundry).",
+        name: "Apply RollSight rolls to pending initiative",
+        hint: "When combat has started and a player has no initiative yet, a single d20 roll from RollSight is applied to their initiative (so they are not forced to roll inside Foundry).",
         scope: "world",
         config: true,
         type: Boolean,
@@ -1945,15 +1945,15 @@ function registerRollsightSettings() {
     });
     // Client-scoped so players see the module in Configure Settings and know it's active for them
     game.settings.register("rollsight-integration", "playerActive", {
-        name: "Rollsight Real Dice Reader (this client)",
-        hint: "This module runs for all users (GM and players) when the GM enables it in Manage Modules. Use the Rollsight browser extension and Rollsight app to send physical dice rolls from this client.",
+        name: "RollSight Real Dice Reader (this client)",
+        hint: "This module runs for all users (GM and players) when the GM enables it in Manage Modules. Use the RollSight browser extension and RollSight app to send physical dice rolls from this client.",
         scope: "client",
         config: true,
         type: Boolean,
         default: true
     });
 
-    const rollsight = new RollsightIntegration();
+    const rollsight = new RollSightIntegration();
     rollsight.init();
     if (game) game.rollsight = rollsight;
 }

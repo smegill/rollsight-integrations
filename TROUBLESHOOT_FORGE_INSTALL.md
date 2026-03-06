@@ -83,7 +83,7 @@ The **manifest** is served from the **default branch** of the repo (the raw `mod
    - The repo or path is wrong → fix the repo name or path in the URL.
 
 4. **Re-add the module in Foundry**  
-   **Setup** → **Add-on Modules** → remove **Rollsight Real Dice Reader** if needed → **Install Module** → paste the **correct** manifest URL (with the right branch) → Install. Foundry will fetch the manifest from that URL and show the version from that file.
+   **Setup** → **Add-on Modules** → remove **RollSight Real Dice Reader** if needed → **Install Module** → paste the **correct** manifest URL (with the right branch) → Install. Foundry will fetch the manifest from that URL and show the version from that file.
 
 ---
 

@@ -12,7 +12,7 @@ The Foundry module can expose an HTTP endpoint that accepts POST requests. Howev
 
 **Implementation:**
 1. Create a simple HTTP proxy server that:
-   - Listens for POST requests from Rollsight
+   - Listens for POST requests from RollSight
    - Forwards them to Foundry via Socket.io or hooks
    - Runs on the same machine as the browser accessing Foundry
 
@@ -24,13 +24,13 @@ The Foundry module can expose an HTTP endpoint that accepts POST requests. Howev
 
 Create a browser extension that:
 - Runs in the browser when Foundry is open
-- Receives HTTP requests from Rollsight (via localhost)
+- Receives HTTP requests from RollSight (via localhost)
 - Forwards them to Foundry's module via Socket.io
 
 ### Option 3: Webhook Proxy Service
 
 Use a webhook proxy service that:
-- Receives HTTP POST from Rollsight
+- Receives HTTP POST from RollSight
 - Connects to Foundry via browser automation
 - Injects JavaScript to trigger module events
 
@@ -57,8 +57,8 @@ The current code attempts:
 ## Temporary Workaround
 
 For now, you can:
-1. Use the webhook server for roll requests (Foundry → Rollsight)
-2. For sending rolls (Rollsight → Foundry), you may need to:
+1. Use the webhook server for roll requests (Foundry → RollSight)
+2. For sending rolls (RollSight → Foundry), you may need to:
    - Use a browser extension
    - Or manually copy/paste roll results
    - Or wait for a proper API solution

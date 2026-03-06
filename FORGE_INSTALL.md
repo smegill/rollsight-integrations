@@ -1,4 +1,4 @@
-# Installing Rollsight Real Dice Reader on The Forge VTT
+# Installing RollSight Real Dice Reader on The Forge VTT
 
 The Forge does not give you filesystem access to Foundry’s `Data` folder. You install modules using Foundry’s **Install Module** flow and a **Manifest URL**. This guide covers both: how to install on The Forge (for GMs), and how to publish the module so that manifest URL works (for maintainers).
 
@@ -22,10 +22,10 @@ The Forge does not give you filesystem access to Foundry’s `Data` folder. You 
 3. **Enable the module in your world:**
    - Open your **world**.
    - Go to **Settings** → **Manage Modules**.
-   - Enable **Rollsight Real Dice Reader**.
+   - Enable **RollSight Real Dice Reader**.
    - Reload or continue.
 
-4. **(Optional)** Configure **Roll request URL** and **Fallback to chat** under **Configure Settings** → **Rollsight Real Dice Reader**. Players choose **Rollsight (Physical Dice)** per die in **Setup** → **Dice Configuration** (Foundry v12+).
+4. **(Optional)** Configure **Roll request URL** and **Fallback to chat** under **Configure Settings** → **RollSight Real Dice Reader**. Players choose **RollSight (Physical Dice)** per die in **Setup** → **Dice Configuration** (Foundry v12+).
 
 **If you get "Failed to fetch package manifest" or the download link is Not Found:** see **TROUBLESHOOT_FORGE_INSTALL.md**. Usually the repo must be **public** and a **Release** with the zip attached must exist.
 

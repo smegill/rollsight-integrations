@@ -1,12 +1,12 @@
-# Foundry Roll Scenarios Accommodated by Rollsight Real Dice Reader
+# Foundry Roll Scenarios Accommodated by RollSight Real Dice Reader
 
-This document lists the Foundry VTT roll contexts and chat commands that the Rollsight module supports so physical dice can be used via RollResolver.
+This document lists the Foundry VTT roll contexts and chat commands that the RollSight module supports so physical dice can be used via RollResolver.
 
 ---
 
 ## 1. Chat roll commands (intercepted by the module)
 
-The module intercepts **all** Foundry roll slash commands when the formula uses dice set to Rollsight in Dice Configuration. It opens RollResolver, waits for physical dice from Rollsight, then posts the result to chat with the **correct visibility**.
+The module intercepts **all** Foundry roll slash commands when the formula uses dice set to RollSight in Dice Configuration. It opens RollResolver, waits for physical dice from RollSight, then posts the result to chat with the **correct visibility**.
 
 | Command | Short | Visibility |
 |--------|-------|------------|
@@ -24,7 +24,7 @@ The module intercepts **all** Foundry roll slash commands when the formula uses 
 - Keep/drop: `4d6kh3`, `3d6dl`, etc.
 - Modifiers: Any Foundry dice modifiers; RollResolver applies kh/kl and arithmetic after physical rolls are fed in.
 
-**Example:** `/gmr 2d20kh + 4` opens the resolver for two d20s; after you roll in Rollsight, the result is posted as a GM-only roll (roller + GM see it).
+**Example:** `/gmr 2d20kh + 4` opens the resolver for two d20s; after you roll in RollSight, the result is posted as a GM-only roll (roller + GM see it).
 
 ---
 
@@ -32,14 +32,14 @@ The module intercepts **all** Foundry roll slash commands when the formula uses 
 
 When game systems or macros create a `Roll` and call `roll.evaluate()` (e.g. attack rolls, saves, ability checks), the module **patches** `Roll.evaluate` so that:
 
-- If the roll has any die term set to Rollsight in Dice Configuration, `allowInteractive: true` is forced.
-- Foundry then opens the **RollResolver** for that roll; Rollsight results are fed in via `Roll.registerResult()`.
+- If the roll has any die term set to RollSight in Dice Configuration, `allowInteractive: true` is forced.
+- Foundry then opens the **RollResolver** for that roll; RollSight results are fed in via `Roll.registerResult()`.
 
 **Accommodated:**
 
 - Sheet rolls (attacks, saves, skills) that use the core Roll class and Dice Configuration.
 - Macros that call `new Roll("2d20kh").evaluate()`.
-- Any flow that uses `Roll.evaluate()` with Rollsight-configured dice.
+- Any flow that uses `Roll.evaluate()` with RollSight-configured dice.
 
 **Not accommodated:** Flows that never call `Roll.evaluate()` (e.g. some systems roll digitally and then send a pre-computed total to chat). For those, use **Fallback to chat** or type the roll in chat (e.g. `/r 2d20kh`).
 
@@ -47,7 +47,7 @@ When game systems or macros create a `Roll` and call `roll.evaluate()` (e.g. att
 
 ## 3. Initiative rolls
 
-When combat has started and a combatant has no initiative yet, a **single d20** roll from Rollsight can be applied to that combatant’s initiative. The module tries to apply from:
+When combat has started and a combatant has no initiative yet, a **single d20** roll from RollSight can be applied to that combatant’s initiative. The module tries to apply from:
 
 - An open “Configure Roll” / initiative dialog (formula and modifiers from the dialog).
 - Otherwise, the combatant’s initiative formula from the system.
@@ -58,30 +58,30 @@ See **INITIATIVE_ROLLS.md** for details.
 
 ## 4. Roll requests (optional)
 
-If **Roll request URL** is set in module settings, when a RollResolver opens for a Rollsight-configured die, the module **POSTs** the formula (and context) to that URL. Rollsight can show “Foundry is waiting for: 1d20” (or the current formula). This is optional and does not change roll behavior.
+If **Roll request URL** is set in module settings, when a RollResolver opens for a RollSight-configured die, the module **POSTs** the formula (and context) to that URL. RollSight can show “Foundry is waiting for: 1d20” (or the current formula). This is optional and does not change roll behavior.
 
 ---
 
 ## 5. Fallback to chat
 
-When **no** RollResolver is open (no pending chat roll, no sheet roll waiting), a roll from Rollsight can still be sent to chat if **Fallback to chat** is enabled in module settings. The roll is sent as a `/roll <total> # <description>` message (always public). Roll visibility commands (/gmr, /br, /sr) apply only when the user types the roll in Foundry chat; fallback sends a single public roll.
+When **no** RollResolver is open (no pending chat roll, no sheet roll waiting), a roll from RollSight can still be sent to chat if **Fallback to chat** is enabled in module settings. The roll is sent as a `/roll <total> # <description>` message (always public). Roll visibility commands (/gmr, /br, /sr) apply only when the user types the roll in Foundry chat; fallback sends a single public roll.
 
 ---
 
 ## 6. Inline rolls in chat
 
-Messages can contain **inline rolls** like `I attack! [[2d20kh + 5]]`. When the message is sent, Foundry parses and evaluates those rolls. If the system uses `Roll.evaluate()` for them and Dice Configuration uses Rollsight for the relevant dice, the **Roll.evaluate patch** forces the interactive path, so RollResolver opens and Rollsight can fulfill them. Support depends on how the game system or core chat processes inline rolls.
+Messages can contain **inline rolls** like `I attack! [[2d20kh + 5]]`. When the message is sent, Foundry parses and evaluates those rolls. If the system uses `Roll.evaluate()` for them and Dice Configuration uses RollSight for the relevant dice, the **Roll.evaluate patch** forces the interactive path, so RollResolver opens and RollSight can fulfill them. Support depends on how the game system or core chat processes inline rolls.
 
 ---
 
 ## 7. PoolTerm and complex formulas
 
-The module detects Rollsight dice in:
+The module detects RollSight dice in:
 
 - **Die terms** (e.g. `2d20kh`, `4d6`) with modifiers.
 - **PoolTerm** (e.g. pool-style rolls where Foundry uses a PoolTerm with inner rolls).
 
-So pool-style formulas that use Rollsight dice open RollResolver when the formula is entered in chat or evaluated via `Roll.evaluate()`.
+So pool-style formulas that use RollSight dice open RollResolver when the formula is entered in chat or evaluated via `Roll.evaluate()`.
 
 ---
 
@@ -90,9 +90,9 @@ So pool-style formulas that use Rollsight dice open RollResolver when the formul
 | Scenario | How it’s accommodated |
 |----------|------------------------|
 | `/roll`, `/r`, `/gmroll`, `/gmr`, `/blindroll`, `/br`, `/broll`, `/selfroll`, `/sr`, `/publicroll`, `/pr` + formula | Intercepted; RollResolver opens; result posted with correct roll mode |
-| Sheet/macro rolls using `Roll.evaluate()` | Patched to force allowInteractive when roll has Rollsight dice |
-| Initiative (no roll yet) | Single d20 from Rollsight applied to combatant initiative when possible |
+| Sheet/macro rolls using `Roll.evaluate()` | Patched to force allowInteractive when roll has RollSight dice |
+| Initiative (no roll yet) | Single d20 from RollSight applied to combatant initiative when possible |
 | Roll request URL | Optional POST when resolver opens |
 | No resolver open | Fallback to chat (if enabled) |
 | Inline rolls `[[ ... ]]` | If evaluated via Roll.evaluate(), patch applies |
-| PoolTerm / complex formulas | rollHasRollsightTerms and denominations recurse into PoolTerm |
+| PoolTerm / complex formulas | rollHasRollSightTerms and denominations recurse into PoolTerm |

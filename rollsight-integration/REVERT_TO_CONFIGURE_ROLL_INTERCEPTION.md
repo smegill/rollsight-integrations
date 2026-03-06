@@ -20,8 +20,8 @@ If you want to restore the previous approach (intercepting Configure Roll / init
 
 | Approach | How it works | When to use |
 |----------|--------------|-------------|
-| **Manual workflow** (current) | Set Dice Config to **Manual** for dice you want to roll physically. Foundry opens RollResolver everywhere (initiative, attacks, etc.); Rollsight feeds into it. Enable "Use Manual workflow for Rollsight" in module settings. | When Configure Roll / initiative and other flows work with Manual. |
-| **Configure Roll interception** (backup) | Intercept Normal/Advantage/Disadvantage button clicks in the Configure Roll dialog; open Rollsight flow; block the system's digital roll. | When Manual workflow doesn't work (e.g. system bypasses fulfillment) or you prefer Rollsight in Dice Config. |
+| **Manual workflow** (current) | Set Dice Config to **Manual** for dice you want to roll physically. Foundry opens RollResolver everywhere (initiative, attacks, etc.); RollSight feeds into it. Enable "Use Manual workflow for RollSight" in module settings. | When Configure Roll / initiative and other flows work with Manual. |
+| **Configure Roll interception** (backup) | Intercept Normal/Advantage/Disadvantage button clicks in the Configure Roll dialog; open RollSight flow; block the system's digital roll. | When Manual workflow doesn't work (e.g. system bypasses fulfillment) or you prefer RollSight in Dice Config. |
 
 ## Files
 

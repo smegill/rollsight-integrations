@@ -4,7 +4,7 @@ The **public** repo `smegill/rollsight-integrations` should contain **only VTT i
 
 ## How it works
 
-- **Private repo (dicecam):** Full codebase — Rollsight app, website, scripts, pico_firmware, **and** `foundry_module/`.
+- **Private repo (dicecam):** Full codebase — RollSight app, website, scripts, pico_firmware, **and** `foundry_module/`.
 - **Public repo (rollsight-integrations):** Only the contents of `foundry_module/` at the **root**. So the public repo has:
   - `rollsight-integration/` (the Foundry module)
   - `release.sh`, `build-release-zip.sh`, docs, etc.

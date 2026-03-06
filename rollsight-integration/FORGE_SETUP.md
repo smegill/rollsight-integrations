@@ -1,6 +1,6 @@
-# Setting Up Rollsight with The Forge
+# Setting Up RollSight with The Forge
 
-This guide explains how to connect Rollsight to a Foundry VTT instance hosted on The Forge, and how to enable it for all players.
+This guide explains how to connect RollSight to a Foundry VTT instance hosted on The Forge, and how to enable it for all players.
 
 ## Installing the module on The Forge
 
@@ -8,7 +8,7 @@ The Forge does not give you filesystem access to Foundry. You must install the m
 
 1. In Foundry (your Forge instance): **Setup** → **Add-on Modules** → **Install Module**.
 2. Paste the **Manifest URL** (get it from the module author or project README; see **FORGE_INSTALL.md** in the parent `foundry_module` folder for details).
-3. Click **Install**, then enable **Rollsight Integration** in your world under **Manage Modules**.
+3. Click **Install**, then enable **RollSight Integration** in your world under **Manage Modules**.
 
 Full steps and how to publish the module so the manifest URL works: **FORGE_INSTALL.md**.
 
@@ -17,8 +17,8 @@ Full steps and how to publish the module so the manifest URL works: **FORGE_INST
 ## Overview
 
 When using The Forge (cloud-hosted Foundry), each player needs to:
-1. Install and run Rollsight on their local machine
-2. Configure Rollsight to connect to your Forge world URL
+1. Install and run RollSight on their local machine
+2. Configure RollSight to connect to your Forge world URL
 3. Connect to the same Foundry instance
 
 ## Step 1: Get Your Forge World URL
@@ -27,9 +27,9 @@ When using The Forge (cloud-hosted Foundry), each player needs to:
 2. Your world URL will be something like: `https://your-world-name.forge-vtt.com`
 3. Note this URL - you'll need it for each player's configuration
 
-## Step 2: Configure Rollsight for Each Player
+## Step 2: Configure RollSight for Each Player
 
-Each player needs to configure Rollsight on their local machine:
+Each player needs to configure RollSight on their local machine:
 
 ### Option A: Edit Configuration File
 
@@ -53,7 +53,7 @@ Each player needs to configure Rollsight on their local machine:
 
 ### Option B: Use UI Settings (If Available)
 
-If Rollsight has a settings UI:
+If RollSight has a settings UI:
 1. Open Settings → VTT Integration
 2. Enter your Forge URL: `https://your-world-name.forge-vtt.com`
 3. Enable "Auto-Connect"
@@ -65,7 +65,7 @@ Share these instructions with your players:
 
 ### For Each Player:
 
-1. **Install Rollsight** (if not already installed)
+1. **Install RollSight** (if not already installed)
    - Download from your repository
    - Install dependencies
    - Set up camera
@@ -76,13 +76,13 @@ Share these instructions with your players:
    - Set `foundry_vtt.enabled` to: `true`
    - Set `foundry_vtt.auto_connect` to: `true`
 
-3. **Start Rollsight**
-   - Launch Rollsight
+3. **Start RollSight**
+   - Launch RollSight
    - It should automatically connect to your Forge world
    - Check the status indicator - it should show "Connected to Foundry VTT"
 
 4. **Test Connection**
-   - Roll some dice in Rollsight
+   - Roll some dice in RollSight
    - Check Foundry chat - rolls should appear automatically
 
 ## Step 4: Verify Connection
@@ -91,9 +91,9 @@ Share these instructions with your players:
 
 1. Open Foundry console (F12)
 2. Check for connection messages
-3. Look for: `Rollsight Integration | Ready`
+3. Look for: `RollSight Integration | Ready`
 
-### In Rollsight:
+### In RollSight:
 
 1. Check status indicator
 2. Should show: "Connected to Foundry VTT"

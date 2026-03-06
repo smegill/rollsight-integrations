@@ -23,12 +23,12 @@
 
 1. Open your world in Foundry VTT
 2. Click **Settings** (gear icon) → **Manage Modules**
-3. Check the box next to **Rollsight Integration**
+3. Check the box next to **RollSight Integration**
 4. Click **Update Modules**
 
-### 3. Configure Rollsight
+### 3. Configure RollSight
 
-In Rollsight's `camera_config.json`, add:
+In RollSight's `camera_config.json`, add:
 
 ```json
 {
@@ -45,8 +45,8 @@ In Rollsight's `camera_config.json`, add:
 ### 4. Test Connection
 
 1. Start Foundry VTT
-2. Start Rollsight
-3. Roll dice in Rollsight
+2. Start RollSight
+3. Roll dice in RollSight
 4. Check Foundry chat - rolls should appear automatically
 
 ## Configuration Options
@@ -60,7 +60,7 @@ The module has these settings (accessible via Foundry's module settings):
 - **Show 3D Dice**: Enable/disable 3D dice animations
 - **Chat Format**: Choose how rolls appear in chat
 
-### Rollsight Settings
+### RollSight Settings
 
 Configure in `camera_config.json`:
 
@@ -81,7 +81,7 @@ Configure in `camera_config.json`:
 
 ### Basic Roll
 
-1. Roll dice in Rollsight
+1. Roll dice in RollSight
 2. Roll appears in Foundry chat automatically
 3. 3D dice animate (if enabled)
 
@@ -97,13 +97,13 @@ game.rollsight.requestRoll("8d6", {
 });
 ```
 
-Rollsight will prompt the user to roll manually or digitally.
+RollSight will prompt the user to roll manually or digitally.
 
 ### Correct a Roll
 
 1. Roll appears in Foundry
 2. Notice incorrect value
-3. Correct it in Rollsight (click die or table)
+3. Correct it in RollSight (click die or table)
 4. Foundry chat message updates automatically
 
 ## Troubleshooting
@@ -118,14 +118,14 @@ Rollsight will prompt the user to roll manually or digitally.
 ### Rolls Not Appearing
 
 - Verify module is enabled
-- Check Rollsight is connected (status in Rollsight)
+- Check RollSight is connected (status in RollSight)
 - Check Foundry console for errors
 - Verify socket.io connection
 
 ### Roll Requests Not Working
 
 - Check webhook URL is correct
-- Verify Rollsight webhook server is running
+- Verify RollSight webhook server is running
 - Test webhook: `curl http://localhost:8765`
 - Check Foundry console for errors
 

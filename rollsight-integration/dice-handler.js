@@ -1,5 +1,5 @@
 /**
- * Dice Handler for Rollsight Integration
+ * Dice Handler for RollSight Integration
  * 
  * Handles 3D dice animations for physical rolls.
  */
@@ -48,7 +48,7 @@ export class DiceHandler {
                 }
             }
         } catch (error) {
-            console.warn("Rollsight Integration | Error animating dice:", error);
+            console.warn("RollSight Integration | Error animating dice:", error);
         }
     }
 }

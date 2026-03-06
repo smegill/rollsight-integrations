@@ -1,12 +1,12 @@
-# Making Rollsight Integration Available to Everyone
+# Making RollSight Integration Available to Everyone
 
-The Rollsight Integration module is designed to run for **all users** (GM and players), not just the Gamemaster. Here’s how to ensure it’s active for everyone.
+The RollSight Integration module is designed to run for **all users** (GM and players), not just the Gamemaster. Here’s how to ensure it’s active for everyone.
 
 ## 1. Enable the module (GM)
 
 1. Open your world in Foundry VTT **as the Gamemaster**.
 2. Go to **Settings** (gear icon) → **Manage Modules**.
-3. Enable **Rollsight Integration**.
+3. Enable **RollSight Integration**.
 4. Reload the world or continue.
 
 When the module is enabled for the world, Foundry loads it for **every connected client** (GM and players). There is no GM-only flag in the module itself.
@@ -24,24 +24,24 @@ If such an option exists, set it so the module is **included for players** or **
 
 ## 3. Confirm it’s active for players
 
-- **Players:** Open **Configure Settings** (game settings) and look for **Rollsight Integration**. You should see **Rollsight Integration (this client)**. If it’s there, the module is loaded and active for that client.
-- **GM:** After enabling the module, have a player join (or refresh) and ask them to check Configure Settings for Rollsight Integration.
+- **Players:** Open **Configure Settings** (game settings) and look for **RollSight Integration**. You should see **RollSight Integration (this client)**. If it’s there, the module is loaded and active for that client.
+- **GM:** After enabling the module, have a player join (or refresh) and ask them to check Configure Settings for RollSight Integration.
 
 ## 4. Dice Configuration (Foundry v12+)
 
-For **in-context** rolls (e.g. attack rolls using physical dice via Rollsight):
+For **in-context** rolls (e.g. attack rolls using physical dice via RollSight):
 
 - **Dice Configuration** is usually under **Setup** → **Dice Configuration**, which is often GM-only.
-- If only the GM can open Setup, the GM may need to set the **Rollsight (Physical Dice)** fulfillment method for the world, or your host may allow players to set their own dice method elsewhere.
-- **Fallback to chat** (module setting) works for everyone: when no RollResolver is open, Rollsight rolls are sent to chat. That does not require players to open Dice Configuration.
+- If only the GM can open Setup, the GM may need to set the **RollSight (Physical Dice)** fulfillment method for the world, or your host may allow players to set their own dice method elsewhere.
+- **Fallback to chat** (module setting) works for everyone: when no RollResolver is open, RollSight rolls are sent to chat. That does not require players to open Dice Configuration.
 
 ## Summary
 
 | Step | Who | Action |
 |------|-----|--------|
-| Enable module | GM | Settings → Manage Modules → enable **Rollsight Integration** |
+| Enable module | GM | Settings → Manage Modules → enable **RollSight Integration** |
 | Host “include for players” | GM | If your host has this option, set it so the module loads for players |
-| Confirm | Players | Configure Settings → see **Rollsight Integration (this client)** |
-| Dice config (optional) | GM or players | Setup → Dice Configuration → choose Rollsight per die (if you use in-context rolls) |
+| Confirm | Players | Configure Settings → see **RollSight Integration (this client)** |
+| Dice config (optional) | GM or players | Setup → Dice Configuration → choose RollSight per die (if you use in-context rolls) |
 
 The module does not restrict itself to the GM; it runs for every client when the GM enables it and the host (if applicable) includes it for players.

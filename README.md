@@ -1,6 +1,6 @@
-# Rollsight VTT Integrations
+# RollSight VTT Integrations
 
-This repository contains **VTT (virtual tabletop) integration code only** — the Foundry module and release tooling. It is published from the private Rollsight project so that Foundry users can install the module via a public manifest URL.
+This repository contains **VTT (virtual tabletop) integration code only** — the Foundry module and release tooling. It is published from the private RollSight project so that Foundry users can install the module via a public manifest URL.
 
 ## For Foundry / Forge users
 
@@ -14,8 +14,8 @@ See **rollsight-integration/README.md** for setup and **FORGE_INSTALL.md** for d
 
 ## Contents
 
-- **rollsight-integration/** — Foundry VTT module (Rollsight Real Dice Reader)
+- **rollsight-integration/** — Foundry VTT module (RollSight Real Dice Reader)
 - **release.sh**, **build-release-zip.sh** — Release and zip build
 - **FORGE_INSTALL.md**, **PUBLIC_REPO_SETUP.md**, etc. — Docs for install and maintainers
 
-The full Rollsight app (desktop app, website, scripts, firmware) lives in the private repository.
+The full RollSight app (desktop app, website, scripts, firmware) lives in the private repository.
