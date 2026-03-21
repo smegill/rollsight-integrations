@@ -514,6 +514,7 @@ class RollSightIntegration {
             return true;
         }
         this._handlingChatRollMessage = msg;
+        let chatOutcomeSession = null;
 
         try {
             if (debug) console.log("RollSight Real Dice Reader | [debug] Chat /roll opening RollResolver for", formula);
@@ -522,7 +523,9 @@ class RollSightIntegration {
             const resolver = new RollResolverClass({ roll });
             let resolveOutcomeForPending;
             const outcomePromise = new Promise((resolve) => { resolveOutcomeForPending = resolve; });
-            this._pendingChatResolver = { resolver, roll, formula, description, rollMode, resolveOutcome: resolveOutcomeForPending, resolverNotRendered: true, consumedFingerprints: new Set() };
+            // Tie this chat session to a unique object so finally/toMessage never clobber a newer /r that replaced global _pendingChatResolver.
+            chatOutcomeSession = {};
+            this._pendingChatResolver = { chatOutcomeSession, resolver, roll, formula, description, rollMode, resolveOutcome: resolveOutcomeForPending, resolverNotRendered: true, consumedFingerprints: new Set() };
             this._pendingChatResolverCreatedAt = Date.now();
             // Register with Roll.RESOLVERS so Roll.registerResult() routes to this resolver (e.g. from tryFulfillActiveResolver).
             const RollClassRef = (typeof foundry !== 'undefined' && foundry.dice?.rolls?.Roll) ? foundry.dice.rolls.Roll : globalThis.Roll;
@@ -553,12 +556,11 @@ class RollSightIntegration {
                 return true;
             }
 
-            const fulfilledRoll = this._pendingChatResolver?.resolverNotRendered
-                ? this._pendingChatResolver.roll
-                : resolver.roll;
+            // Use this invocation's resolver/roll only — global _pendingChatResolver may already belong to a newer /r.
+            const fulfilledRoll = resolver.roll ?? roll;
             if (fulfilledRoll?.total !== undefined) {
                 const messageData = description ? { flavor: description } : {};
-                const options = { rollMode: this._pendingChatResolver?.rollMode ?? 'publicroll' };
+                const options = { rollMode: rollMode ?? 'publicroll' };
                 await fulfilledRoll.toMessage(messageData, options);
             }
             try {
@@ -571,14 +573,17 @@ class RollSightIntegration {
             console.error("RollSight Real Dice Reader | Chat /roll fulfillment error:", err);
             return false;
         } finally {
-            if (this._pendingChatResolver?.roll) {
-                const RollClassRef = (typeof foundry !== 'undefined' && foundry.dice?.rolls?.Roll) ? foundry.dice.rolls.Roll : globalThis.Roll;
-                if (RollClassRef?.RESOLVERS instanceof Map) {
-                    RollClassRef.RESOLVERS.delete(this._pendingChatResolver.roll);
-                }
+            const RollClassRef = (typeof foundry !== 'undefined' && foundry.dice?.rolls?.Roll) ? foundry.dice.rolls.Roll : globalThis.Roll;
+            // Always unregister this chat line's Roll from RESOLVERS; do not delete another session's roll if a new /r started.
+            if (RollClassRef?.RESOLVERS instanceof Map && roll) {
+                RollClassRef.RESOLVERS.delete(roll);
             }
-            this._pendingChatResolver = null;
-            this._handlingChatRollMessage = null;
+            if (this._pendingChatResolver?.chatOutcomeSession === chatOutcomeSession) {
+                this._pendingChatResolver = null;
+            }
+            if (this._handlingChatRollMessage === msg) {
+                this._handlingChatRollMessage = null;
+            }
         }
     }
 

@@ -1,3 +1,7 @@
+## v1.1.27 - 2026-03-20
+
+- Foundry chat `/r` race: after one manual roll finished, a new `/r` could stop receiving RollSight dice because the **previous** session’s `finally` cleared global `_pendingChatResolver` and removed the **new** roll from `Roll.RESOLVERS`. Each chat session now owns a `chatOutcomeSession` token; `toMessage` uses this invocation’s `resolver`/`roll` only; `finally` only clears global pending when it still matches this session, while always deleting **this** session’s `roll` from the map.
+
 ## v1.1.26 - 2026-03-21
 
 - Published to rollsight-integrations: desktop bridge, manifest cleanup, chat `2d20 kh` normalize, partial 2d20 inject fix, bridge poll backoff
