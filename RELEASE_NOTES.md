@@ -1,3 +1,7 @@
+## v1.1.30 - 2026-03-21
+
+- **Chat `/r` post:** `resolver.roll` after fulfillment could lack `toMessage` (not a Roll instance). Resolve posting roll via `_rollForChatToMessage` (prefer original formula roll, else `Roll.fromJSON`). `_ensureRollEvaluatedForChat` + ChatHandler guard satisfy v12 `ChatMessage` validation (“rolls must be evaluated”). Avoids `Cannot read properties of undefined (reading 'id')` when create fails.
+
 ## v1.1.29 - 2026-03-21
 
 - **Desktop bridge / Windows:** If the module setting used `http://localhost:8766`, Foundry’s fetch could target IPv6 `::1` while RollSight’s bridge binds **IPv4 127.0.0.1 only**, so polls never reached the queue (no “Received roll” logs). `_getDesktopBridgeBaseUrl()` now normalizes `localhost` and `::1` to `127.0.0.1`. Setting hint updated.

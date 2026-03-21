@@ -68,10 +68,21 @@ export class ChatHandler {
                 formula: roll.formula,
                 total: roll.total
             });
+
+            // v12+ validation: "Roll objects added to ChatMessage documents must be evaluated"
+            if (useRollsOnly && roll && roll._evaluated !== true) {
+                const tt = roll.total ?? roll._total;
+                if (typeof tt === "number" && !Number.isNaN(tt)) {
+                    roll._evaluated = true;
+                    if (roll._total == null || Number.isNaN(roll._total)) roll._total = tt;
+                }
+            }
             
             // Create the message - Foundry will automatically render the roll
             const message = await ChatMessageClass.create(messageData);
-            console.log("✅ ChatHandler | Message created successfully, ID:", message.id);
+            if (message?.id) {
+                console.log("✅ ChatHandler | Message created successfully, ID:", message.id);
+            }
             return message;
         } catch (error) {
             console.error("❌ ChatHandler | Error creating roll message:", error);

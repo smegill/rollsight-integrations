@@ -568,18 +568,11 @@ class RollSightIntegration {
                 return true;
             }
 
-            // Use this invocation's resolver/roll only — global _pendingChatResolver may already belong to a newer /r.
-            const fulfilledRoll = resolver.roll ?? roll;
-            if (fulfilledRoll) {
+            // Use a real Roll instance — resolver.roll may lack toMessage (plain/internal object after fulfillment).
+            const fulfilledRoll = this._rollForChatToMessage(resolver, roll);
+            if (fulfilledRoll && typeof fulfilledRoll.toMessage === "function") {
                 try {
-                    let t = fulfilledRoll.total;
-                    if (typeof t !== "number" || Number.isNaN(t)) {
-                        t = fulfilledRoll._total;
-                    }
-                    const badTotal = typeof t !== "number" || Number.isNaN(t);
-                    if (badTotal && typeof fulfilledRoll.evaluate === "function") {
-                        await fulfilledRoll.evaluate({ async: false, allowInteractive: false });
-                    }
+                    await this._ensureRollEvaluatedForChat(fulfilledRoll);
                 } catch (preMsgErr) {
                     console.warn("RollSight Real Dice Reader | pre toMessage evaluate:", preMsgErr);
                 }
@@ -590,6 +583,7 @@ class RollSightIntegration {
                 } catch (msgErr) {
                     console.error("RollSight Real Dice Reader | toMessage failed, trying ChatHandler.createRollMessage:", msgErr);
                     try {
+                        await this._ensureRollEvaluatedForChat(fulfilledRoll);
                         await this.chatHandler.createRollMessage(fulfilledRoll, {
                             formula: fulfilledRoll.formula ?? formula,
                             total: fulfilledRoll.total ?? fulfilledRoll._total,
@@ -601,7 +595,7 @@ class RollSightIntegration {
                     }
                 }
             } else {
-                console.warn("RollSight Real Dice Reader | Chat fulfillment: no roll to post after outcome");
+                console.warn("RollSight Real Dice Reader | Chat fulfillment: no Roll with toMessage after outcome (resolver.roll vs formula roll)");
             }
             try {
                 if (typeof resolver.close === "function") await resolver.close();
@@ -668,6 +662,57 @@ class RollSightIntegration {
             this._correctedRollForEvaluate = null;
         }
         return entry;
+    }
+
+    /**
+     * After RollResolver fills dice, resolver.roll may be plain/internal data without toMessage.
+     * Prefer the original Roll from chat, then rehydrate via Roll.fromJSON.
+     * @param {*} resolver
+     * @param {*} originalRoll - Roll instance from Roll.fromFormula
+     * @returns {object|null} Roll with toMessage
+     */
+    _rollForChatToMessage(resolver, originalRoll) {
+        const RollClass = (typeof foundry !== 'undefined' && foundry.dice?.rolls?.Roll) ? foundry.dice.rolls.Roll : globalThis.Roll;
+        const rRes = resolver?.roll;
+        const rOrig = originalRoll;
+        if (typeof rRes?.toMessage === "function") return rRes;
+        if (typeof rOrig?.toMessage === "function") return rOrig;
+        const tryFrom = (src) => {
+            if (!src || typeof src.toJSON !== "function" || !RollClass?.fromJSON) return null;
+            try {
+                const r = RollClass.fromJSON(src.toJSON());
+                return typeof r?.toMessage === "function" ? r : null;
+            } catch (_) {
+                return null;
+            }
+        };
+        return tryFrom(rRes) || tryFrom(rOrig);
+    }
+
+    /**
+     * ChatMessage (v12+) requires rolls to be evaluated before create().
+     * @param {*} roll
+     */
+    async _ensureRollEvaluatedForChat(roll) {
+        if (!roll) return;
+        if (roll._evaluated === true) return;
+        const t = roll.total ?? roll._total;
+        if (typeof t === "number" && !Number.isNaN(t)) {
+            roll._evaluated = true;
+            if (roll._total == null || Number.isNaN(roll._total)) roll._total = t;
+            return;
+        }
+        if (typeof roll.evaluate === "function") {
+            try {
+                await roll.evaluate({ async: false, allowInteractive: false });
+            } catch (_) {
+                /* ignore */
+            }
+        }
+        const t2 = roll.total ?? roll._total;
+        if (typeof t2 === "number" && !Number.isNaN(t2)) {
+            roll._evaluated = true;
+        }
     }
 
     /**
