@@ -1368,11 +1368,28 @@ class RollSightIntegration {
 
     /**
      * Base URL for RollSight desktop HTTP bridge (same /poll queue the browser extension uses).
+     * RollSight binds the bridge to IPv4 127.0.0.1 only. On Windows, "localhost" often resolves to ::1 first,
+     * so fetch() never reaches the server — normalize to 127.0.0.1 (same as browser_bridge.py).
      */
     _getDesktopBridgeBaseUrl() {
         const game = (typeof foundry !== 'undefined' && foundry.game) ? foundry.game : globalThis.game;
-        const raw = (game?.settings?.get("rollsight-integration", "desktopBridgeUrl") ?? "http://127.0.0.1:8766").toString().trim();
-        return raw.replace(/\/$/, "");
+        let raw = (game?.settings?.get("rollsight-integration", "desktopBridgeUrl") ?? "http://127.0.0.1:8766").toString().trim();
+        raw = raw.replace(/\/$/, "");
+        try {
+            const u = new URL(raw.includes("://") ? raw : `http://${raw}`);
+            let h = u.hostname;
+            if (h.startsWith("[") && h.endsWith("]")) h = h.slice(1, -1);
+            const hl = h.toLowerCase();
+            if (hl === "localhost" || hl === "::1" || hl === "0:0:0:0:0:0:0:1") {
+                u.hostname = "127.0.0.1";
+                let out = u.toString();
+                if (out.endsWith("/")) out = out.slice(0, -1);
+                return out;
+            }
+        } catch (_) {
+            /* keep raw */
+        }
+        return raw;
     }
 
     _stopDesktopBridgePoll() {
@@ -3118,7 +3135,7 @@ function registerRollSightSettings() {
     });
     game.settings.register("rollsight-integration", "desktopBridgeUrl", {
         name: "Desktop bridge base URL",
-        hint: "Must match RollSight's bridge URL/port (default http://127.0.0.1:8766). Change only if you configured a different bridge port in RollSight.",
+        hint: "Use http://127.0.0.1:8766 (not localhost) on Windows — the bridge listens on IPv4 only; localhost can resolve to IPv6 ::1 and polls will miss. Change the port if you changed it in RollSight.",
         scope: "client",
         config: true,
         type: String,

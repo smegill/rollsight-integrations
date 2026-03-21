@@ -1,3 +1,7 @@
+## v1.1.29 - 2026-03-21
+
+- **Desktop bridge / Windows:** If the module setting used `http://localhost:8766`, Foundry’s fetch could target IPv6 `::1` while RollSight’s bridge binds **IPv4 127.0.0.1 only**, so polls never reached the queue (no “Received roll” logs). `_getDesktopBridgeBaseUrl()` now normalizes `localhost` and `::1` to `127.0.0.1`. Setting hint updated.
+
 ## v1.1.28 - 2026-03-21
 
 - **Chat rolls not appearing:** `toMessage` was skipped when `roll.total` was still undefined (only `_total` set). We always attempt `toMessage`, run a non-interactive `evaluate()` when needed, and fall back to `ChatHandler.createRollMessage` on failure.
