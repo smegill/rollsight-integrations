@@ -55,6 +55,8 @@ Do **not** enable Desktop bridge and the browser extension on the **same machine
 
 For cloud-hosted Foundry in a normal browser, keep using the extension; the desktop bridge only helps the local Foundry app (or any client that can reach your machine’s bridge URL).
 
+**Desktop bridge not receiving rolls (Windows):** The module polls `http://127.0.0.1:8766` by default. If nothing happens, try **`http://localhost:8766`** as the Desktop bridge base URL, or update RollSight so its HTTP bridge binds to IPv4 (RollSight builds after 2026-03-21 bind `127.0.0.1` so `127.0.0.1` works reliably).
+
 ### 4. Configure Webhook (Optional – Roll Requests)
 
 To have RollSight show "Foundry is waiting for: 1d20" when a roll dialog opens:
