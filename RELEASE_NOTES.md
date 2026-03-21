@@ -1,3 +1,8 @@
+## v1.1.28 - 2026-03-21
+
+- **Chat rolls not appearing:** `toMessage` was skipped when `roll.total` was still undefined (only `_total` set). We always attempt `toMessage`, run a non-interactive `evaluate()` when needed, and fall back to `ChatHandler.createRollMessage` on failure.
+- **Concurrent `/r` (e.g. two `/r 2d20kh`):** A single `_correctedRollForEvaluate` caused `preCreateChatMessage` to apply the wrong correction or miss a match so the message had no usable roll data. Pending chat injects now push a **FIFO `_chatRollCorrectionQueue`** (matched by normalized formula); `preCreateChatMessage` dequeues the matching entry; `Roll.evaluate` patch finds the matching correction in the queue.
+
 ## v1.1.27 - 2026-03-20
 
 - Foundry chat `/r` race: after one manual roll finished, a new `/r` could stop receiving RollSight dice because the **previous** session’s `finally` cleared global `_pendingChatResolver` and removed the **new** roll from `Roll.RESOLVERS`. Each chat session now owns a `chatOutcomeSession` token; `toMessage` uses this invocation’s `resolver`/`roll` only; `finally` only clears global pending when it still matches this session, while always deleting **this** session’s `roll` from the map.

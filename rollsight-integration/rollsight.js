@@ -53,8 +53,10 @@ class RollSightIntegration {
         this._SENT_ROLL_STALE_MS = 60000;                   // 60s
         this._CONSUMED_STALE_MS = 60000;                    // 60s
         this._staleCleanupIntervalId = null;
-        /** One-shot corrected roll snapshot for next Roll.evaluate */
+        /** One-shot corrected roll snapshot for next Roll.evaluate (also see queue below). */
         this._correctedRollForEvaluate = null;
+        /** FIFO corrections for chat toMessage — concurrent /r commands must not overwrite a single global. */
+        this._chatRollCorrectionQueue = [];
         /** Roll JSON we last applied when closing a resolver (so we can re-apply to a duplicate combat resolver). */
         this._lastConsumedRollJson = null;
         /** Time window (ms) in which a newly rendered resolver for the same formula is treated as duplicate combat resolver. */
@@ -125,20 +127,27 @@ class RollSightIntegration {
         Hooks.on("preCreateChatMessage", (document, data, _options) => {
             const game = (typeof foundry !== 'undefined' && foundry.game) ? foundry.game : globalThis.game;
             const module = game?.rollsight;
-            if (!module?._correctedRollForEvaluate) return;
-            const correction = module._correctedRollForEvaluate;
             const rolls = data?.rolls ?? document.getSource?.()?.rolls ?? document._source?.rolls;
             if (!Array.isArray(rolls) || rolls.length === 0) return;
             const firstRoll = rolls[0];
             const docFormula = (firstRoll?.formula ?? firstRoll?.roll ?? "").toString().trim().toLowerCase().replace(/\s/g, "");
-            const normCorrection = (correction.formula ?? "").toString().trim().toLowerCase().replace(/\s/g, "");
-            if (docFormula !== normCorrection) return;
+            let correction = typeof module?._takeChatRollCorrectionForMessage === "function"
+                ? module._takeChatRollCorrectionForMessage(docFormula)
+                : null;
+            if (!correction && module?._correctedRollForEvaluate) {
+                const c = module._correctedRollForEvaluate;
+                const normC = (c.formula ?? "").toString().trim().toLowerCase().replace(/\s/g, "");
+                if (docFormula === normC) {
+                    correction = c;
+                    module._correctedRollForEvaluate = null;
+                }
+            }
+            if (!correction) return;
             const rollData = correction.rollJson;
             if (!rollData || typeof rollData !== 'object') return;
             const correctedRolls = [JSON.parse(JSON.stringify(rollData))];
             document.updateSource({ rolls: correctedRolls });
             if (data && Object.prototype.hasOwnProperty.call(data, "rolls")) data.rolls = correctedRolls;
-            module._correctedRollForEvaluate = null;
         }, -1000);
         
         Hooks.once('ready', () => {
@@ -325,11 +334,14 @@ class RollSightIntegration {
                 }
                 const applyCorrection = () => {
                     const module = game?.rollsight;
-                    const correction = module?._correctedRollForEvaluate;
-                    if (!correction) return;
                     const normalize = (s) => String(s ?? '').replace(/\s/g, '').toLowerCase();
                     const formula = normalize(this.formula);
-                    if (normalize(correction.formula) !== formula) return;
+                    const q = module?._chatRollCorrectionQueue || [];
+                    let correction = q.find((c) => normalize(c.formula) === formula);
+                    if (!correction && module?._correctedRollForEvaluate && normalize(module._correctedRollForEvaluate.formula) === formula) {
+                        correction = module._correctedRollForEvaluate;
+                    }
+                    if (!correction) return;
                     try {
                         // Apply stored roll data: copy Die term results by dice order (not term index) so modifiers (e.g. 1d20 - 1) stay correct.
                         const data = typeof correction.rollJson === 'string'
@@ -558,10 +570,38 @@ class RollSightIntegration {
 
             // Use this invocation's resolver/roll only — global _pendingChatResolver may already belong to a newer /r.
             const fulfilledRoll = resolver.roll ?? roll;
-            if (fulfilledRoll?.total !== undefined) {
-                const messageData = description ? { flavor: description } : {};
-                const options = { rollMode: rollMode ?? 'publicroll' };
-                await fulfilledRoll.toMessage(messageData, options);
+            if (fulfilledRoll) {
+                try {
+                    let t = fulfilledRoll.total;
+                    if (typeof t !== "number" || Number.isNaN(t)) {
+                        t = fulfilledRoll._total;
+                    }
+                    const badTotal = typeof t !== "number" || Number.isNaN(t);
+                    if (badTotal && typeof fulfilledRoll.evaluate === "function") {
+                        await fulfilledRoll.evaluate({ async: false, allowInteractive: false });
+                    }
+                } catch (preMsgErr) {
+                    console.warn("RollSight Real Dice Reader | pre toMessage evaluate:", preMsgErr);
+                }
+                try {
+                    const messageData = description ? { flavor: description } : {};
+                    const options = { rollMode: rollMode ?? "publicroll" };
+                    await fulfilledRoll.toMessage(messageData, options);
+                } catch (msgErr) {
+                    console.error("RollSight Real Dice Reader | toMessage failed, trying ChatHandler.createRollMessage:", msgErr);
+                    try {
+                        await this.chatHandler.createRollMessage(fulfilledRoll, {
+                            formula: fulfilledRoll.formula ?? formula,
+                            total: fulfilledRoll.total ?? fulfilledRoll._total,
+                            dice: [],
+                            roll_id: null
+                        });
+                    } catch (fbErr) {
+                        console.error("RollSight Real Dice Reader | ChatHandler fallback failed:", fbErr);
+                    }
+                }
+            } else {
+                console.warn("RollSight Real Dice Reader | Chat fulfillment: no roll to post after outcome");
             }
             try {
                 if (typeof resolver.close === "function") await resolver.close();
@@ -585,6 +625,49 @@ class RollSightIntegration {
                 this._handlingChatRollMessage = null;
             }
         }
+    }
+
+    /**
+     * Normalize formula for matching chat corrections (same as preCreateChatMessage).
+     * @param {string} f
+     * @returns {string}
+     */
+    _normChatRollFormula(f) {
+        return String(f ?? "").trim().toLowerCase().replace(/\s/g, "");
+    }
+
+    /**
+     * Register a corrected roll for the next chat message + Roll.evaluate (pending chat inject).
+     * @param {object} rollJson
+     * @param {string} formulaRaw - e.g. pending chat formula "2d20kh"
+     */
+    _registerChatRollCorrection(rollJson, formulaRaw) {
+        if (!rollJson || typeof rollJson !== "object") return;
+        const formula = this._normChatRollFormula(formulaRaw);
+        const entry = { rollJson, formula };
+        this._chatRollCorrectionQueue.push(entry);
+        if (this._chatRollCorrectionQueue.length > 16) {
+            console.warn("RollSight Real Dice Reader | Chat correction queue overflow; dropping oldest");
+            this._chatRollCorrectionQueue.shift();
+        }
+        this._correctedRollForEvaluate = entry;
+    }
+
+    /**
+     * Remove and return the first queued correction whose formula matches the chat document (FIFO among same formula).
+     * @param {string} docFormulaNorm
+     * @returns {{ rollJson: object, formula: string } | null}
+     */
+    _takeChatRollCorrectionForMessage(docFormulaNorm) {
+        const norm = String(docFormulaNorm ?? "").trim().toLowerCase().replace(/\s/g, "");
+        if (!norm || !this._chatRollCorrectionQueue?.length) return null;
+        const i = this._chatRollCorrectionQueue.findIndex((c) => c.formula === norm);
+        if (i < 0) return null;
+        const [entry] = this._chatRollCorrectionQueue.splice(i, 1);
+        if (this._correctedRollForEvaluate === entry) {
+            this._correctedRollForEvaluate = null;
+        }
+        return entry;
     }
 
     /**
@@ -1521,10 +1604,7 @@ class RollSightIntegration {
                                     const formula = this._pendingChatResolver.formula ?? "";
                                     if (roll?.toJSON) {
                                         const rollJson = JSON.parse(JSON.stringify(roll.toJSON()));
-                                        this._correctedRollForEvaluate = {
-                                            rollJson,
-                                            formula: String(formula).trim().toLowerCase().replace(/\s/g, "")
-                                        };
+                                        this._registerChatRollCorrection(rollJson, formula);
                                         this._lastConsumedRollJson = rollJson;
                                     }
                                     this._lastConsumedRollFingerprint = rollFp;
@@ -1561,10 +1641,7 @@ class RollSightIntegration {
                             const formula = this._pendingChatResolver.formula ?? "";
                             if (roll?.toJSON) {
                                 const rollJson = JSON.parse(JSON.stringify(roll.toJSON()));
-                                this._correctedRollForEvaluate = {
-                                    rollJson,
-                                    formula: String(formula).trim().toLowerCase().replace(/\s/g, "")
-                                };
+                                this._registerChatRollCorrection(rollJson, formula);
                                 this._lastConsumedRollJson = rollJson;
                             }
                             this._lastConsumedRollFingerprint = rollFp;
@@ -1633,10 +1710,7 @@ class RollSightIntegration {
                             const formula = this._pendingChatResolver.formula ?? "";
                             if (roll?.toJSON) {
                                 const rollJson = JSON.parse(JSON.stringify(roll.toJSON()));
-                                this._correctedRollForEvaluate = {
-                                    rollJson,
-                                    formula: String(formula).trim().toLowerCase().replace(/\s/g, "")
-                                };
+                                this._registerChatRollCorrection(rollJson, formula);
                                 this._lastConsumedRollJson = rollJson;
                             }
                             this._lastPendingResolverCompletedAt = Date.now();
