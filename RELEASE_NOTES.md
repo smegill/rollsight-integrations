@@ -1,3 +1,8 @@
+## v1.1.26 - 2026-03-21
+
+- Published to rollsight-integrations: desktop bridge, manifest cleanup, chat `2d20 kh` normalize, partial 2d20 inject fix, bridge poll backoff
+- acc842f Foundry module: normalize 2d20 kh chat formulas; defer kh/total until all dice filled (v1.1.26)
+
 ## v1.1.23 - 2026-03-20
 
 - 56fc162 Foundry: desktop bridge polling for desktop app (no browser extension)
