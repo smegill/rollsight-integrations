@@ -61,6 +61,10 @@ class RollSightIntegration {
         this._JUST_COMPLETED_WINDOW_MS = 2500;
         /** When a second resolver is rendered for the same formula while we're still feeding the first (e.g. attack roll), store it here and close it after we close the first. */
         this._duplicateResolver = null;
+        /** Desktop bridge: poll RollSight HTTP bridge (Foundry desktop app — no browser extension). */
+        this._bridgePollIntervalId = null;
+        this._bridgePollSince = 0;
+        this._bridgePollInFlight = false;
     }
 
     /** Known roll dialog title substrings (Attack Roll, Damage Roll, Ability Check, etc.). Not Configure Roll / Initiative. */
@@ -251,10 +255,15 @@ class RollSightIntegration {
             }
             const v = game?.release?.version ?? game?.data?.version ?? game?.version ?? "?";
             console.log("RollSight Real Dice Reader | Fully loaded (Foundry " + v + "). Settings: Configure Settings → Module Settings → RollSight Real Dice Reader. Use Manual dice in Dice Configuration for physical RollSight dice.");
-            // One-time check: is the RollSight extension on this tab? (so we can log a clear hint if rolls never arrive)
+            // One-time check: is the RollSight extension on this tab? (skip if desktop bridge polls the same HTTP queue)
+            const useDesktopBridge = game.settings.get("rollsight-integration", "desktopBridgePoll");
             const statusTimeout = setTimeout(() => {
                 window.removeEventListener('message', onStatusResponse);
-                console.warn("RollSight Real Dice Reader | Extension not detected on this tab. If rolls don't reach Foundry: install/reload the RollSight VTT Bridge extension, ensure RollSight app + bridge are running, then refresh this page.");
+                if (useDesktopBridge) {
+                    console.log("RollSight Real Dice Reader | Desktop bridge polling enabled — rolls are read from the RollSight app HTTP bridge. No browser extension required.");
+                    return;
+                }
+                console.warn("RollSight Real Dice Reader | Extension not detected on this tab. If rolls don't reach Foundry: install/reload the RollSight VTT Bridge extension, enable Desktop bridge polling in module settings for the Foundry desktop app, ensure RollSight app + bridge are running, then refresh this page.");
             }, 2500);
             function onStatusResponse(event) {
                 if (event.data?.type !== 'rollsight-status-response') return;
@@ -266,6 +275,15 @@ class RollSightIntegration {
             }
             window.addEventListener('message', onStatusResponse);
             window.postMessage({ type: 'rollsight-status-request' }, '*');
+
+            this._startDesktopBridgePollIfEnabled();
+            const HooksForLifecycle = (typeof foundry !== 'undefined' && foundry.Hooks) ? foundry.Hooks : globalThis.Hooks;
+            HooksForLifecycle.on("closeGame", () => this._stopDesktopBridgePoll());
+            HooksForLifecycle.on("settingChange", (namespace, key, _value) => {
+                if (namespace !== "rollsight-integration") return;
+                if (key !== "desktopBridgePoll" && key !== "desktopBridgeUrl") return;
+                this._restartDesktopBridgePoll();
+            });
         });
     }
 
@@ -1219,6 +1237,96 @@ class RollSightIntegration {
      */
     isConnected() {
         return this.connected;
+    }
+
+    /**
+     * Base URL for RollSight desktop HTTP bridge (same /poll queue the browser extension uses).
+     */
+    _getDesktopBridgeBaseUrl() {
+        const game = (typeof foundry !== 'undefined' && foundry.game) ? foundry.game : globalThis.game;
+        const raw = (game?.settings?.get("rollsight-integration", "desktopBridgeUrl") ?? "http://127.0.0.1:8766").toString().trim();
+        return raw.replace(/\/$/, "");
+    }
+
+    _stopDesktopBridgePoll() {
+        if (this._bridgePollIntervalId != null) {
+            clearInterval(this._bridgePollIntervalId);
+            this._bridgePollIntervalId = null;
+        }
+    }
+
+    _restartDesktopBridgePoll() {
+        this._stopDesktopBridgePoll();
+        this._startDesktopBridgePollIfEnabled();
+    }
+
+    _startDesktopBridgePollIfEnabled() {
+        const game = (typeof foundry !== 'undefined' && foundry.game) ? foundry.game : globalThis.game;
+        this._stopDesktopBridgePoll();
+        if (!game?.settings) return;
+        if (game.settings.get("rollsight-integration", "playerActive") === false) return;
+        if (!game.settings.get("rollsight-integration", "desktopBridgePoll")) return;
+        const base = this._getDesktopBridgeBaseUrl();
+        if (!base) return;
+        const pollMs = 500;
+        const tick = () => {
+            if (this._bridgePollInFlight) return;
+            this._bridgePollInFlight = true;
+            this._pollDesktopBridgeOnce()
+                .catch(() => {})
+                .finally(() => {
+                    this._bridgePollInFlight = false;
+                });
+        };
+        tick();
+        this._bridgePollIntervalId = setInterval(tick, pollMs);
+        if (game.settings.get("rollsight-integration", "debugLogging")) {
+            console.log("RollSight Real Dice Reader | Desktop bridge polling enabled:", `${base}/poll`);
+        }
+    }
+
+    async _pollDesktopBridgeOnce() {
+        const game = (typeof foundry !== 'undefined' && foundry.game) ? foundry.game : globalThis.game;
+        if (!game?.settings?.get("rollsight-integration", "desktopBridgePoll")) return;
+        if (game.settings.get("rollsight-integration", "playerActive") === false) return;
+        const base = this._getDesktopBridgeBaseUrl();
+        if (!base) return;
+        const url = `${base}/poll?since=${this._bridgePollSince}`;
+        let res;
+        try {
+            res = await fetch(url, { method: "GET", cache: "no-store", credentials: "omit" });
+        } catch (_e) {
+            return;
+        }
+        if (!res.ok) return;
+        let data;
+        try {
+            data = await res.json();
+        } catch (_e) {
+            return;
+        }
+        const rolls = Array.isArray(data.rolls) ? data.rolls : (data.roll ? [data.roll] : []);
+        if (rolls.length === 0) return;
+        let maxTs = this._bridgePollSince;
+        const debug = game.settings.get("rollsight-integration", "debugLogging");
+        for (const item of rolls) {
+            const ts = item?.timestamp;
+            if (typeof ts === "number" && ts > maxTs) maxTs = ts;
+            try {
+                if (item.type === "amendment" || item.amendment) {
+                    const am = item.amendment ?? item;
+                    await this.handleAmendment(am);
+                } else if (item.type === "roll" || item.roll) {
+                    const rollInner = item.roll ?? item;
+                    await this.handleRoll(rollInner);
+                }
+            } catch (err) {
+                if (debug) console.warn("RollSight Real Dice Reader | Desktop bridge poll handler error:", err);
+            }
+        }
+        if (maxTs >= this._bridgePollSince) {
+            this._bridgePollSince = maxTs;
+        }
     }
     
     /**
@@ -2844,10 +2952,26 @@ function registerRollSightSettings() {
         type: Boolean,
         default: true
     });
+    game.settings.register("rollsight-integration", "desktopBridgePoll", {
+        name: "Desktop bridge (Foundry app — poll HTTP bridge)",
+        hint: "For Foundry's desktop application where the browser extension cannot run. Polls the same RollSight HTTP bridge the extension uses (default port 8766). Do not enable on the same machine as the VTT Bridge extension — both consume the same roll queue.",
+        scope: "client",
+        config: true,
+        type: Boolean,
+        default: false
+    });
+    game.settings.register("rollsight-integration", "desktopBridgeUrl", {
+        name: "Desktop bridge base URL",
+        hint: "Must match RollSight's bridge URL/port (default http://127.0.0.1:8766). Change only if you configured a different bridge port in RollSight.",
+        scope: "client",
+        config: true,
+        type: String,
+        default: "http://127.0.0.1:8766"
+    });
     // Client-scoped so players see the module in Configure Settings and know it's active for them
     game.settings.register("rollsight-integration", "playerActive", {
         name: "RollSight Real Dice Reader (this client)",
-        hint: "This module runs for all users (GM and players) when the GM enables it in Manage Modules. Use the RollSight browser extension and RollSight app to send physical dice rolls from this client.",
+        hint: "This module runs for all users (GM and players) when the GM enables it in Manage Modules. Use the RollSight app plus the VTT Bridge browser extension, or enable Desktop bridge polling for the Foundry desktop app.",
         scope: "client",
         config: true,
         type: Boolean,

@@ -46,7 +46,14 @@ To use physical dice **in-context** (e.g. for attack rolls, spell rolls):
 
 ### 3. Configure RollSight Connection
 
-The module receives rolls via the browser extension (postMessage). For cloud Foundry, use the extension; for self-hosted, the same or a local bridge can be used.
+The module receives rolls via the **RollSight VTT Bridge** browser extension (`postMessage`) or, for **Foundry’s desktop application** (where extensions do not run), via **Desktop bridge (poll HTTP bridge)** in module settings.
+
+- **Browser (Chrome/Edge, etc.)**: Install the RollSight VTT Bridge extension; leave Desktop bridge **off** on that client.
+- **Foundry desktop app**: In **Configure Settings → Module Settings → RollSight Real Dice Reader**, enable **Desktop bridge (Foundry app — poll HTTP bridge)**. Keep RollSight running so its HTTP bridge is available (default `http://127.0.0.1:8766`). Adjust **Desktop bridge base URL** only if you changed the bridge port in RollSight.
+
+Do **not** enable Desktop bridge and the browser extension on the **same machine** for the same session — they share one roll queue and would compete for rolls.
+
+For cloud-hosted Foundry in a normal browser, keep using the extension; the desktop bridge only helps the local Foundry app (or any client that can reach your machine’s bridge URL).
 
 ### 4. Configure Webhook (Optional – Roll Requests)
 
