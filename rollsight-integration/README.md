@@ -57,6 +57,8 @@ For cloud-hosted Foundry in a normal browser, keep using the extension; the desk
 
 **Desktop bridge not receiving rolls (Windows):** The module polls `http://127.0.0.1:8766` by default. If nothing happens, try **`http://localhost:8766`** as the Desktop bridge base URL, or update RollSight so its HTTP bridge binds to IPv4 (RollSight builds after 2026-03-21 bind `127.0.0.1` so `127.0.0.1` works reliably).
 
+**`net::ERR_CONNECTION_REFUSED` on `/poll`:** Foundry can reach your machine, but **nothing is listening on that port** — usually RollSight is not running, the main window was never opened (bridge may not start), or the bridge failed to bind (e.g. port already in use). With RollSight open, confirm `http://127.0.0.1:8766/health` in a normal browser returns JSON.
+
 ### 4. Configure Webhook (Optional – Roll Requests)
 
 To have RollSight show "Foundry is waiting for: 1d20" when a roll dialog opens:

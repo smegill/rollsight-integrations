@@ -63,8 +63,11 @@ class RollSightIntegration {
         this._duplicateResolver = null;
         /** Desktop bridge: poll RollSight HTTP bridge (Foundry desktop app — no browser extension). */
         this._bridgePollIntervalId = null;
+        this._bridgePollTimeoutId = null;
         this._bridgePollSince = 0;
         this._bridgePollInFlight = false;
+        /** Throttle "bridge down" console warnings (ms). */
+        this._bridgeLastUnreachableLog = 0;
     }
 
     /** Known roll dialog title substrings (Attack Roll, Damage Roll, Ability Check, etc.). Not Configure Roll / Initiative. */
@@ -1253,6 +1256,26 @@ class RollSightIntegration {
             clearInterval(this._bridgePollIntervalId);
             this._bridgePollIntervalId = null;
         }
+        if (this._bridgePollTimeoutId != null) {
+            clearTimeout(this._bridgePollTimeoutId);
+            this._bridgePollTimeoutId = null;
+        }
+    }
+
+    /**
+     * When the bridge returns ERR_CONNECTION_REFUSED, nothing is listening — usually RollSight is closed
+     * or the bridge failed to bind (e.g. port in use). Log at most once per 20s.
+     */
+    _logDesktopBridgeUnreachableThrottled(base) {
+        const now = Date.now();
+        if (now - this._bridgeLastUnreachableLog < 20000) return;
+        this._bridgeLastUnreachableLog = now;
+        console.warn(
+            "RollSight Real Dice Reader | Desktop bridge unreachable at " + base + " (e.g. net::ERR_CONNECTION_REFUSED). " +
+            "No process is accepting connections on that port. Start the RollSight app and keep the main window open, " +
+            "or fix the port in RollSight (Foundry / VTT → Bridge port) and in this module’s Desktop bridge base URL. " +
+            "If RollSight says the bridge is running but this persists, another app may be blocking the port or RollSight failed to start the server (check RollSight console / logs)."
+        );
     }
 
     _restartDesktopBridgePoll() {
@@ -1268,45 +1291,62 @@ class RollSightIntegration {
         if (!game.settings.get("rollsight-integration", "desktopBridgePoll")) return;
         const base = this._getDesktopBridgeBaseUrl();
         if (!base) return;
-        const pollMs = 500;
-        const tick = () => {
-            if (this._bridgePollInFlight) return;
-            this._bridgePollInFlight = true;
-            this._pollDesktopBridgeOnce()
-                .catch(() => {})
-                .finally(() => {
-                    this._bridgePollInFlight = false;
-                });
+        const fastMs = 500;
+        const slowMs = 4000;
+        const self = this;
+        const schedule = (delay) => {
+            if (self._bridgePollTimeoutId != null) clearTimeout(self._bridgePollTimeoutId);
+            self._bridgePollTimeoutId = setTimeout(run, delay);
         };
-        tick();
-        this._bridgePollIntervalId = setInterval(tick, pollMs);
+        const run = async () => {
+            self._bridgePollTimeoutId = null;
+            if (!game?.settings?.get("rollsight-integration", "desktopBridgePoll")) return;
+            if (game.settings.get("rollsight-integration", "playerActive") === false) return;
+            if (self._bridgePollInFlight) {
+                schedule(fastMs);
+                return;
+            }
+            self._bridgePollInFlight = true;
+            let ok = false;
+            try {
+                ok = await self._pollDesktopBridgeOnce();
+            } finally {
+                self._bridgePollInFlight = false;
+            }
+            if (!ok) self._logDesktopBridgeUnreachableThrottled(base);
+            schedule(ok ? fastMs : slowMs);
+        };
         if (game.settings.get("rollsight-integration", "debugLogging")) {
             console.log("RollSight Real Dice Reader | Desktop bridge polling enabled:", `${base}/poll`);
         }
+        run();
     }
 
+    /**
+     * Poll bridge for queued rolls. @returns {Promise<boolean>} true if HTTP reachability OK (200 + JSON), else false.
+     */
     async _pollDesktopBridgeOnce() {
         const game = (typeof foundry !== 'undefined' && foundry.game) ? foundry.game : globalThis.game;
-        if (!game?.settings?.get("rollsight-integration", "desktopBridgePoll")) return;
-        if (game.settings.get("rollsight-integration", "playerActive") === false) return;
+        if (!game?.settings?.get("rollsight-integration", "desktopBridgePoll")) return false;
+        if (game.settings.get("rollsight-integration", "playerActive") === false) return false;
         const base = this._getDesktopBridgeBaseUrl();
-        if (!base) return;
+        if (!base) return false;
         const url = `${base}/poll?since=${this._bridgePollSince}`;
         let res;
         try {
             res = await fetch(url, { method: "GET", cache: "no-store", credentials: "omit" });
         } catch (_e) {
-            return;
+            return false;
         }
-        if (!res.ok) return;
+        if (!res.ok) return false;
         let data;
         try {
             data = await res.json();
         } catch (_e) {
-            return;
+            return false;
         }
         const rolls = Array.isArray(data.rolls) ? data.rolls : (data.roll ? [data.roll] : []);
-        if (rolls.length === 0) return;
+        if (rolls.length === 0) return true;
         let maxTs = this._bridgePollSince;
         const debug = game.settings.get("rollsight-integration", "debugLogging");
         for (const item of rolls) {
@@ -1327,6 +1367,7 @@ class RollSightIntegration {
         if (maxTs >= this._bridgePollSince) {
             this._bridgePollSince = maxTs;
         }
+        return true;
     }
     
     /**
