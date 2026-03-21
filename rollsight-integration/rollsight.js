@@ -404,10 +404,11 @@ class RollSightIntegration {
                 if (game?.settings?.get("rollsight-integration", "debugLogging") && typeof message === "string" && /^\/(?:roll|r|gmroll|gmr|blindroll|br|broll|selfroll|sr|publicroll|pr)\s/i.test(message)) {
                     console.log("RollSight Real Dice Reader | [debug] Chat roll command not handled by RollSight, passing to default:", message.slice(0, 60));
                 }
-                return original(message);
+                const normalized = self._normalizeDiceCommandMessageForFoundry(message);
+                return original(normalized);
             } catch (err) {
                 console.error("RollSight Real Dice Reader | Chat interceptor error (falling back to default):", err);
-                return original(message);
+                return original(self._normalizeDiceCommandMessageForFoundry(message));
             }
         };
         console.log("RollSight Real Dice Reader | Chat /roll and /r interceptor active");
@@ -430,6 +431,34 @@ class RollSightIntegration {
     }
 
     /**
+     * Foundry / D&D5e chat often uses "2d20 kh" / "2d20 kl" with a space; BasicRoll.parse rejects that ("k" unexpected).
+     * Collapse to "2d20kh" / "2d20kl" so Roll.fromFormula and default chat processing succeed.
+     * @param {string} formula
+     * @returns {string}
+     */
+    _normalizeChatRollFormula(formula) {
+        if (!formula || typeof formula !== "string") return formula;
+        let f = formula.trim().replace(/\s+/g, " ");
+        f = f.replace(/\s+(kh|kl)(?=\s|$|[+\-])/gi, "$1");
+        return f;
+    }
+
+    /**
+     * Apply formula normalization to a full chat line so fallback original(message) does not throw on /r 2d20 kh.
+     * @param {string} message
+     * @returns {string}
+     */
+    _normalizeDiceCommandMessageForFoundry(message) {
+        if (typeof message !== "string") return message;
+        const ROLL_CMD_REGEX = /^(\/(?:roll|r|gmroll|gmr|blindroll|br|broll|selfroll|sr|publicroll|pr))\s+(.+?)(?:\s*#\s*(.*))?$/is;
+        const match = message.match(ROLL_CMD_REGEX);
+        if (!match) return message;
+        const formula = this._normalizeChatRollFormula(match[2]);
+        const desc = match[3] != null && String(match[3]).length ? ` # ${match[3]}` : "";
+        return `${match[1]} ${formula}${desc}`;
+    }
+
+    /**
      * If message is a roll command (<cmd> <formula> [# description]) and any die uses RollSight in Dice Config,
      * open RollResolver, await fulfillment, then post to chat with the correct roll visibility.
      * Supports: /roll, /r, /gmroll, /gmr, /blindroll, /br, /broll, /selfroll, /sr, /publicroll, /pr.
@@ -445,8 +474,8 @@ class RollSightIntegration {
         const match = msg.match(ROLL_CMD_REGEX);
         if (!match) return false;
         const rollCommand = match[1];
-        // Normalize formula: trim and collapse internal spaces (e.g. "2d20kh  +  5" -> "2d20kh + 5")
-        let formula = match[2].trim().replace(/\s+/g, ' ');
+        // Normalize formula: trim, collapse spaces, fix "2d20 kh" -> "2d20kh" for Foundry's parser
+        let formula = this._normalizeChatRollFormula(match[2].trim().replace(/\s+/g, ' '));
         const description = match[3]?.trim() || '';
 
         if (description && /RollSight/i.test(description)) {
@@ -893,6 +922,13 @@ class RollSightIntegration {
             if (debug) console.log("RollSight Real Dice Reader | [debug] inject: no new pairs to merge (roll.terms:", roll.terms?.length, "pairs:", pairs.length, ")");
             return { injected: false, complete: false };
         }
+        // Wait until every die slot is filled (e.g. 2d20 advantage needs two physical rolls). Running kh/kl or _evaluateTotal
+        // with only one result yields Roll.safeEval errors and corrupts the roll.
+        if (!allComplete) {
+            roll._evaluated = false;
+            if (debug) console.log("RollSight Real Dice Reader | [debug] inject: partial fill — skipping modifiers/total until all dice are in");
+            return { injected: true, complete: false };
+        }
         // Apply term modifiers (kh, kl, etc.) so keep-highest/lowest are applied; otherwise we'd sum all results.
         for (const term of roll.terms) {
             if (!isDiceTerm(term)) continue;
@@ -905,7 +941,7 @@ class RollSightIntegration {
                 }
             }
         }
-        roll._evaluated = allComplete;
+        roll._evaluated = true;
         // Use Foundry's _evaluateTotal() so operators (e.g. minus for 1d20 - 1) are applied correctly; fallback to operator-aware sum.
         let total = NaN;
         if (typeof roll._evaluateTotal === "function") {
@@ -921,7 +957,7 @@ class RollSightIntegration {
         if (typeof total === "number" && !Number.isNaN(total)) {
             roll._total = total;
         }
-        return { injected: true, complete: allComplete };
+        return { injected: true, complete: true };
     }
 
     /**
