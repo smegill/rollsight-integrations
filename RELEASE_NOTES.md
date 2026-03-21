@@ -1,3 +1,7 @@
+## v1.1.23 - 2026-03-20
+
+- 56fc162 Foundry: desktop bridge polling for desktop app (no browser extension)
+
 ## v1.0.83 - 2026-02-02
 
 - (no Foundry module changes detected)
