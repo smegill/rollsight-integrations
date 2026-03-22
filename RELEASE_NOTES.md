@@ -1,3 +1,13 @@
+## v1.1.38 - 2026-03-22
+
+- **Roll replay panel:** After expanding **Roll replay**, a short hint explains chat-sized preview vs full size. The GIF is wrapped in a link (click image or **Open full-size replay in browser**) to open the same GIF URL in a new tab at native resolution.
+
+## v1.1.37 - 2026-03-22
+
+- **Stock roll card preserved:** Roll replay is stored on **`flags.rollsight-integration.rollReplayPayload`** and appended in **`renderChatMessage`** under `.message-content` (fallback: `section.content`), not merged into `content` (which hid core/system dice UI).
+- **Chat `/r` + unrendered RollResolver:** Replay is now queued when injection completes even if the resolver was not rendered (`resolverNotRendered`), so `/r 1d20` + RollSight gets a replay row like sheet rolls.
+- **Collapsed by default:** Replay is a **`<details>`** summary “Roll replay” (closed until expanded). Inline `<img>` + link stay inside the panel.
+
 ## v1.1.36 - 2026-03-22
 
 - **Rename Roll proof → Roll replay** (UI strings, link text, `/roll` fallback description).

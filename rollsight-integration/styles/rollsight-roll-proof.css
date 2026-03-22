@@ -1,5 +1,31 @@
 /* Roll replay (GIF + summary) on the same Foundry chat card as the roll */
 
+/* Injected below stock roll card (flags.rollReplayPayload + renderChatMessage) */
+.chat-message .rollsight-roll-replay-details {
+  margin: 0.5em 0 0;
+  border-top: 1px solid rgba(0, 0, 0, 0.12);
+  padding-top: 0.35em;
+}
+
+.chat-message .rollsight-roll-replay-summary {
+  list-style: none;
+  cursor: pointer;
+  user-select: none;
+  padding: 0.15em 0;
+}
+
+.chat-message .rollsight-roll-replay-summary::-webkit-details-marker {
+  display: none;
+}
+
+.chat-message .rollsight-roll-replay-details[open] .rollsight-roll-proof-chevron {
+  transform: rotate(90deg);
+}
+
+.chat-message .rollsight-roll-replay-panel {
+  padding: 0.35em 0 0.15em;
+}
+
 .chat-message .rollsight-roll-summary {
   margin: 0 0 0.35em;
   font-size: 1.08em;
@@ -97,6 +123,25 @@
   padding: 0.35em 0 0.15em;
 }
 
+.chat-message .rollsight-roll-replay-preview-hint {
+  margin: 0 0 0.4em;
+  font-size: 0.82em;
+  line-height: 1.35;
+  color: var(--color-text-dark-secondary, #5e5e56);
+}
+
+.chat-message .rollsight-roll-replay-preview-link {
+  display: inline-block;
+  line-height: 0;
+  border-radius: 4px;
+  outline-offset: 2px;
+  cursor: pointer;
+}
+
+.chat-message .rollsight-roll-replay-preview-link:hover .rollsight-roll-proof-gif {
+  opacity: 0.92;
+}
+
 .chat-message .rollsight-roll-proof-figure {
   margin: 0 0 0.35em;
   text-align: center;
@@ -131,6 +176,10 @@
   border-top-color: rgba(255, 255, 255, 0.12);
 }
 
+.theme-dark .chat-message .rollsight-roll-replay-details {
+  border-top-color: rgba(255, 255, 255, 0.12);
+}
+
 .theme-dark .chat-message .rollsight-roll-proof-summary-row {
   color: var(--color-text-light-6, #c9c9b8);
 }
@@ -145,5 +194,9 @@
 
 .theme-dark .chat-message .rollsight-roll-proof-note,
 .theme-dark .chat-message .rollsight-roll-proof-pending-msg {
+  color: var(--color-text-light-5, #b0b0a0);
+}
+
+.theme-dark .chat-message .rollsight-roll-replay-preview-hint {
   color: var(--color-text-light-5, #b0b0a0);
 }

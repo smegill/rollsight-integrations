@@ -13,7 +13,12 @@ import {
     tryFulfillActiveResolver,
     rollDataToFulfillmentPairs
 } from './fulfillment-provider.js';
-import { buildRollReplayCardHtml, normalizeRollProofUrl } from './roll-proof-html.js';
+import {
+    buildRollReplayInjectHtml,
+    buildRollReplayStandaloneContentHtml,
+    normalizeRollProofUrl,
+    rollReplaySerializablePayload,
+} from './roll-proof-html.js';
 
 class RollSightIntegration {
     constructor() {
@@ -195,11 +200,12 @@ class RollSightIntegration {
             const hasRolls = Array.isArray(rolls) && rolls.length > 0;
             const legacyRoll = data.roll != null;
             if (!hasRolls && !legacyRoll && data.type !== "roll") return;
-            const existingContent = (data.content ?? "").toString();
-            if (existingContent.includes("data-rollsight-roll-replay")) return;
-            const chunk = buildRollReplayCardHtml(attach, null);
-            if (!chunk) return;
-            data.content = existingContent + chunk;
+            const payload = rollReplaySerializablePayload(attach);
+            if (!payload) return;
+            const ns = "rollsight-integration";
+            const prevNs = { ...(data.flags?.[ns] ?? {}) };
+            if (prevNs.rollReplayPayload?.roll_proof_url) return;
+            data.flags = { ...(data.flags ?? {}), [ns]: { ...prevNs, rollReplayPayload: payload } };
             if (this._rollProofAttachTimeoutId) {
                 clearTimeout(this._rollProofAttachTimeoutId);
                 this._rollProofAttachTimeoutId = null;
@@ -207,6 +213,24 @@ class RollSightIntegration {
             this._pendingAttachRollProof = null;
             this._lastRollProofRollData = null;
         }, -900);
+
+        Hooks.on("renderChatMessage", (message, html /* , data */) => {
+            try {
+                const payload = message.flags?.["rollsight-integration"]?.rollReplayPayload;
+                if (!payload?.roll_proof_url) return;
+                const $root = html?.jquery ? html : (typeof jQuery !== "undefined" ? jQuery(html) : null);
+                if (!$root?.find) return;
+                if ($root.find(".rollsight-roll-replay-details").length) return;
+                const frag = buildRollReplayInjectHtml(payload);
+                if (!frag) return;
+                let $slot = $root.find(".message-content");
+                if (!$slot.length) $slot = $root.find("section.content");
+                if (!$slot.length) $slot = $root;
+                $slot.append(frag);
+            } catch (e) {
+                console.warn("RollSight Real Dice Reader | renderChatMessage roll replay:", e);
+            }
+        });
         
         Hooks.once('ready', () => {
             this.onReady();
@@ -1805,7 +1829,7 @@ class RollSightIntegration {
                             await this._closeDuplicateResolverIfAny();
                             console.log("RollSight Real Dice Reader | Injected roll into pending RollResolver for", this._pendingChatResolver.formula);
                             this._pendingChatResolver.resolveOutcome?.("fulfilled");
-                            if (complete && isRendered && rollData.roll_proof_url) {
+                            if (complete && rollData.roll_proof_url) {
                                 this._queueRollProofForNextChatMessage(rollData);
                                 this._lastRollProofRollData = null;
                             }
@@ -2037,7 +2061,7 @@ class RollSightIntegration {
             } catch (e) {
                 speaker = { alias: user?.name ?? "Unknown" };
             }
-            const content = buildRollReplayCardHtml(rollData, null);
+            const content = buildRollReplayStandaloneContentHtml(rollData);
             await ChatMessageClass.create({
                 user: user.id,
                 speaker,

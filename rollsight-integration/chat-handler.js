@@ -4,7 +4,7 @@
  * Handles creation and updating of chat messages for rolls.
  */
 
-import { buildRollReplayCardHtml, normalizeRollProofUrl } from './roll-proof-html.js';
+import { normalizeRollProofUrl, rollReplaySerializablePayload } from './roll-proof-html.js';
 
 export class ChatHandler {
     constructor(module) {
@@ -51,24 +51,21 @@ export class ChatHandler {
                 speaker = { alias: user?.name ?? "Unknown" };
             }
             
-            // Foundry v12+ often hides the dice card when `content` is set — include formula/total in HTML.
-            let rollProofContent = "";
-            if (rollData.roll_proof_url) {
-                rollProofContent = buildRollReplayCardHtml(rollData, roll);
-            }
-
+            const rpPayload = rollReplaySerializablePayload(rollData);
             const messageData = {
                 user: user.id,
                 speaker,
                 ...(useRollsOnly ? { rolls: [roll] } : { type: "roll", roll }),
                 ...(sound ? { sound } : {}),
-                ...(rollProofContent ? { content: rollProofContent } : {}),
                 flags: {
                     "rollsight-integration": {
                         rollId: rollData.roll_id,
                         source: "rollsight",
-                        ...(rollData.roll_proof_url
-                            ? { rollProofUrl: normalizeRollProofUrl(rollData.roll_proof_url) || rollData.roll_proof_url }
+                        ...(rpPayload
+                            ? {
+                                rollReplayPayload: rpPayload,
+                                rollProofUrl: normalizeRollProofUrl(rpPayload.roll_proof_url) || rpPayload.roll_proof_url,
+                            }
                             : {}),
                     }
                 }
@@ -131,6 +128,5 @@ export class ChatHandler {
         ui.notifications.info("Roll corrected by RollSight");
     }
 }
-
 
 
