@@ -1,3 +1,9 @@
+## v1.1.36 - 2026-03-22
+
+- **Rename Roll proof → Roll replay** (UI strings, link text, `/roll` fallback description).
+- **Numeric result with replay:** When `content` is set, Foundry v12 often hides the dice card — the message now includes an explicit **`formula → total`** line above the replay block.
+- **GIF on the card:** The replay `<img>` is always in the message body (not hidden inside a closed `<details>`). While upload is pending, the same URL loads when the file appears; Supabase direct URLs in payloads are rewritten to **`https://www.rollsight.com/rp/…`** for `<img>` and links when possible.
+
 ## v1.1.35 - 2026-03-22
 
 - **Roll proof visible on Foundry v12 roll cards:** The proof block is merged into **`content`** (including `ChatHandler.createRollMessage` and the `preCreateChatMessage` attach hook). Foundry v12 often **does not show `flavor`** on dice roll messages, so proof could appear only in the browser console before.

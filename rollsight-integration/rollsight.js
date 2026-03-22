@@ -13,7 +13,7 @@ import {
     tryFulfillActiveResolver,
     rollDataToFulfillmentPairs
 } from './fulfillment-provider.js';
-import { buildRollProofFlavorHtml } from './roll-proof-html.js';
+import { buildRollReplayCardHtml, normalizeRollProofUrl } from './roll-proof-html.js';
 
 class RollSightIntegration {
     constructor() {
@@ -196,8 +196,8 @@ class RollSightIntegration {
             const legacyRoll = data.roll != null;
             if (!hasRolls && !legacyRoll && data.type !== "roll") return;
             const existingContent = (data.content ?? "").toString();
-            if (existingContent.includes("rollsight-roll-proof-block")) return;
-            const chunk = buildRollProofFlavorHtml(attach);
+            if (existingContent.includes("data-rollsight-roll-replay")) return;
+            const chunk = buildRollReplayCardHtml(attach, null);
             if (!chunk) return;
             data.content = existingContent + chunk;
             if (this._rollProofAttachTimeoutId) {
@@ -2018,7 +2018,7 @@ class RollSightIntegration {
     }
     
     /**
-     * Chat line with roll-proof link (GIF may still be uploading when the roll is posted).
+     * Chat line with roll replay link (GIF may still be uploading when the roll is posted).
      */
     async _postRollProofSupplement(rollData) {
         if (!rollData?.roll_proof_url) return;
@@ -2037,7 +2037,7 @@ class RollSightIntegration {
             } catch (e) {
                 speaker = { alias: user?.name ?? "Unknown" };
             }
-            const content = buildRollProofFlavorHtml(rollData);
+            const content = buildRollReplayCardHtml(rollData, null);
             await ChatMessageClass.create({
                 user: user.id,
                 speaker,
@@ -2045,7 +2045,7 @@ class RollSightIntegration {
             });
             this._lastRollProofRollData = null;
         } catch (e) {
-            console.warn("RollSight Real Dice Reader | Roll proof chat line failed:", e);
+            console.warn("RollSight Real Dice Reader | Roll replay chat line failed:", e);
         }
     }
 
@@ -2155,8 +2155,9 @@ class RollSightIntegration {
 
             if (rollData.roll_proof_url) {
                 const note = rollData.roll_proof_note
-                    || "Roll video is building — try the link again in a few seconds if it does not load yet.";
-                description += ` | Roll video: ${rollData.roll_proof_url} (${note})`;
+                    || "Roll replay is still processing — try the link again shortly if it does not load yet.";
+                const replayUrl = normalizeRollProofUrl(rollData.roll_proof_url) || rollData.roll_proof_url;
+                description += ` | Roll replay: ${replayUrl} (${note})`;
                 this._lastRollProofRollData = null;
             }
             

@@ -1,5 +1,46 @@
-/* Collapsible roll proof on same chat card as Foundry / system rolls */
+/* Roll replay (GIF + summary) on the same Foundry chat card as the roll */
 
+.chat-message .rollsight-roll-summary {
+  margin: 0 0 0.35em;
+  font-size: 1.08em;
+  line-height: 1.35;
+}
+
+.chat-message .rollsight-roll-summary-sep {
+  opacity: 0.65;
+  padding: 0 0.2em;
+}
+
+.chat-message .rollsight-roll-summary-total {
+  font-weight: 700;
+}
+
+.chat-message .rollsight-roll-replay-wrap {
+  margin: 0.5em 0 0;
+  border-top: 1px solid rgba(0, 0, 0, 0.12);
+  padding-top: 0.4em;
+}
+
+.chat-message .rollsight-roll-replay-wrap--pending .rollsight-roll-proof-figure {
+  opacity: 0.92;
+}
+
+.chat-message .rollsight-roll-replay-heading {
+  margin: 0 0 0.35em;
+  display: flex;
+  align-items: center;
+  gap: 0.4em;
+  font-size: 0.92em;
+  font-weight: 600;
+  color: var(--color-text-dark-secondary, #4b4a44);
+}
+
+.chat-message .rollsight-roll-replay-icon {
+  font-size: 1.1em;
+  line-height: 1;
+}
+
+/* Legacy collapsible block (still styled if old HTML cached) */
 .chat-message .rollsight-roll-proof-block {
   margin: 0.5em 0 0;
   border-top: 1px solid rgba(0, 0, 0, 0.12);
@@ -82,6 +123,14 @@
 }
 
 /* Dark theme chat (Foundry default dark) */
+.theme-dark .chat-message .rollsight-roll-replay-heading {
+  color: var(--color-text-light-6, #c9c9b8);
+}
+
+.theme-dark .chat-message .rollsight-roll-replay-wrap {
+  border-top-color: rgba(255, 255, 255, 0.12);
+}
+
 .theme-dark .chat-message .rollsight-roll-proof-summary-row {
   color: var(--color-text-light-6, #c9c9b8);
 }

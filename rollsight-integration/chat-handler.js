@@ -4,7 +4,7 @@
  * Handles creation and updating of chat messages for rolls.
  */
 
-import { buildRollProofFlavorHtml } from './roll-proof-html.js';
+import { buildRollReplayCardHtml, normalizeRollProofUrl } from './roll-proof-html.js';
 
 export class ChatHandler {
     constructor(module) {
@@ -51,10 +51,10 @@ export class ChatHandler {
                 speaker = { alias: user?.name ?? "Unknown" };
             }
             
-            // Foundry v12+ roll cards often do not render flavor; use content so proof appears on the same message.
+            // Foundry v12+ often hides the dice card when `content` is set — include formula/total in HTML.
             let rollProofContent = "";
             if (rollData.roll_proof_url) {
-                rollProofContent = buildRollProofFlavorHtml(rollData);
+                rollProofContent = buildRollReplayCardHtml(rollData, roll);
             }
 
             const messageData = {
@@ -67,7 +67,9 @@ export class ChatHandler {
                     "rollsight-integration": {
                         rollId: rollData.roll_id,
                         source: "rollsight",
-                        ...(rollData.roll_proof_url ? { rollProofUrl: rollData.roll_proof_url } : {}),
+                        ...(rollData.roll_proof_url
+                            ? { rollProofUrl: normalizeRollProofUrl(rollData.roll_proof_url) || rollData.roll_proof_url }
+                            : {}),
                     }
                 }
             };
