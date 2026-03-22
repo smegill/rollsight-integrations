@@ -1,0 +1,100 @@
+/* Collapsible roll proof on same chat card as Foundry / system rolls */
+
+.chat-message .rollsight-roll-proof-block {
+  margin: 0.5em 0 0;
+  border-top: 1px solid rgba(0, 0, 0, 0.12);
+  padding-top: 0.35em;
+}
+
+.chat-message .rollsight-roll-proof-summary {
+  list-style: none;
+  cursor: pointer;
+  user-select: none;
+  padding: 0.25em 0;
+}
+
+.chat-message .rollsight-roll-proof-summary::-webkit-details-marker {
+  display: none;
+}
+
+.chat-message .rollsight-roll-proof-summary-row {
+  display: flex;
+  align-items: center;
+  gap: 0.45em;
+  font-size: 0.92em;
+  color: var(--color-text-dark-secondary, #4b4a44);
+}
+
+.chat-message .rollsight-roll-proof-icon {
+  font-size: 1.1em;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.chat-message .rollsight-roll-proof-label {
+  font-weight: 600;
+  flex: 1;
+}
+
+.chat-message .rollsight-roll-proof-chevron {
+  display: inline-block;
+  width: 0;
+  height: 0;
+  border-top: 0.28em solid transparent;
+  border-bottom: 0.28em solid transparent;
+  border-left: 0.42em solid currentColor;
+  opacity: 0.75;
+  transition: transform 0.15s ease;
+  flex-shrink: 0;
+}
+
+.chat-message .rollsight-roll-proof-block[open] .rollsight-roll-proof-chevron {
+  transform: rotate(90deg);
+}
+
+.chat-message .rollsight-roll-proof-panel {
+  padding: 0.35em 0 0.15em;
+}
+
+.chat-message .rollsight-roll-proof-figure {
+  margin: 0 0 0.35em;
+  text-align: center;
+}
+
+.chat-message .rollsight-roll-proof-gif {
+  max-width: min(100%, 480px);
+  height: auto;
+  border-radius: 4px;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  vertical-align: middle;
+}
+
+.chat-message .rollsight-roll-proof-note,
+.chat-message .rollsight-roll-proof-pending-msg {
+  margin: 0.25em 0;
+  font-size: 0.85em;
+  color: var(--color-text-dark-secondary, #5e5e56);
+}
+
+.chat-message .rollsight-roll-proof-open {
+  margin: 0.15em 0 0;
+  font-size: 0.85em;
+}
+
+/* Dark theme chat (Foundry default dark) */
+.theme-dark .chat-message .rollsight-roll-proof-summary-row {
+  color: var(--color-text-light-6, #c9c9b8);
+}
+
+.theme-dark .chat-message .rollsight-roll-proof-block {
+  border-top-color: rgba(255, 255, 255, 0.12);
+}
+
+.theme-dark .chat-message .rollsight-roll-proof-gif {
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.theme-dark .chat-message .rollsight-roll-proof-note,
+.theme-dark .chat-message .rollsight-roll-proof-pending-msg {
+  color: var(--color-text-light-5, #b0b0a0);
+}

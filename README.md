@@ -10,7 +10,7 @@ This repository contains **VTT (virtual tabletop) integration code only** — th
 https://raw.githubusercontent.com/smegill/rollsight-integrations/main/rollsight-integration/module.json
 ```
 
-See **rollsight-integration/README.md** for setup and **FORGE_INSTALL.md** for detailed install and publish steps.
+See **rollsight-integration/README.md** for setup and **FORGE_INSTALL.md** for detailed install and publish steps. **Release notes** for each module version: **RELEASE_NOTES.md** (in this folder).
 
 ## Contents
 

@@ -4,6 +4,8 @@
  * Handles creation and updating of chat messages for rolls.
  */
 
+import { buildRollProofFlavorHtml } from './roll-proof-html.js';
+
 export class ChatHandler {
     constructor(module) {
         this.module = module;
@@ -49,15 +51,22 @@ export class ChatHandler {
                 speaker = { alias: user?.name ?? "Unknown" };
             }
             
+            let flavor = "";
+            if (rollData.roll_proof_url) {
+                flavor = buildRollProofFlavorHtml(rollData);
+            }
+
             const messageData = {
                 user: user.id,
                 speaker,
                 ...(useRollsOnly ? { rolls: [roll] } : { type: "roll", roll }),
                 ...(sound ? { sound } : {}),
+                ...(flavor ? { flavor } : {}),
                 flags: {
                     "rollsight-integration": {
                         rollId: rollData.roll_id,
-                        source: "rollsight"
+                        source: "rollsight",
+                        ...(rollData.roll_proof_url ? { rollProofUrl: rollData.roll_proof_url } : {}),
                     }
                 }
             };

@@ -13,6 +13,7 @@ import {
     tryFulfillActiveResolver,
     rollDataToFulfillmentPairs
 } from './fulfillment-provider.js';
+import { buildRollProofFlavorHtml } from './roll-proof-html.js';
 
 class RollSightIntegration {
     constructor() {
@@ -70,6 +71,40 @@ class RollSightIntegration {
         this._bridgePollInFlight = false;
         /** Throttle "bridge down" console warnings (ms). */
         this._bridgeLastUnreachableLog = 0;
+        /** Last bridge roll that included a roll-proof URL (chat /roll path posts a supplement after toMessage). */
+        this._lastRollProofRollData = null;
+        /** Merge roll proof into the next ChatMessage via preCreateChatMessage (same card as system roll). */
+        this._pendingAttachRollProof = null;
+        this._rollProofAttachTimeoutId = null;
+    }
+
+    /**
+     * Cancel queued roll-proof attach (e.g. ChatHandler will embed proof in create data directly).
+     */
+    _clearRollProofAttachQueue() {
+        if (this._rollProofAttachTimeoutId) {
+            clearTimeout(this._rollProofAttachTimeoutId);
+            this._rollProofAttachTimeoutId = null;
+        }
+        this._pendingAttachRollProof = null;
+    }
+
+    /**
+     * Attach roll proof to the next qualifying chat message (rolls), or post a fallback line after timeout.
+     */
+    _queueRollProofForNextChatMessage(rollData) {
+        if (!rollData?.roll_proof_url) return;
+        this._clearRollProofAttachQueue();
+        this._pendingAttachRollProof = rollData;
+        const self = this;
+        const snapshot = rollData;
+        this._rollProofAttachTimeoutId = setTimeout(() => {
+            self._rollProofAttachTimeoutId = null;
+            if (self._pendingAttachRollProof === snapshot) {
+                self._postRollProofSupplement(snapshot);
+                self._pendingAttachRollProof = null;
+            }
+        }, 4500);
     }
 
     /** Known roll dialog title substrings (Attack Roll, Damage Roll, Ability Check, etc.). Not Configure Roll / Initiative. */
@@ -149,6 +184,29 @@ class RollSightIntegration {
             document.updateSource({ rolls: correctedRolls });
             if (data && Object.prototype.hasOwnProperty.call(data, "rolls")) data.rolls = correctedRolls;
         }, -1000);
+
+        Hooks.on("preCreateChatMessage", (document, data, _options) => {
+            const game = (typeof foundry !== 'undefined' && foundry.game) ? foundry.game : globalThis.game;
+            const attach = this._pendingAttachRollProof;
+            if (!attach?.roll_proof_url || !game?.user || !data) return;
+            const uid = data.user ?? data.author;
+            if (uid !== game.user.id && uid !== game.userId) return;
+            const rolls = data.rolls ?? document.getSource?.()?.rolls ?? document._source?.rolls;
+            const hasRolls = Array.isArray(rolls) && rolls.length > 0;
+            const legacyRoll = data.roll != null;
+            if (!hasRolls && !legacyRoll && data.type !== "roll") return;
+            const existingFlavor = (data.flavor ?? "").toString();
+            if (existingFlavor.includes("rollsight-roll-proof-block")) return;
+            const chunk = buildRollProofFlavorHtml(attach);
+            if (!chunk) return;
+            data.flavor = existingFlavor + chunk;
+            if (this._rollProofAttachTimeoutId) {
+                clearTimeout(this._rollProofAttachTimeoutId);
+                this._rollProofAttachTimeoutId = null;
+            }
+            this._pendingAttachRollProof = null;
+            this._lastRollProofRollData = null;
+        }, -900);
         
         Hooks.once('ready', () => {
             this.onReady();
@@ -579,17 +637,28 @@ class RollSightIntegration {
                 try {
                     const messageData = description ? { flavor: description } : {};
                     const options = { rollMode: rollMode ?? "publicroll" };
+                    if (this._lastRollProofRollData?.roll_proof_url) {
+                        this._queueRollProofForNextChatMessage(this._lastRollProofRollData);
+                    }
                     await fulfilledRoll.toMessage(messageData, options);
                 } catch (msgErr) {
                     console.error("RollSight Real Dice Reader | toMessage failed, trying ChatHandler.createRollMessage:", msgErr);
+                    this._clearRollProofAttachQueue();
                     try {
                         await this._ensureRollEvaluatedForChat(fulfilledRoll);
+                        const proof = this._lastRollProofRollData;
                         await this.chatHandler.createRollMessage(fulfilledRoll, {
                             formula: fulfilledRoll.formula ?? formula,
                             total: fulfilledRoll.total ?? fulfilledRoll._total,
                             dice: [],
-                            roll_id: null
+                            roll_id: null,
+                            ...(proof?.roll_proof_url ? {
+                                roll_proof_url: proof.roll_proof_url,
+                                roll_proof_note: proof.roll_proof_note,
+                                roll_proof_pending: proof.roll_proof_pending
+                            } : {})
                         });
+                        this._lastRollProofRollData = null;
                     } catch (fbErr) {
                         console.error("RollSight Real Dice Reader | ChatHandler fallback failed:", fbErr);
                     }
@@ -1583,6 +1652,7 @@ class RollSightIntegration {
      */
     async handleRoll(rollData) {
         console.log("RollSight Real Dice Reader | Received roll:", rollData);
+        this._lastRollProofRollData = rollData?.roll_proof_url ? rollData : null;
 
         try {
             const game = (typeof foundry !== 'undefined' && foundry.game) ? foundry.game : globalThis.game;
@@ -1680,6 +1750,10 @@ class RollSightIntegration {
                                     }
                                     await this._closeDuplicateResolverIfAny();
                                     this._pendingChatResolver.resolveOutcome?.("fulfilled");
+                                    if (rollData.roll_proof_url) {
+                                        this._queueRollProofForNextChatMessage(rollData);
+                                        this._lastRollProofRollData = null;
+                                    }
                                 } catch (e) {
                                     console.warn("RollSight Real Dice Reader | close error:", e);
                                 }
@@ -1718,6 +1792,10 @@ class RollSightIntegration {
                             await this._closeDuplicateResolverIfAny();
                             console.log("RollSight Real Dice Reader | Injected roll into pending RollResolver for", this._pendingChatResolver.formula);
                             this._pendingChatResolver.resolveOutcome?.("fulfilled");
+                            if (complete && isRendered && rollData.roll_proof_url) {
+                                this._queueRollProofForNextChatMessage(rollData);
+                                this._lastRollProofRollData = null;
+                            }
                         }
                         return null;
                     }
@@ -1782,6 +1860,10 @@ class RollSightIntegration {
                             }
                             await this._closeDuplicateResolverIfAny();
                             this._pendingChatResolver.resolveOutcome?.("fulfilled");
+                            if (!this._pendingChatResolver.resolverNotRendered && rollData.roll_proof_url) {
+                                this._queueRollProofForNextChatMessage(rollData);
+                                this._lastRollProofRollData = null;
+                            }
                         } catch (e) {
                             if (debug) console.warn("RollSight Real Dice Reader | close error (fallback path):", e);
                         }
@@ -1809,12 +1891,20 @@ class RollSightIntegration {
                 }
                 const foundryRoll = this.createFoundryRoll(rollData);
                 if (foundryRoll) this.diceHandler.animateDice(foundryRoll);
+                if (rollData.roll_proof_url) {
+                    this._queueRollProofForNextChatMessage(rollData);
+                    this._lastRollProofRollData = null;
+                }
                 return foundryRoll;
             }
 
             // No active resolver: try to apply to pending initiative (e.g. combat started, player prompted to roll but RollResolver didn't open)
             const appliedToInitiative = await this.tryApplyToPendingInitiative(rollData);
             if (appliedToInitiative) {
+                if (rollData.roll_proof_url) {
+                    this._queueRollProofForNextChatMessage(rollData);
+                    this._lastRollProofRollData = null;
+                }
                 return null;
             }
 
@@ -1844,6 +1934,9 @@ class RollSightIntegration {
                         });
                     }
                     const chatMessage = await this.chatHandler.createRollMessage(foundryRoll, rollData);
+                    if (rollData.roll_proof_url) {
+                        this._lastRollProofRollData = null;
+                    }
                     if (rollData.roll_id && this.rollHistory.has(rollData.roll_id)) {
                         this.rollHistory.get(rollData.roll_id).chatMessage = chatMessage;
                     }
@@ -1911,6 +2004,38 @@ class RollSightIntegration {
         }
     }
     
+    /**
+     * Chat line with roll-proof link (GIF may still be uploading when the roll is posted).
+     */
+    async _postRollProofSupplement(rollData) {
+        if (!rollData?.roll_proof_url) return;
+        try {
+            const game = (typeof foundry !== 'undefined' && foundry.game) ? foundry.game : globalThis.game;
+            const ChatMessageClass = game?.messages?.documentClass
+                ?? (typeof foundry !== 'undefined' && foundry.chat?.messages?.ChatMessage)
+                ?? globalThis.ChatMessage;
+            const user = game?.user;
+            if (!game || !user || !ChatMessageClass) return;
+            let speaker;
+            try {
+                speaker = (typeof ChatMessageClass.getSpeaker === "function")
+                    ? ChatMessageClass.getSpeaker({ user })
+                    : { alias: user?.name ?? "Unknown" };
+            } catch (e) {
+                speaker = { alias: user?.name ?? "Unknown" };
+            }
+            const content = buildRollProofFlavorHtml(rollData);
+            await ChatMessageClass.create({
+                user: user.id,
+                speaker,
+                content,
+            });
+            this._lastRollProofRollData = null;
+        } catch (e) {
+            console.warn("RollSight Real Dice Reader | Roll proof chat line failed:", e);
+        }
+    }
+
     /**
      * Send roll as /roll command in Foundry chat
      */
@@ -2013,6 +2138,13 @@ class RollSightIntegration {
                 }
             } else if (formula) {
                 description = `RollSight Roll: ${formula}`;
+            }
+
+            if (rollData.roll_proof_url) {
+                const note = rollData.roll_proof_note
+                    || "Roll video is building — try the link again in a few seconds if it does not load yet.";
+                description += ` | Roll video: ${rollData.roll_proof_url} (${note})`;
+                this._lastRollProofRollData = null;
             }
             
             const rollFormula = (formula && String(formula).trim()) ? formula : String(total ?? '').trim();
