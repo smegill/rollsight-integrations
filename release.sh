@@ -84,7 +84,7 @@ RELEASE_NOTES_TMP="$(mktemp)"
 
 # Commit and push
 cd "$REPO_ROOT"
-git add foundry_module/rollsight-integration/module.json "$RELEASE_NOTES_FILE"
+git add foundry_module/rollsight-integration "$RELEASE_NOTES_FILE"
 git status --short
 if [ "$1" != "-y" ] && [ "$1" != "--yes" ]; then
   echo "Commit and push Foundry module v${NEW_VERSION}? (y/n)"
