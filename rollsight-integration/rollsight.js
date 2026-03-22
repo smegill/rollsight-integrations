@@ -95,6 +95,68 @@ class RollSightIntegration {
     }
 
     /**
+     * When the replay opens before the GIF exists, the first request may 404 and never retry.
+     * Poll with cache-busting query params while the section is open until the image loads or cap is hit.
+     * @param {JQuery} $details
+     */
+    _bindRollReplayProofRetry($details) {
+        const details = $details?.[0];
+        if (!details || details.nodeName !== "DETAILS" || details.dataset.rollsightReplayBound === "1") return;
+        details.dataset.rollsightReplayBound = "1";
+        const base = details.getAttribute("data-rollsight-proof-url");
+        if (!base) return;
+        const img = details.querySelector("img.rollsight-roll-replay-gif");
+        if (!img) return;
+
+        let pollTimer = null;
+        let attempts = 0;
+        const maxAttempts = 48;
+
+        const clearPoll = () => {
+            if (pollTimer) {
+                clearInterval(pollTimer);
+                pollTimer = null;
+            }
+        };
+
+        const isLoadedOk = () =>
+            img.complete && img.naturalWidth > 0 && img.naturalHeight > 0;
+
+        const bumpSrc = () => {
+            if (!details.open || isLoadedOk()) {
+                clearPoll();
+                return;
+            }
+            if (attempts >= maxAttempts) {
+                clearPoll();
+                return;
+            }
+            attempts += 1;
+            const sep = base.includes("?") ? "&" : "?";
+            img.src = `${base}${sep}rs=${Date.now()}`;
+        };
+
+        img.addEventListener("load", () => {
+            if (isLoadedOk()) clearPoll();
+        });
+        img.addEventListener("error", () => {
+            if (details.open) bumpSrc();
+        });
+
+        details.addEventListener("toggle", () => {
+            clearPoll();
+            attempts = 0;
+            if (!details.open) return;
+            if (isLoadedOk()) return;
+            setTimeout(() => {
+                if (!details.open || isLoadedOk()) return;
+                bumpSrc();
+                pollTimer = setInterval(bumpSrc, 2500);
+            }, 400);
+        });
+    }
+
+    /**
      * Attach roll proof to the next qualifying chat message (rolls), or post a fallback line after timeout.
      */
     _queueRollProofForNextChatMessage(rollData) {
@@ -216,17 +278,21 @@ class RollSightIntegration {
 
         Hooks.on("renderChatMessage", (message, html /* , data */) => {
             try {
-                const payload = message.flags?.["rollsight-integration"]?.rollReplayPayload;
-                if (!payload?.roll_proof_url) return;
                 const $root = html?.jquery ? html : (typeof jQuery !== "undefined" ? jQuery(html) : null);
                 if (!$root?.find) return;
-                if ($root.find(".rollsight-roll-replay-details").length) return;
-                const frag = buildRollReplayInjectHtml(payload);
-                if (!frag) return;
-                let $slot = $root.find(".message-content");
-                if (!$slot.length) $slot = $root.find("section.content");
-                if (!$slot.length) $slot = $root;
-                $slot.append(frag);
+                const payload = message.flags?.["rollsight-integration"]?.rollReplayPayload;
+                if (payload?.roll_proof_url && !$root.find(".rollsight-roll-replay-details").length) {
+                    const frag = buildRollReplayInjectHtml(payload);
+                    if (frag) {
+                        let $slot = $root.find(".message-content");
+                        if (!$slot.length) $slot = $root.find("section.content");
+                        if (!$slot.length) $slot = $root;
+                        $slot.append(frag);
+                    }
+                }
+                $root.find(".rollsight-roll-replay-details").each((_, el) => {
+                    this._bindRollReplayProofRetry(jQuery(el));
+                });
             } catch (e) {
                 console.warn("RollSight Real Dice Reader | renderChatMessage roll replay:", e);
             }
@@ -2178,10 +2244,8 @@ class RollSightIntegration {
             }
 
             if (rollData.roll_proof_url) {
-                const note = rollData.roll_proof_note
-                    || "Roll replay is still processing — try the link again shortly if it does not load yet.";
                 const replayUrl = normalizeRollProofUrl(rollData.roll_proof_url) || rollData.roll_proof_url;
-                description += ` | Roll replay: ${replayUrl} (${note})`;
+                description += ` | RollSight replay: ${replayUrl}`;
                 this._lastRollProofRollData = null;
             }
             

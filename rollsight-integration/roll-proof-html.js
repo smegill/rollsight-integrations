@@ -1,5 +1,5 @@
 /**
- * Roll replay: serializable payload on ChatMessage flags + HTML injected in renderChatMessage
+ * RollSight Replay: serializable payload on ChatMessage flags + HTML injected in renderChatMessage
  * (keeps stock Foundry / system roll cards; appends replay below).
  */
 
@@ -35,7 +35,8 @@ export function rollReplaySerializablePayload(rollData) {
 }
 
 /**
- * Collapsed-by-default <details> with GIF + link (injected under the stock roll card).
+ * Collapsed-by-default <details> with GIF (injected under the stock roll card).
+ * Retry/poll when opened is handled in rollsight.js (_bindRollReplayProofRetry).
  * @param {object} rollData - payload (may be from flags)
  * @returns {string}
  */
@@ -43,36 +44,22 @@ export function buildRollReplayInjectHtml(rollData) {
     if (!rollData?.roll_proof_url) return "";
     const url = normalizeRollProofUrl(rollData.roll_proof_url);
     const escapeAttr = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
-    const escapeHtml = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
     const href = escapeAttr(url);
-    const defaultPendingNote =
-        "Replay is still processing — open below in a few seconds once upload finishes. If the image stays broken, use the link (you may still see a short redirect to storage).";
-    const pendingNote = rollData.roll_proof_note || defaultPendingNote;
-    const pending = rollData.roll_proof_pending === true;
-    const pendingClass = pending ? " rollsight-roll-replay-details--pending" : "";
-    const doneExtraNote =
-        !pending && rollData.roll_proof_note
-            ? `<p class="rollsight-roll-proof-note"><em>${escapeHtml(rollData.roll_proof_note)}</em></p>`
-            : "";
     return `
-<details class="rollsight-roll-replay-details${pendingClass}">
-  <summary class="rollsight-roll-replay-summary" title="Expand for in-chat preview; use the link below for full size in your browser">
+<details class="rollsight-roll-replay-details" data-rollsight-proof-url="${href}">
+  <summary class="rollsight-roll-replay-summary" title="Expand for RollSight replay; click the image for full size in your browser">
     <span class="rollsight-roll-replay-summary-row">
       <span class="rollsight-roll-proof-icon" aria-hidden="true">&#127922;</span>
-      <span class="rollsight-roll-proof-label">Roll replay</span>
+      <span class="rollsight-roll-proof-label">RollSight Replay</span>
       <span class="rollsight-roll-proof-chevron" aria-hidden="true"></span>
     </span>
   </summary>
   <div class="rollsight-roll-replay-panel">
-    ${pending ? `<p class="rollsight-roll-proof-pending-msg"><em>${escapeHtml(pendingNote)}</em></p>` : ""}
-    <p class="rollsight-roll-replay-preview-hint">Preview below (sized for chat). Click the image or the link to open the full-resolution GIF in your browser.</p>
     <figure class="rollsight-roll-proof-figure">
-      <a class="rollsight-roll-replay-preview-link" href="${href}" target="_blank" rel="noopener noreferrer" title="Open full-size replay in browser">
-        <img src="${href}" alt="Roll replay (preview in chat — click for full size)" class="rollsight-roll-proof-gif rollsight-roll-replay-gif" width="480" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+      <a class="rollsight-roll-replay-preview-link" href="${href}" target="_blank" rel="noopener noreferrer" title="Open full-size RollSight replay">
+        <img src="${href}" alt="RollSight replay (click for full size)" class="rollsight-roll-proof-gif rollsight-roll-replay-gif" width="480" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
       </a>
     </figure>
-    ${doneExtraNote}
-    <p class="rollsight-roll-proof-open"><a href="${href}" target="_blank" rel="noopener noreferrer">Open full-size replay in browser</a></p>
   </div>
 </details>`.trim();
 }

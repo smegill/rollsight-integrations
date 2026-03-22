@@ -1,4 +1,4 @@
-/* Roll replay (GIF + summary) on the same Foundry chat card as the roll */
+/* RollSight Replay (GIF) on the same Foundry chat card as the roll */
 
 /* Injected below stock roll card (flags.rollReplayPayload + renderChatMessage) */
 .chat-message .rollsight-roll-replay-details {
@@ -143,7 +143,7 @@
 }
 
 .chat-message .rollsight-roll-proof-figure {
-  margin: 0 0 0.35em;
+  margin: 0;
   text-align: center;
 }
 

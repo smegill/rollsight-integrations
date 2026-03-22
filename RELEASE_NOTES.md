@@ -1,3 +1,9 @@
+## v1.1.40 - 2026-03-22
+
+- **Roll replay GIF retry:** If the proof GIF 404s while upload is still finishing, the module polls with cache-busting while the replay panel is open until the image loads (capped attempts).
+- **`renderChatMessage`:** Binds retry on `.rollsight-roll-replay-details` even when the block already exists so re-renders still recover from late-ready files.
+- **`/roll` fallback:** Shortened replay text in the description to **RollSight replay:** + URL.
+
 ## v1.1.38 - 2026-03-22
 
 - **Roll replay panel:** After expanding **Roll replay**, a short hint explains chat-sized preview vs full size. The GIF is wrapped in a link (click image or **Open full-size replay in browser**) to open the same GIF URL in a new tab at native resolution.
