@@ -1,6 +1,6 @@
 /**
  * Collapsible roll-proof block for Foundry chat (GIF in <img> for native playback).
- * Appended to message flavor so it sits on the same card as system rolls (Forge / dnd5e).
+ * Appended to message content (and preCreate merges) so it shows on roll cards; v12+ often omits flavor for dice messages.
  */
 
 /**

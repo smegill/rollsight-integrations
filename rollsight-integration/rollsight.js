@@ -195,11 +195,11 @@ class RollSightIntegration {
             const hasRolls = Array.isArray(rolls) && rolls.length > 0;
             const legacyRoll = data.roll != null;
             if (!hasRolls && !legacyRoll && data.type !== "roll") return;
-            const existingFlavor = (data.flavor ?? "").toString();
-            if (existingFlavor.includes("rollsight-roll-proof-block")) return;
+            const existingContent = (data.content ?? "").toString();
+            if (existingContent.includes("rollsight-roll-proof-block")) return;
             const chunk = buildRollProofFlavorHtml(attach);
             if (!chunk) return;
-            data.flavor = existingFlavor + chunk;
+            data.content = existingContent + chunk;
             if (this._rollProofAttachTimeoutId) {
                 clearTimeout(this._rollProofAttachTimeoutId);
                 this._rollProofAttachTimeoutId = null;
@@ -1613,7 +1613,11 @@ class RollSightIntegration {
                     await this.handleAmendment(am);
                 } else if (item.type === "roll" || item.roll) {
                     const rollInner = item.roll ?? item;
-                    await this.handleRoll(rollInner);
+                    const enriched =
+                        typeof ts === "number"
+                            ? { ...rollInner, _rollsightBridgeTs: ts }
+                            : rollInner;
+                    await this.handleRoll(enriched);
                 }
             } catch (err) {
                 if (debug) console.warn("RollSight Real Dice Reader | Desktop bridge poll handler error:", err);
@@ -1637,12 +1641,21 @@ class RollSightIntegration {
         if (singleDieMatch) formula = `1d${singleDieMatch[1]}${singleDieMatch[2] || ""}`;
         const total = rollData?.total;
         const dice = rollData?.dice;
+        let base;
         if (Array.isArray(dice) && dice.length > 0) {
             const values = dice.map(d => d?.value ?? d?.results?.[0]).filter(v => v != null);
             values.sort((a, b) => Number(a) - Number(b));
-            return `${formula}|${total}|${values.join(",")}`;
+            base = `${formula}|${total}|${values.join(",")}`;
+        } else {
+            base = `${formula}|${total}`;
         }
-        return `${formula}|${total}`;
+        const rid = rollData?.roll_id;
+        if (rid != null && String(rid).length > 0) return `${base}|id:${rid}`;
+        const proof = rollData?.roll_proof_url;
+        if (proof != null && String(proof).length > 0) return `${base}|proof:${proof}`;
+        const bts = rollData?._rollsightBridgeTs;
+        if (typeof bts === "number") return `${base}|bts:${bts}`;
+        return base;
     }
 
     /**

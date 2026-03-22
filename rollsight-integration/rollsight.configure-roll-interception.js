@@ -882,12 +882,21 @@ class RollSightIntegration {
         if (singleDieMatch) formula = `1d${singleDieMatch[1]}${singleDieMatch[2] || ""}`;
         const total = rollData?.total;
         const dice = rollData?.dice;
+        let base;
         if (Array.isArray(dice) && dice.length > 0) {
             const values = dice.map(d => d?.value ?? d?.results?.[0]).filter(v => v != null);
             values.sort((a, b) => Number(a) - Number(b));
-            return `${formula}|${total}|${values.join(",")}`;
+            base = `${formula}|${total}|${values.join(",")}`;
+        } else {
+            base = `${formula}|${total}`;
         }
-        return `${formula}|${total}`;
+        const rid = rollData?.roll_id;
+        if (rid != null && String(rid).length > 0) return `${base}|id:${rid}`;
+        const proof = rollData?.roll_proof_url;
+        if (proof != null && String(proof).length > 0) return `${base}|proof:${proof}`;
+        const bts = rollData?._rollsightBridgeTs;
+        if (typeof bts === "number") return `${base}|bts:${bts}`;
+        return base;
     }
 
     /**

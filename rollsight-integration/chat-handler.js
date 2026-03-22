@@ -51,9 +51,10 @@ export class ChatHandler {
                 speaker = { alias: user?.name ?? "Unknown" };
             }
             
-            let flavor = "";
+            // Foundry v12+ roll cards often do not render flavor; use content so proof appears on the same message.
+            let rollProofContent = "";
             if (rollData.roll_proof_url) {
-                flavor = buildRollProofFlavorHtml(rollData);
+                rollProofContent = buildRollProofFlavorHtml(rollData);
             }
 
             const messageData = {
@@ -61,7 +62,7 @@ export class ChatHandler {
                 speaker,
                 ...(useRollsOnly ? { rolls: [roll] } : { type: "roll", roll }),
                 ...(sound ? { sound } : {}),
-                ...(flavor ? { flavor } : {}),
+                ...(rollProofContent ? { content: rollProofContent } : {}),
                 flags: {
                     "rollsight-integration": {
                         rollId: rollData.roll_id,

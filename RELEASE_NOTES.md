@@ -1,7 +1,12 @@
+## v1.1.35 - 2026-03-22
+
+- **Roll proof visible on Foundry v12 roll cards:** The proof block is merged into **`content`** (including `ChatHandler.createRollMessage` and the `preCreateChatMessage` attach hook). Foundry v12 often **does not show `flavor`** on dice roll messages, so proof could appear only in the browser console before.
+- **Back-to-back rolls / chat debounce:** `_rollFingerprint` now includes `roll_id`, `roll_proof_url`, or desktop-bridge queue timestamp (`_rollsightBridgeTs`) so identical formula/total rolls still post. Same logic in `rollsight.configure-roll-interception.js`.
+
 ## v1.1.33 - 2026-03-22
 
 - **Roll proof in chat (RollSight GIF):** When RollSight sends a `roll_proof_url`, the module appends a **collapsible “Roll proof”** section to the **same** chat message as the roll (not a separate line by default). Expanding it shows the proof as a **native animated GIF** (`<img>`). Styling matches a compact footer row (summary line + chevron); new stylesheet `styles/rollsight-roll-proof.css` is registered in `module.json`.
-- **System / Forge rolls (`Roll#toMessage`):** A `preCreateChatMessage` hook merges the roll-proof HTML into **`flavor`** for the next qualifying message from the current user (messages that include roll data). **`_queueRollProofForNextChatMessage`** queues attach; if nothing matches within ~4.5s, a **fallback** chat message is still created with the same collapsible block in **`content`**.
+- **System / Forge rolls (`Roll#toMessage`):** A `preCreateChatMessage` hook merges roll-proof HTML into the outgoing message (see v1.1.35: **`content`**, not `flavor`, for v12 visibility). **`_queueRollProofForNextChatMessage`** queues attach; if nothing matches within ~4.5s, a **fallback** chat message is still created with the same collapsible block in **`content`**.
 - **Pending uploads:** If `roll_proof_pending` is true, the panel shows the note and link only (no `<img>`) until the file is ready.
 - **Direct `ChatHandler.createRollMessage` (unprompted / fallback chat):** Roll proof is still embedded in **`flavor`** via shared helper **`roll-proof-html.js`** (`buildRollProofFlavorHtml`). **`_clearRollProofAttachQueue()`** avoids double attach when this path runs.
 - **`/roll` command fallback:** If direct message creation fails, the `/roll … # …` path still adds only a **text** URL + note in the description (no collapsible HTML on that card).
