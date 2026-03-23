@@ -28,7 +28,7 @@
 
 ### 3. Configure RollSight
 
-**Play session (desktop app):** The local HTTP bridge (default port **8766**) starts only after you open the **Play session** dialog (**Session → Set up** or **Create Session** on the play panel). On the **New session** tab, set **Send rolls to:** **Foundry**, enable **Let Foundry talk to this app**, and tap **Start** — or open the **Saved session** tab, select a row, and tap **Continue** (or double-click) to rejoin. If rolls never reach Foundry, confirm a session is active. Technical details: **`docs/ROLLSIGHT_PLAY_SESSION.md`** in the RollSight repository.
+**Play session (desktop app):** The local HTTP bridge (default port **8766**) starts only after you open the **Play session** dialog (**Session → Set up** or **Start Session** on the play panel). On the **New session** tab, set **Send rolls to:** **Foundry**, enable **Let Foundry talk to this app**, and tap **Start** — or open the **Saved session** tab, select a row, and tap **Continue** (or double-click) to rejoin. If rolls never reach Foundry, confirm a session is active. Technical details: **`docs/ROLLSIGHT_PLAY_SESSION.md`** in the RollSight repository.
 
 In RollSight's `camera_config.json`, add:
 

@@ -381,6 +381,11 @@ class RollSightIntegration {
                     this.handleAmendment(event.data.amendmentData).catch(error => {
                         console.error("RollSight Real Dice Reader | Error handling amendment from postMessage:", error);
                     });
+                } else if (event.data && event.data.type === 'rollsight-chat-text') {
+                    const t = event.data.text;
+                    this.postChatTextFromBridge(t).catch((error) => {
+                        console.error("RollSight Real Dice Reader | Error posting chat text from extension:", error);
+                    });
                 }
             });
 
@@ -1698,7 +1703,9 @@ class RollSightIntegration {
             const ts = item?.timestamp;
             if (typeof ts === "number" && ts > maxTs) maxTs = ts;
             try {
-                if (item.type === "amendment" || item.amendment) {
+                if (item.type === "chat_text" && item.content) {
+                    await this.postChatTextFromBridge(item.content);
+                } else if (item.type === "amendment" || item.amendment) {
                     const am = item.amendment ?? item;
                     await this.handleAmendment(am);
                 } else if (item.type === "roll" || item.roll) {
@@ -3148,6 +3155,51 @@ class RollSightIntegration {
     /**
      * Send a test chat message to verify communication works
      */
+    /**
+     * Post a plain chat line (e.g. RollSight stats URL) from the desktop HTTP bridge or browser extension.
+     * @param {string} plainText
+     */
+    async postChatTextFromBridge(plainText) {
+        const text = (plainText ?? "").toString().trim();
+        if (!text) return;
+        const esc = (s) =>
+            String(s)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;");
+        try {
+            const game = (typeof foundry !== "undefined" && foundry.game) ? foundry.game : globalThis.game;
+            const ChatMessageClass =
+                game?.messages?.documentClass ??
+                (typeof foundry !== "undefined" && foundry.chat?.messages?.ChatMessage) ??
+                globalThis.ChatMessage;
+            if (!game || !game.user) {
+                throw new Error("Game or user not available");
+            }
+            const user = game.user;
+            let speaker;
+            try {
+                speaker =
+                    ChatMessageClass?.getSpeaker && typeof ChatMessageClass.getSpeaker === "function"
+                        ? ChatMessageClass.getSpeaker({ user })
+                        : { alias: user?.name ?? "Unknown" };
+            } catch (_) {
+                speaker = { alias: user?.name ?? "Unknown" };
+            }
+            const messageData = {
+                user: user.id,
+                speaker,
+                content: `<p>${esc(text)}</p>`,
+                sound: null,
+            };
+            await ChatMessageClass.create(messageData);
+        } catch (err) {
+            console.warn("RollSight Real Dice Reader | Could not post chat line from RollSight:", err);
+            throw err;
+        }
+    }
+
     async sendTestMessage() {
         try {
             console.log("🎲 RollSight Real Dice Reader | Sending test chat message...");
