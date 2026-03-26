@@ -157,6 +157,18 @@ class RollSightIntegration {
     }
 
     /**
+     * Per-user setting: auto-open RollSight replay details on render.
+     */
+    _shouldAutoExpandRollReplay() {
+        try {
+            const game = (typeof foundry !== "undefined" && foundry.game) ? foundry.game : globalThis.game;
+            return !!game?.settings?.get("rollsight-integration", "autoExpandRollReplay");
+        } catch (_) {
+            return false;
+        }
+    }
+
+    /**
      * Attach roll proof to the next qualifying chat message (rolls), or post a fallback line after timeout.
      */
     _queueRollProofForNextChatMessage(rollData) {
@@ -291,7 +303,12 @@ class RollSightIntegration {
                     }
                 }
                 $root.find(".rollsight-roll-replay-details").each((_, el) => {
-                    this._bindRollReplayProofRetry(jQuery(el));
+                    const $det = jQuery(el);
+                    this._bindRollReplayProofRetry($det);
+                    if (this._shouldAutoExpandRollReplay()) {
+                        const details = $det[0];
+                        if (details && !details.open) details.open = true;
+                    }
                 });
             } catch (e) {
                 console.warn("RollSight Real Dice Reader | renderChatMessage roll replay:", e);
@@ -3471,6 +3488,14 @@ function registerRollSightSettings() {
         config: true,
         type: String,
         default: "http://127.0.0.1:8766"
+    });
+    game.settings.register("rollsight-integration", "autoExpandRollReplay", {
+        name: "Auto-expand RollSight Replay",
+        hint: "Automatically expand the RollSight Replay section when a chat message with replay media appears.",
+        scope: "client",
+        config: true,
+        type: Boolean,
+        default: false
     });
     // Client-scoped so players see the module in Configure Settings and know it's active for them
     game.settings.register("rollsight-integration", "playerActive", {
