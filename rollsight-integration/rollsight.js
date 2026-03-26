@@ -108,9 +108,11 @@ class RollSightIntegration {
         const img = details.querySelector("img.rollsight-roll-replay-gif");
         if (!img) return;
 
+        const refreshCfg = this._getRollReplayRefreshConfig();
         let pollTimer = null;
-        let attempts = 0;
-        const maxAttempts = 48;
+        const pollEveryMs = refreshCfg.intervalMs;
+        const maxPollWindowMs = refreshCfg.durationMs;
+        let pollingUntil = 0;
 
         const clearPoll = () => {
             if (pollTimer) {
@@ -127,11 +129,10 @@ class RollSightIntegration {
                 clearPoll();
                 return;
             }
-            if (attempts >= maxAttempts) {
+            if (Date.now() > pollingUntil) {
                 clearPoll();
                 return;
             }
-            attempts += 1;
             const sep = base.includes("?") ? "&" : "?";
             img.src = `${base}${sep}rs=${Date.now()}`;
         };
@@ -139,19 +140,18 @@ class RollSightIntegration {
         img.addEventListener("load", () => {
             if (isLoadedOk()) clearPoll();
         });
-        img.addEventListener("error", () => {
-            if (details.open) bumpSrc();
-        });
+        // Keep retries on a fixed cadence; avoid rapid-fire error loops from immediate re-request on 404.
+        img.addEventListener("error", () => {});
 
         details.addEventListener("toggle", () => {
             clearPoll();
-            attempts = 0;
             if (!details.open) return;
             if (isLoadedOk()) return;
+            pollingUntil = Date.now() + maxPollWindowMs;
             setTimeout(() => {
                 if (!details.open || isLoadedOk()) return;
                 bumpSrc();
-                pollTimer = setInterval(bumpSrc, 2500);
+                pollTimer = setInterval(bumpSrc, pollEveryMs);
             }, 400);
         });
     }
@@ -166,6 +166,20 @@ class RollSightIntegration {
         } catch (_) {
             return false;
         }
+    }
+
+    _getRollReplayRefreshConfig() {
+        const cfg = { intervalMs: 3000, durationMs: 20000 };
+        try {
+            const game = (typeof foundry !== "undefined" && foundry.game) ? foundry.game : globalThis.game;
+            const everyRaw = Number(game?.settings?.get("rollsight-integration", "rollReplayRefreshEverySeconds"));
+            const maxRaw = Number(game?.settings?.get("rollsight-integration", "rollReplayRefreshMaxSeconds"));
+            const every = Number.isFinite(everyRaw) ? everyRaw : 3;
+            const maxSec = Number.isFinite(maxRaw) ? maxRaw : 20;
+            cfg.intervalMs = Math.max(1, Math.min(30, every)) * 1000;
+            cfg.durationMs = Math.max(5, Math.min(120, maxSec)) * 1000;
+        } catch (_) {}
+        return cfg;
     }
 
     /**
@@ -3496,6 +3510,22 @@ function registerRollSightSettings() {
         config: true,
         type: Boolean,
         default: false
+    });
+    game.settings.register("rollsight-integration", "rollReplayRefreshEverySeconds", {
+        name: "RollSight Replay refresh every (seconds)",
+        hint: "How often to retry loading replay media while the section is open.",
+        scope: "client",
+        config: true,
+        type: Number,
+        default: 3
+    });
+    game.settings.register("rollsight-integration", "rollReplayRefreshMaxSeconds", {
+        name: "RollSight Replay refresh timeout (seconds)",
+        hint: "How long to keep retrying replay media before stopping.",
+        scope: "client",
+        config: true,
+        type: Number,
+        default: 20
     });
     // Client-scoped so players see the module in Configure Settings and know it's active for them
     game.settings.register("rollsight-integration", "playerActive", {
