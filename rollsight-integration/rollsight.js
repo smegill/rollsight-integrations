@@ -3824,7 +3824,11 @@ Hooks.once('ready', () => {
 // Register settings and create module in 'setup' so game.settings exists and our Hooks.once('ready') will fire later.
 // (In 'init', game can be missing; deferring to ready then meant we registered Hooks.once('ready') after ready had already fired, so the module never ran.)
 Hooks.once('setup', () => {
-    registerRollSightSettings();
+    try {
+        registerRollSightSettings();
+    } catch (err) {
+        console.error("RollSight Real Dice Reader | registerRollSightSettings failed — module options will be missing:", err);
+    }
 });
 
 function registerRollSightSettings() {
@@ -3860,6 +3864,7 @@ function registerRollSightSettings() {
     // --- Cloud relay (Forge / no extension) ---
     game.settings.register("rollsight-integration", "cloudRoomKey", {
         name: "Cloud table (internal)",
+        hint: "World relay id (short code or legacy key). Stored automatically; not shown in this form. GMs can re-link via Register cloud table if needed.",
         scope: "world",
         config: false,
         type: String,
@@ -3948,6 +3953,7 @@ function registerRollSightSettings() {
     if (game) game.rollsight = rollsight;
 
     Hooks.on("renderSettingsConfig", (_app, html) => {
+        try {
         const integ = game.rollsight;
         if (!integ || !game.user) return;
         const $html = $(html);
@@ -4076,6 +4082,9 @@ function registerRollSightSettings() {
             }
         });
         $anchor.after($wrap);
+        } catch (err) {
+            console.error("RollSight Real Dice Reader | Module settings UI hook failed:", err);
+        }
     });
 }
 

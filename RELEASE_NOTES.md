@@ -1,3 +1,7 @@
+## v1.1.58 - 2026-03-27
+
+- **Foundry v13 settings:** The hidden world setting `cloudRoomKey` now includes a `hint` string. v13 treats setting config as strict; omitting `hint` caused `game.settings.register` to throw and **no RollSight module options appeared** in Configure Settings.
+
 ## v1.1.44 - 2026-03-26
 
 - **RollSight cloud room:** World setting for a shared `rs_…` room key; polls `rollsight.com` so physical rolls reach the table without the browser extension or local HTTP bridge (Forge-friendly). **Create RollSight room** button for GMs. Desktop bridge polling is skipped when a cloud key is set.
