@@ -21,7 +21,15 @@ fi
 
 cd "$SCRIPT_DIR"
 rm -f "$ZIP_NAME"
-zip -r "$ZIP_NAME" rollsight-integration -x "*.git*" -x "*__MACOSX*" -x "*.DS_Store"
+if command -v zip >/dev/null 2>&1; then
+  zip -r "$ZIP_NAME" rollsight-integration -x "*.git*" -x "*__MACOSX*" -x "*.DS_Store"
+elif command -v powershell.exe >/dev/null 2>&1; then
+  # Git Bash on Windows often lacks `zip`; PowerShell Compress-Archive works.
+  powershell.exe -NoProfile -Command "Compress-Archive -Path 'rollsight-integration' -DestinationPath '${ZIP_NAME}' -Force"
+else
+  echo "Error: need 'zip' or PowerShell to build the release archive."
+  exit 1
+fi
 
 echo "Built: ${OUTPUT_ZIP}"
 echo "Upload this file to your GitHub Release as ${ZIP_NAME}."
