@@ -1833,9 +1833,10 @@ class RollSightIntegration {
         this._stopDesktopBridgePoll();
         if (!game?.settings) return;
         if (game.settings.get("rollsight-integration", "playerActive") === false) return;
-        const cloudKey = (game.settings.get("rollsight-integration", "cloudRoomKey") ?? "").toString().trim();
-        if (cloudKey.startsWith("rs_") && cloudKey.length >= 16) return;
         if (!game.settings.get("rollsight-integration", "desktopBridgePoll")) return;
+        // Desktop bridge polling is explicit: when ON, poll the local HTTP bridge even if a cloud room key
+        // is still saved in world settings (e.g. switching from cloud back to local RollSight session).
+        // Cloud polling is skipped when desktopBridgePoll is on — see _startCloudRoomPollIfEnabled.
         const base = this._getDesktopBridgeBaseUrl();
         if (!base) return;
         const fastMs = 500;
@@ -3655,7 +3656,7 @@ function registerRollSightSettings() {
     });
     game.settings.register("rollsight-integration", "desktopBridgePoll", {
         name: "Desktop bridge (Foundry app — poll HTTP bridge)",
-        hint: "For Foundry's desktop application where the browser extension cannot run. Polls the same RollSight HTTP bridge the extension uses (default port 8766). Do not enable on the same machine as the VTT Bridge extension — both consume the same roll queue.",
+        hint: "For Foundry's desktop application where the browser extension cannot run. Polls the same RollSight HTTP bridge the extension uses (default port 8766). When enabled, this takes precedence over the cloud room key below (local bridge + cloud key both set: Foundry uses this poll). Do not enable on the same machine as the VTT Bridge extension — both consume the same roll queue.",
         scope: "client",
         config: true,
         type: Boolean,
@@ -3663,7 +3664,7 @@ function registerRollSightSettings() {
     });
     game.settings.register("rollsight-integration", "desktopBridgeUrl", {
         name: "Desktop bridge base URL",
-        hint: "Use http://127.0.0.1:8766 (not localhost) on Windows — the bridge listens on IPv4 only; localhost can resolve to IPv6 ::1 and polls will miss. Change the port if you changed it in RollSight. If a cloud room key is set below, the cloud relay is used instead of this poll.",
+        hint: "Use http://127.0.0.1:8766 (not localhost) on Windows — the bridge listens on IPv4 only; localhost can resolve to IPv6 ::1 and polls will miss. Change the port if you changed it in RollSight. Used when Desktop bridge (poll) above is on; a saved cloud room key does not disable this poll.",
         scope: "client",
         config: true,
         type: String,
@@ -3671,7 +3672,7 @@ function registerRollSightSettings() {
     });
     game.settings.register("rollsight-integration", "cloudRoomKey", {
         name: "RollSight cloud room key",
-        hint: "GMs: click Create RollSight room below, or paste a key from your GM. Same key for everyone at the table. When set, Foundry receives rolls from the RollSight app over the internet (good for Forge — no browser add-on).",
+        hint: "GMs: click Create RollSight room below, or paste a key from your GM. Same key for everyone at the table. When set, Foundry receives rolls from the RollSight app over the internet (good for Forge — no browser add-on). Clear this when using only the local HTTP bridge or browser extension.",
         scope: "world",
         config: true,
         type: String,
