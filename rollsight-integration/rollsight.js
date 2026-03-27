@@ -92,6 +92,8 @@ class RollSightIntegration {
         /** When last cloud poll failed with unknown room (404); avoids generic "unreachable" spam. */
         this._cloudPollLastWasUnknownRoom = false;
         this._cloudUnknownRoomLastLog = 0;
+        /** Throttle debug console lines when cloud poll returns 0 events */
+        this._cloudPollDebugEmptyNextLog = 0;
     }
 
     /**
@@ -1747,6 +1749,7 @@ class RollSightIntegration {
         const seq = this._cloudPollSinceSeq || 0;
         const url = `${base}/rollsight-room/events?since_seq=${encodeURIComponent(String(seq))}`;
         let res;
+        const debug = game.settings.get("rollsight-integration", "debugLogging");
         try {
             res = await fetch(url, {
                 method: "GET",
@@ -1754,10 +1757,25 @@ class RollSightIntegration {
                 cache: "no-store",
                 credentials: "omit",
             });
-        } catch (_e) {
+        } catch (e) {
+            if (debug) console.warn("RollSight Real Dice Reader | Cloud room poll fetch error:", e);
             return false;
         }
         if (!res.ok) {
+            if (debug) {
+                let errBody = "";
+                try {
+                    errBody = await res.clone().text();
+                } catch (_e) {
+                    errBody = "(could not read body)";
+                }
+                console.warn(
+                    "RollSight Real Dice Reader | Cloud room poll HTTP",
+                    res.status,
+                    url.slice(0, 120),
+                    errBody.slice(0, 400)
+                );
+            }
             if (res.status === 404) {
                 this._cloudPollLastWasUnknownRoom = true;
                 const now = Date.now();
@@ -1783,12 +1801,24 @@ class RollSightIntegration {
         let data;
         try {
             data = await res.json();
-        } catch (_e) {
+        } catch (e) {
+            if (debug) console.warn("RollSight Real Dice Reader | Cloud poll JSON parse failed:", e);
             return false;
         }
         const events = Array.isArray(data.events) ? data.events : [];
-        if (events.length === 0) return true;
-        const debug = game.settings.get("rollsight-integration", "debugLogging");
+        if (events.length === 0) {
+            if (debug) {
+                const now = Date.now();
+                if (now >= (this._cloudPollDebugEmptyNextLog || 0)) {
+                    this._cloudPollDebugEmptyNextLog = now + 4000;
+                    console.log(
+                        "RollSight Real Dice Reader | Cloud poll OK (0 events)",
+                        { since_seq: seq, api_since_seq: data.since_seq, url: url.slice(0, 100) }
+                    );
+                }
+            }
+            return true;
+        }
         let maxSeq = seq;
         for (const ev of events) {
             const p = ev?.payload;
@@ -1808,6 +1838,12 @@ class RollSightIntegration {
                         typeof ts === "number"
                             ? { ...rollInner, _rollsightBridgeTs: ts }
                             : rollInner;
+                    if (debug) {
+                        console.log(
+                            "RollSight Real Dice Reader | Cloud room delivering roll envelope",
+                            { seq: s, formula: rollInner?.formula, total: rollInner?.total }
+                        );
+                    }
                     await this.handleRoll(enriched);
                 }
             } catch (err) {
