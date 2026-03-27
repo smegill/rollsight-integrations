@@ -191,3 +191,7 @@
 
 - (no Foundry module changes detected)
 
+## v1.1.57 - 2026-03-27
+
+- 4c7dec6 Cloud relay: player codes, per-player publish, idempotent Supabase SQL
+
