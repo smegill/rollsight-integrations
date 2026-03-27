@@ -1,3 +1,7 @@
+## v1.1.44 - 2026-03-26
+
+- **RollSight cloud room:** World setting for a shared `rs_…` room key; polls `rollsight.com` so physical rolls reach the table without the browser extension or local HTTP bridge (Forge-friendly). **Create RollSight room** button for GMs. Desktop bridge polling is skipped when a cloud key is set.
+
 ## v1.1.40 - 2026-03-22
 
 - **Roll replay GIF retry:** If the proof GIF 404s while upload is still finishing, the module polls with cache-busting while the replay panel is open until the image loads (capped attempts).
