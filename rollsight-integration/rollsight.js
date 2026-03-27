@@ -2101,6 +2101,12 @@ class RollSightIntegration {
                             console.log("RollSight Real Dice Reader | [debug] shouldSubmit:", shouldSubmit, "neededCount:", neededCount, "fedEnough:", fedEnough, "remaining:", remaining);
                             if (shouldSubmit) {
                                 try {
+                                    if (rollData.roll_proof_url) {
+                                        // Must queue before resolver close/submit, because chat message creation can happen
+                                        // during close and preCreateChatMessage needs payload ready ahead of time.
+                                        this._queueRollProofForNextChatMessage(rollData);
+                                        this._lastRollProofRollData = null;
+                                    }
                                     await this._injectRollIntoResolver(this._pendingChatResolver.resolver, pairs);
                                     const roll = this._pendingChatResolver.resolver?.roll ?? this._pendingChatResolver.roll;
                                     const formula = this._pendingChatResolver.formula ?? "";
@@ -2120,10 +2126,6 @@ class RollSightIntegration {
                                     }
                                     await this._closeDuplicateResolverIfAny();
                                     this._pendingChatResolver.resolveOutcome?.("fulfilled");
-                                    if (rollData.roll_proof_url) {
-                                        this._queueRollProofForNextChatMessage(rollData);
-                                        this._lastRollProofRollData = null;
-                                    }
                                 } catch (e) {
                                     console.warn("RollSight Real Dice Reader | close error:", e);
                                 }
@@ -2143,6 +2145,10 @@ class RollSightIntegration {
                         this._pendingChatResolver.consumedFingerprints?.add(rollFp);
                         this._updatePendingDialogSlots(this._pendingChatResolver.resolver);
                         if (complete) {
+                            if (rollData.roll_proof_url) {
+                                this._queueRollProofForNextChatMessage(rollData);
+                                this._lastRollProofRollData = null;
+                            }
                             const roll = this._pendingChatResolver.resolver?.roll ?? this._pendingChatResolver.roll;
                             const formula = this._pendingChatResolver.formula ?? "";
                             if (roll?.toJSON) {
@@ -2162,10 +2168,6 @@ class RollSightIntegration {
                             await this._closeDuplicateResolverIfAny();
                             console.log("RollSight Real Dice Reader | Injected roll into pending RollResolver for", this._pendingChatResolver.formula);
                             this._pendingChatResolver.resolveOutcome?.("fulfilled");
-                            if (complete && rollData.roll_proof_url) {
-                                this._queueRollProofForNextChatMessage(rollData);
-                                this._lastRollProofRollData = null;
-                            }
                         }
                         return null;
                     }
@@ -2215,6 +2217,10 @@ class RollSightIntegration {
                     const shouldSubmit = resolverComplete || remaining === 0 || (fedEnough && anyConsumed);
                     if (shouldSubmit) {
                         try {
+                            if (!this._pendingChatResolver.resolverNotRendered && rollData.roll_proof_url) {
+                                this._queueRollProofForNextChatMessage(rollData);
+                                this._lastRollProofRollData = null;
+                            }
                             await this._injectRollIntoResolver(this._pendingChatResolver.resolver, pairs);
                             const roll = this._pendingChatResolver.resolver?.roll ?? this._pendingChatResolver.roll;
                             const formula = this._pendingChatResolver.formula ?? "";
@@ -2230,10 +2236,6 @@ class RollSightIntegration {
                             }
                             await this._closeDuplicateResolverIfAny();
                             this._pendingChatResolver.resolveOutcome?.("fulfilled");
-                            if (!this._pendingChatResolver.resolverNotRendered && rollData.roll_proof_url) {
-                                this._queueRollProofForNextChatMessage(rollData);
-                                this._lastRollProofRollData = null;
-                            }
                         } catch (e) {
                             if (debug) console.warn("RollSight Real Dice Reader | close error (fallback path):", e);
                         }
