@@ -200,3 +200,15 @@
 .theme-dark .chat-message .rollsight-roll-replay-preview-hint {
   color: var(--color-text-light-5, #b0b0a0);
 }
+
+/* Configure Settings: cloud codes are read-only; Copy / Refresh / Create are buttons beside the field */
+input.rollsight-readonly-code {
+  cursor: default;
+  font-family: Consolas, "Ubuntu Mono", monospace;
+  font-size: 0.95em;
+  max-width: min(22em, 100%);
+}
+button.rollsight-code-copy,
+button.rollsight-code-refresh {
+  min-width: 2rem;
+}

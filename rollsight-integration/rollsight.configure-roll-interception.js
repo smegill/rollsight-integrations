@@ -795,10 +795,8 @@ class RollSightIntegration {
         const CLEANUP_INTERVAL_MS = 30000; // every 30s
         this._staleCleanupIntervalId = setInterval(() => this._runStaleStateCleanup(), CLEANUP_INTERVAL_MS);
         
-        // Check if we should auto-connect (using namespaced API for Foundry v13+ if available)
         const game = (typeof foundry !== 'undefined' && foundry.game) ? foundry.game : globalThis.game;
-        const autoConnect = game.settings.get("rollsight-integration", "autoConnect");
-        if (autoConnect) {
+        if (game?.settings?.get("rollsight-integration", "playerActive") !== false) {
             this.connect();
         }
     }
@@ -1924,14 +1922,6 @@ function registerRollSightSettings() {
         name: "Debug logging (console)",
         hint: "Log extra diagnostics to the browser console (F12) to troubleshoot RollSight not pausing for physical dice.",
         scope: "client",
-        config: true,
-        type: Boolean,
-        default: false
-    });
-    game.settings.register("rollsight-integration", "autoConnect", {
-        name: "Auto-connect to RollSight",
-        hint: "Automatically connect to RollSight when the game loads",
-        scope: "world",
         config: true,
         type: Boolean,
         default: false
