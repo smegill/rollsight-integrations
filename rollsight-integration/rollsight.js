@@ -89,6 +89,9 @@ class RollSightIntegration {
         this._cloudPollSinceSeq = 0;
         this._cloudPollInFlight = false;
         this._cloudLastUnreachableLog = 0;
+        /** When last cloud poll failed with unknown room (404); avoids generic "unreachable" spam. */
+        this._cloudPollLastWasUnknownRoom = false;
+        this._cloudUnknownRoomLastLog = 0;
     }
 
     /**
@@ -1721,7 +1724,7 @@ class RollSightIntegration {
             } finally {
                 self._cloudPollInFlight = false;
             }
-            if (!ok) self._logCloudRoomUnreachableThrottled(base);
+            if (!ok && !self._cloudPollLastWasUnknownRoom) self._logCloudRoomUnreachableThrottled(base);
             schedule(ok ? fastMs : slowMs);
         };
         if (game.settings.get("rollsight-integration", "debugLogging")) {
@@ -1736,6 +1739,7 @@ class RollSightIntegration {
      */
     async _pollCloudRoomOnce() {
         const game = (typeof foundry !== 'undefined' && foundry.game) ? foundry.game : globalThis.game;
+        this._cloudPollLastWasUnknownRoom = false;
         if (!game?.settings) return false;
         const ck = (game.settings.get("rollsight-integration", "cloudRoomKey") ?? "").toString().trim();
         if (!ck.startsWith("rs_") || ck.length < 16) return false;
@@ -1753,7 +1757,29 @@ class RollSightIntegration {
         } catch (_e) {
             return false;
         }
-        if (!res.ok) return false;
+        if (!res.ok) {
+            if (res.status === 404) {
+                this._cloudPollLastWasUnknownRoom = true;
+                const now = Date.now();
+                if (now - (this._cloudUnknownRoomLastLog || 0) > 25000) {
+                    this._cloudUnknownRoomLastLog = now;
+                    try {
+                        const err = await res.clone().json();
+                        if (err?.error === "unknown_room") {
+                            console.warn(
+                                "RollSight Real Dice Reader | Cloud room key is not registered on the server. " +
+                                    "In module settings use “Create RollSight room”, then paste that exact key into the RollSight app (same world / same API)."
+                            );
+                        } else {
+                            console.warn("RollSight Real Dice Reader | Cloud room poll returned 404 — check room key and Cloud room API base.");
+                        }
+                    } catch (_e) {
+                        console.warn("RollSight Real Dice Reader | Cloud room poll returned 404 — check room key and Cloud room API base.");
+                    }
+                }
+            }
+            return false;
+        }
         let data;
         try {
             data = await res.json();
