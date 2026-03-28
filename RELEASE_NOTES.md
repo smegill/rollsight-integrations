@@ -1,3 +1,8 @@
+## v1.1.61 - 2026-03-27
+
+- **Fix empty module settings (v12):** Register settings on both **`init` and `setup`** (once). If the module script loads after `setup` has already fired, `Hooks.once("setup")` never runs and **no options appeared**.
+- **GM cloud table code:** **`cloudRoomKey`** is a **visible world setting** (“Cloud table code (GM)”) with **Copy** + readonly field; **`restricted: true`** when supported so only gamemasters should change it. **Register cloud table** still fills this field and updates the open settings form.
+
 ## v1.1.60 - 2026-03-27
 
 - **Foundry v12 (primary):** Revert v13-only tweaks that hurt v12: settings use primitive **`Boolean` / `Number`** again, and registration runs on **`setup` only** (v12 lifecycle). v13-oriented **`BooleanField` / `NumberField`** and **`init`** registration are removed.

@@ -3821,14 +3821,23 @@ Hooks.once('ready', () => {
     // ensureFulfillmentRegistered is a no-op (we don't register RollSight as a method; only Manual is used)
 });
 
-// Register settings in `setup` (v12 + v13): `game.settings` is guaranteed; `rollsight.init()` only queues `Hooks.once('ready', ...)`.
-Hooks.once("setup", () => {
+// Register on `init` and `setup`: if the module loads after `setup` has already fired (v12 timing),
+// `Hooks.once("setup")` never runs and the module would register zero settings. `init` runs while
+// packages load; `setup` is a fallback if `game.settings` was not ready in `init`.
+let _rollsightSettingsRegisterDone = false;
+function tryRegisterRollSightSettings() {
+    if (_rollsightSettingsRegisterDone) return;
+    const game = globalThis.game ?? ((typeof foundry !== "undefined" && foundry.game) ? foundry.game : null);
+    if (!game?.settings?.register) return;
     try {
         registerRollSightSettings();
+        _rollsightSettingsRegisterDone = true;
     } catch (err) {
         console.error("RollSight Real Dice Reader | registerRollSightSettings failed — module options will be missing:", err);
     }
-});
+}
+Hooks.once("init", tryRegisterRollSightSettings);
+Hooks.once("setup", tryRegisterRollSightSettings);
 
 function registerRollSightSettings() {
     const game = globalThis.game ?? ((typeof foundry !== "undefined" && foundry.game) ? foundry.game : null);
@@ -3863,12 +3872,28 @@ function registerRollSightSettings() {
     // --- Cloud relay (Forge / no extension) ---
     game.settings.register("rollsight-integration", "cloudPlayerKey", {
         name: "RollSight app — your player code",
-        hint: "Paste this into the RollSight app on this PC. It is tied to this Foundry world and your account automatically (you never need a separate table key). Copy to clipboard, or Refresh if empty.",
+        hint: "Paste this into the RollSight app on this PC. It is tied to this Foundry world and your account automatically. Use Copy / Refresh. You do not use the GM table code here.",
         scope: "client",
         config: true,
         type: String,
         default: ""
     });
+    // World relay id (8-char or legacy rs_…). Visible to GMs so they can copy or verify; players use player code only.
+    const cloudRoomKeyDef = {
+        name: "Cloud table code (GM)",
+        hint: "This world's cloud relay id. Copy if you need it for support or special setups. Players should only use their personal player code in RollSight, not this value.",
+        scope: "world",
+        config: true,
+        type: String,
+        default: "",
+        restricted: true
+    };
+    try {
+        game.settings.register("rollsight-integration", "cloudRoomKey", cloudRoomKeyDef);
+    } catch (_e) {
+        const { restricted, ...rest } = cloudRoomKeyDef;
+        game.settings.register("rollsight-integration", "cloudRoomKey", rest);
+    }
     game.settings.register("rollsight-integration", "cloudRoomApiBase", {
         name: "Cloud API base URL (advanced)",
         hint: "Leave empty to use rollsight.com. Only for self-hosted or development.",
@@ -3939,16 +3964,6 @@ function registerRollSightSettings() {
         default: false
     });
 
-    // Hidden world key last so a registration error here cannot hide all other module options.
-    game.settings.register("rollsight-integration", "cloudRoomKey", {
-        name: "Cloud table (internal)",
-        hint: "World relay id (short code or legacy key). Stored automatically; not shown in this form. GMs can re-link via Register cloud table if needed.",
-        scope: "world",
-        config: false,
-        type: String,
-        default: ""
-    });
-
     const rollsight = new RollSightIntegration();
     rollsight.init();
     if (game) game.rollsight = rollsight;
@@ -3959,7 +3974,7 @@ function registerRollSightSettings() {
         if (!integ || !game.user) return;
         const $html = $(html);
 
-        const bindReadonlyCodeRow = ($inp) => {
+        const bindReadonlyCodeRow = ($inp, emptyWarn) => {
             if (!$inp.length || $inp.data("rollsightReadonlyBound")) return;
             $inp.data("rollsightReadonlyBound", true);
             $inp.attr("readonly", "readonly").attr("spellcheck", "false").attr("autocomplete", "off").addClass("rollsight-readonly-code");
@@ -3971,11 +3986,14 @@ function registerRollSightSettings() {
             const $copy = $(
                 '<button type="button" class="rollsight-code-copy" title="Copy to clipboard"><i class="fas fa-copy"></i></button>'
             );
+            const warn =
+                emptyWarn ||
+                "Nothing to copy yet.";
             $copy.on("click", async (ev) => {
                 ev.preventDefault();
                 const v = String($inp.val() ?? "").trim();
                 if (!v) {
-                    ui.notifications.warn("No player code yet — click Refresh, or wait for this world to finish loading.");
+                    ui.notifications.warn(warn);
                     return;
                 }
                 try {
@@ -3989,7 +4007,16 @@ function registerRollSightSettings() {
             $inp.after($row);
         };
 
-        bindReadonlyCodeRow($html.find('input[name="rollsight-integration.cloudPlayerKey"]'));
+        if (game.user.isGM) {
+            bindReadonlyCodeRow(
+                $html.find('input[name="rollsight-integration.cloudRoomKey"]'),
+                "No cloud table yet — use Register cloud table below, or reload after the world finishes loading."
+            );
+        }
+        bindReadonlyCodeRow(
+            $html.find('input[name="rollsight-integration.cloudPlayerKey"]'),
+            "No player code yet — click Refresh, or wait for this world to finish loading."
+        );
 
         const $playerInp = $html.find('input[name="rollsight-integration.cloudPlayerKey"]');
         const $playerRow = $playerInp.length ? $playerInp.next(".rollsight-code-actions") : $();
@@ -4049,12 +4076,15 @@ function registerRollSightSettings() {
         }
 
         if (!game.user.isGM || $html.find(".rollsight-gm-cloud-relay").length) return;
-        let $anchor = $html.find('input[name="rollsight-integration.cloudRoomApiBase"]').closest(".form-group");
+        let $anchor = $html.find('input[name="rollsight-integration.cloudRoomKey"]').closest(".form-group");
+        if (!$anchor.length) {
+            $anchor = $html.find('input[name="rollsight-integration.cloudRoomApiBase"]').closest(".form-group");
+        }
         if (!$anchor.length) {
             $anchor = $html.find('input[name="rollsight-integration.cloudPlayerKey"]').closest(".form-group");
         }
         if (!$anchor.length) return;
-        const $wrap = $(`<div class="form-group rollsight-gm-cloud-relay"><label>Cloud table (GM)</label><p class="hint" style="margin:0.25em 0 0.5em;">The relay table is stored for this Foundry world automatically. Players never see it — they only use their personal code above. Use this if the world did not link on first load.</p><div class="form-fields"></div></div>`);
+        const $wrap = $(`<div class="form-group rollsight-gm-cloud-relay"><label>Cloud table (GM)</label><p class="hint" style="margin:0.25em 0 0.5em;">If <strong>Cloud table code</strong> above is empty, register the relay for this world here. Players still use only their personal player code in RollSight.</p><div class="form-fields"></div></div>`);
         const btn = $('<button type="button" class="rollsight-create-cloud-room"><i class="fas fa-plus"></i> Register cloud table for this world</button>');
         $wrap.find(".form-fields").append(btn);
         btn.on("click", async (ev) => {
@@ -4076,6 +4106,8 @@ function registerRollSightSettings() {
                     return;
                 }
                 await game.settings.set("rollsight-integration", "cloudRoomKey", room_code);
+                const $rk = $html.find('input[name="rollsight-integration.cloudRoomKey"]');
+                if ($rk.length) $rk.val(room_code);
                 ui.notifications.info("Cloud table registered for this world. Player codes can be refreshed if needed.");
             } catch (e) {
                 console.error(e);
