@@ -1,3 +1,9 @@
+## v1.1.69 - 2026-03-27
+
+- **Foundry v12:** Load `rollsight-settings.js` as a classic **`scripts`** entry (not `esmodules`) so hooks and schema registration run before `init` / `setup` instead of after (late ES modules skipped `Hooks.once("init")` and never attached the settings UI).
+- **`renderApplication` fallback:** When the app is `SettingsConfig`, run the same player-code UI mount as `renderSettingsConfig` (covers v12 vs v13 differences).
+- **Broader player field selector:** `name*="cloudPlayerKey"` so alternate Foundry name mangling still matches.
+
 ## v1.1.68 - 2026-03-27
 
 - Player code field in module settings is **display-only**: `readOnly`, blocks paste/cut/drop/`beforeinput` edits; still selectable for Ctrl+C. Supports `input` or `textarea` from Foundry.
