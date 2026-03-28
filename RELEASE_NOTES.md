@@ -1,3 +1,7 @@
+## v1.1.71 - 2026-03-28
+
+- **Fix:** Removed duplicate `const self = this` in the post-`ready` callback (same scope) that caused `SyntaxError: Identifier 'self' has already been declared` and prevented `rollsight.js` from loading.
+
 ## v1.1.70 - 2026-03-28
 
 - **Debug logging (module setting):** Cloud relay diagnostics — why polling did not start (desktop bridge on vs missing bearer), masked bearer + URL when polling starts, HTTP errors (incl. throttled 401 hint), per-poll event summaries, unhandled envelope shapes, `handleRoll` entry + recipient mismatch, when no RollResolver consumed the roll, when chat fallback is disabled.

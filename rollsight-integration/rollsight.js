@@ -494,7 +494,6 @@ class RollSightIntegration {
             console.log("RollSight Real Dice Reader | Fully loaded (Foundry " + v + "). Settings: Configure Settings → Module Settings → RollSight Real Dice Reader. Use Manual dice in Dice Configuration for physical RollSight dice.");
 
             const HooksForLifecycle = (typeof foundry !== 'undefined' && foundry.Hooks) ? foundry.Hooks : globalThis.Hooks;
-            const self = this;
             HooksForLifecycle.on("closeGame", () => {
                 self._stopDesktopBridgePoll();
                 self._stopCloudRoomPoll();
