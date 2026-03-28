@@ -96,8 +96,30 @@ class RollSightIntegration {
         this._cloudUnknownRoomLastLog = 0;
         /** Throttle debug console lines when cloud poll returns 0 events */
         this._cloudPollDebugEmptyNextLog = 0;
+        /** Throttle cloud poll 401 hints (wrong/stale player code). */
+        this._cloud401LastLog = 0;
         /** Idempotent guard: post-ready hooks must not run twice (late module load vs ready timing). */
         this._rollsightPostReadyBound = false;
+    }
+
+    /** Redact bearer for console (8-char codes and tokens). */
+    _maskCloudBearerForLog(key) {
+        if (!key) return "(empty)";
+        const s = String(key);
+        if (s.length <= 10) return s.length <= 4 ? "****" : `${s.slice(0, 2)}…${s.slice(-2)}`;
+        if (s.startsWith("rs_u_")) return `rs_u_…${s.slice(-4)}`;
+        return `${s.slice(0, 6)}…${s.slice(-4)}`;
+    }
+
+    _logCloud401Throttled() {
+        const now = Date.now();
+        if (now - this._cloud401LastLog < 30000) return;
+        this._cloud401LastLog = now;
+        console.warn(
+            "RollSight Real Dice Reader | Cloud poll returned 401 — player code may be wrong, stale, or for another room. " +
+                "In Foundry Module Settings copy your 8-character code again into the RollSight app. " +
+                'Enable “Debug logging (console)” in module settings for URL/body details.'
+        );
     }
 
     /**
@@ -517,7 +539,8 @@ class RollSightIntegration {
                     }
                     console.warn(
                         "RollSight Real Dice Reader | No cloud player code yet (and no desktop bridge). " +
-                            "GM: Module Settings → link world → copy your code into RollSight. Players: wait for the GM, then open Module Settings and use Refresh if needed."
+                            "GM: Module Settings → link world → copy your code into RollSight. Players: wait for the GM, then open Module Settings and use Refresh if needed. " +
+                            'Turn on “Debug logging (console)” in module settings to see why cloud polling did or did not start.'
                     );
                 }, 1200);
 
@@ -1863,9 +1886,28 @@ class RollSightIntegration {
         const game = (typeof foundry !== 'undefined' && foundry.game) ? foundry.game : globalThis.game;
         this._stopCloudRoomPoll();
         if (!game?.settings) return;
-        if (game.settings.get("rollsight-integration", "desktopBridgePoll")) return;
+        const debug = game.settings.get("rollsight-integration", "debugLogging");
+        if (game.settings.get("rollsight-integration", "desktopBridgePoll")) {
+            if (debug) {
+                console.log(
+                    "RollSight Real Dice Reader | [debug] Cloud room poll not started: “Poll desktop bridge” is ON — cloud relay is disabled. Turn it off to use the 8-character player code + rollsight.com relay."
+                );
+            }
+            return;
+        }
         const ck = this._getCloudPollBearerKey();
-        if (!ck) return;
+        if (!ck) {
+            if (debug) {
+                const pk = (game.settings.get("rollsight-integration", "cloudPlayerKey") ?? "").toString().trim();
+                console.log("RollSight Real Dice Reader | [debug] Cloud room poll not started: no valid poll bearer.", {
+                    hasTableRoomKey: this._hasTableCloudRoomKey(),
+                    playerKeyLength: pk.length,
+                    playerKeyIs8Char: this._isShortPublicCode(pk),
+                    hint: "Paste the 8-character code from Module Settings into the RollSight app on this PC. Use “Get my RollSight player code” if the field is empty.",
+                });
+            }
+            return;
+        }
         const base = this._getCloudRoomApiBase();
         const fastMs = 500;
         const slowMs = 4000;
@@ -1892,8 +1934,12 @@ class RollSightIntegration {
             if (!ok && !self._cloudPollLastWasUnknownRoom) self._logCloudRoomUnreachableThrottled(base);
             schedule(ok ? fastMs : slowMs);
         };
-        if (game.settings.get("rollsight-integration", "debugLogging")) {
-            console.log("RollSight Real Dice Reader | Cloud room polling enabled:", `${base}/rollsight-room/events`);
+        if (debug) {
+            console.log("RollSight Real Dice Reader | [debug] Cloud room polling enabled", {
+                eventsUrl: `${base}/rollsight-room/events`,
+                bearer: self._maskCloudBearerForLog(ck),
+                since_seq: self._cloudPollSinceSeq || 0,
+            });
         }
         run();
     }
@@ -1925,6 +1971,9 @@ class RollSightIntegration {
             return false;
         }
         if (!res.ok) {
+            if (res.status === 401) {
+                this._logCloud401Throttled();
+            }
             if (debug) {
                 let errBody = "";
                 try {
@@ -1933,9 +1982,11 @@ class RollSightIntegration {
                     errBody = "(could not read body)";
                 }
                 console.warn(
-                    "RollSight Real Dice Reader | Cloud room poll HTTP",
+                    "RollSight Real Dice Reader | [debug] Cloud room poll HTTP",
                     res.status,
-                    url.slice(0, 120),
+                    url.slice(0, 160),
+                    "bearer:",
+                    this._maskCloudBearerForLog(ck),
                     errBody.slice(0, 400)
                 );
             }
@@ -1975,12 +2026,20 @@ class RollSightIntegration {
                 if (now >= (this._cloudPollDebugEmptyNextLog || 0)) {
                     this._cloudPollDebugEmptyNextLog = now + 4000;
                     console.log(
-                        "RollSight Real Dice Reader | Cloud poll OK (0 events)",
-                        { since_seq: seq, api_since_seq: data.since_seq, url: url.slice(0, 100) }
+                        "RollSight Real Dice Reader | [debug] Cloud poll OK (0 events)",
+                        { since_seq: seq, api_since_seq: data.since_seq, next_url: url.slice(0, 120) }
                     );
                 }
             }
             return true;
+        }
+        if (debug) {
+            const summary = events.map((e) => {
+                const p = e?.payload;
+                const t = p && typeof p === "object" ? (p.type || (p.roll ? "roll" : p.amendment ? "amendment" : "?")) : "?";
+                return { seq: e?.seq, kind: t };
+            });
+            console.log("RollSight Real Dice Reader | [debug] Cloud poll received", events.length, "event(s):", summary);
         }
         let maxSeq = seq;
         for (const ev of events) {
@@ -2006,14 +2065,24 @@ class RollSightIntegration {
                     }
                     if (debug) {
                         console.log(
-                            "RollSight Real Dice Reader | Cloud room delivering roll envelope",
-                            { seq: s, formula: rollInner?.formula, total: rollInner?.total }
+                            "RollSight Real Dice Reader | [debug] Cloud room delivering roll envelope",
+                            {
+                                seq: s,
+                                formula: rollInner?.formula,
+                                total: rollInner?.total,
+                                recipient_user_id: p?._rollsightRoom?.recipient_user_id,
+                            }
                         );
                     }
                     await this.handleRoll(enriched);
+                } else if (debug) {
+                    console.log("RollSight Real Dice Reader | [debug] Cloud event payload not handled (expected roll / amendment / chat_text):", {
+                        seq: s,
+                        keys: p && typeof p === "object" ? Object.keys(p).slice(0, 12) : [],
+                    });
                 }
             } catch (err) {
-                if (debug) console.warn("RollSight Real Dice Reader | Cloud room poll handler error:", err);
+                if (debug) console.warn("RollSight Real Dice Reader | [debug] Cloud room poll handler error:", err);
             }
         }
         if (typeof data.since_seq === "number" && data.since_seq >= this._cloudPollSinceSeq) {
@@ -2184,16 +2253,28 @@ class RollSightIntegration {
      * otherwise fall back to chat.
      */
     async handleRoll(rollData) {
-        console.log("RollSight Real Dice Reader | Received roll:", rollData);
+        const game = (typeof foundry !== 'undefined' && foundry.game) ? foundry.game : globalThis.game;
+        const debug = game?.settings?.get("rollsight-integration", "debugLogging");
+        if (debug) {
+            console.log("RollSight Real Dice Reader | [debug] handleRoll:", {
+                formula: rollData?.formula,
+                total: rollData?.total,
+                roll_id: rollData?.roll_id,
+                recipient_user_id: rollData?._rollsightRoom?.recipient_user_id,
+                foundry_user_id: game?.user?.id,
+                dice: rollData?.dice,
+            });
+        }
         this._lastRollProofRollData = rollData?.roll_proof_url ? rollData : null;
 
         try {
-            const game = (typeof foundry !== 'undefined' && foundry.game) ? foundry.game : globalThis.game;
-            const debug = game?.settings?.get("rollsight-integration", "debugLogging");
             const ru = rollData?._rollsightRoom?.recipient_user_id;
             if (ru && game?.user?.id && ru !== game.user.id) {
                 if (debug) {
-                    console.log("RollSight Real Dice Reader | [debug] Skipping roll (cloud recipient does not match this user)");
+                    console.warn(
+                        "RollSight Real Dice Reader | [debug] Skipping roll — cloud recipient_user_id does not match this Foundry user (roll was for another seat).",
+                        { recipient_user_id: ru, this_user_id: game.user.id }
+                    );
                 }
                 return null;
             }
@@ -2438,6 +2519,11 @@ class RollSightIntegration {
                 }
                 return foundryRoll;
             }
+            if (debug) {
+                console.log(
+                    "RollSight Real Dice Reader | [debug] tryFulfillActiveResolver did not use this roll — no matching open RollResolver (trigger a roll in Foundry that expects Manual/RollSight dice, or use chat fallback)."
+                );
+            }
 
             // No active resolver: try to apply to pending initiative (e.g. combat started, player prompted to roll but RollResolver didn't open)
             const appliedToInitiative = await this.tryApplyToPendingInitiative(rollData);
@@ -2503,7 +2589,13 @@ class RollSightIntegration {
                 }
                 await this.sendRollAsCommand(rollData);
             } else {
-                console.log("RollSight Real Dice Reader | No pending roll and fallback disabled; roll not sent.");
+                if (debug) {
+                    console.warn(
+                        "RollSight Real Dice Reader | [debug] Roll not sent: no active resolver/initiative path and “Send to chat when no roll is waiting” is OFF."
+                    );
+                } else {
+                    console.log("RollSight Real Dice Reader | No pending roll and fallback disabled; roll not sent.");
+                }
             }
             return null;
             

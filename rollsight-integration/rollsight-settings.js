@@ -123,7 +123,7 @@ function registerRollSightSettingSchemas() {
 
         game.settings.register(RS_NS, "debugLogging", {
             name: "Debug logging (console)",
-            hint: "Verbose logs in the browser console (F12) for troubleshooting.",
+            hint: "Verbose logs in the browser console (F12): cloud poll start/skip reasons, each poll result, roll delivery, recipient filtering, resolver feeding.",
             scope: "client",
             config: true,
             type: Boolean,

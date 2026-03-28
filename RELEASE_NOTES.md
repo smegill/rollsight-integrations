@@ -1,3 +1,7 @@
+## v1.1.70 - 2026-03-28
+
+- **Debug logging (module setting):** Cloud relay diagnostics — why polling did not start (desktop bridge on vs missing bearer), masked bearer + URL when polling starts, HTTP errors (incl. throttled 401 hint), per-poll event summaries, unhandled envelope shapes, `handleRoll` entry + recipient mismatch, when no RollResolver consumed the roll, when chat fallback is disabled.
+
 ## v1.1.69 - 2026-03-27
 
 - **Foundry v12:** Load `rollsight-settings.js` as a classic **`scripts`** entry (not `esmodules`) so hooks and schema registration run before `init` / `setup` instead of after (late ES modules skipped `Hooks.once("init")` and never attached the settings UI).
