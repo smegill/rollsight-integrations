@@ -1,3 +1,7 @@
+## v1.1.66 - 2026-03-27
+
+- Module settings: prominent **Get my RollSight player code** button under the player code field (same action as the sync icon), with loading state and clearer error logging when the server returns non-JSON.
+
 ## v1.1.65 - 2026-03-27
 
 - **Settings UI: cloud only** — hide Use RollSight on this browser, desktop bridge + URL, and Cloud API base (still stored internally with defaults).
