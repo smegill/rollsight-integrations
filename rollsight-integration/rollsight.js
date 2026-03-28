@@ -1784,7 +1784,7 @@ class RollSightIntegration {
             }
             if (!createdTable && game.user.isGM && !this._hasTableCloudRoomKey()) {
                 ui?.notifications?.warn(
-                    "RollSight could not create a cloud table automatically (network or server). You can create one in module settings.",
+                    "RollSight could not link this world automatically (network or server). In Module Settings use “Link this world to RollSight cloud” (GM section).",
                     { permanent: false }
                 );
             }
@@ -1792,7 +1792,7 @@ class RollSightIntegration {
 
         if (createdTable) {
             ui?.notifications?.info(
-                "RollSight: table code saved for this world — player codes are assigned per browser.",
+                "RollSight: this world is linked to the cloud. Use your personal player code (module settings) in the RollSight app.",
                 { permanent: false }
             );
         }
@@ -3901,7 +3901,9 @@ function attachRollSightSettingsConfigHook(game, integ) {
                         mod._isShortPublicCode(roomKey) ||
                         (roomKey.startsWith("rs_") && roomKey.length >= 16 && !roomKey.startsWith("rs_u_"));
                     if (!hasTable) {
-                        ui.notifications.error("This world is not linked to the cloud relay yet — wait for the GM to load the game, then try Refresh.");
+                        ui.notifications.error(
+                            "This world is not linked to RollSight cloud yet — the GM should open Module Settings and use “Link this world”, or reload after the world loads."
+                        );
                         return;
                     }
                     try {
@@ -3945,45 +3947,58 @@ function attachRollSightSettingsConfigHook(game, integ) {
             }
 
             if (!game.user.isGM || $html.find(".rollsight-gm-cloud-relay").length) return;
-            let $anchor = $html.find('input[name="rollsight-integration.cloudRoomKey"]').closest(".form-group");
-            if (!$anchor.length) {
-                $anchor = $html.find('input[name="rollsight-integration.cloudRoomApiBase"]').closest(".form-group");
-            }
-            if (!$anchor.length) {
-                $anchor = $html.find('input[name="rollsight-integration.cloudPlayerKey"]').closest(".form-group");
-            }
-            if (!$anchor.length) return;
-            const $wrap = $(`<div class="form-group rollsight-gm-cloud-relay"><label>Cloud table (GM)</label><p class="hint" style="margin:0.25em 0 0.5em;">If <strong>Cloud table code</strong> above is empty, register the relay for this world here. Players still use only their personal player code in RollSight.</p><div class="form-fields"></div></div>`);
-            const btn = $('<button type="button" class="rollsight-create-cloud-room"><i class="fas fa-plus"></i> Register cloud table for this world</button>');
-            $wrap.find(".form-fields").append(btn);
-            btn.on("click", async (ev) => {
-                ev.preventDefault();
-                try {
-                    const base = mod._getCloudRoomApiBase();
-                    const res = await fetch(`${base}/rollsight-room/create`, {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                    });
-                    if (!res.ok) {
-                        ui.notifications.error("Could not register the cloud table. Try again later.");
-                        return;
+            const $playerGroup = $html.find('input[name="rollsight-integration.cloudPlayerKey"]').closest(".form-group");
+            if (!$playerGroup.length) return;
+            const linked = mod._hasTableCloudRoomKey();
+            const hint = linked
+                ? '<p class="hint" style="margin:0.25em 0 0.5em;">This world is linked to the RollSight cloud. Each person uses their own 8-character code below in the RollSight app — not shared.</p>'
+                : '<p class="hint" style="margin:0.25em 0 0.5em;">Link once so you and your players can request player codes. The table link stays behind the scenes; only personal codes go into RollSight.</p>';
+            const $wrap = $(
+                `<div class="form-group rollsight-gm-cloud-relay"><label>RollSight cloud (GM)</label>${hint}<div class="form-fields"></div></div>`
+            );
+            const $fields = $wrap.find(".form-fields");
+            if (!linked) {
+                const btn = $(
+                    '<button type="button" class="rollsight-create-cloud-room"><i class="fas fa-link"></i> Link this world to RollSight cloud</button>'
+                );
+                $fields.append(btn);
+                btn.on("click", async (ev) => {
+                    ev.preventDefault();
+                    try {
+                        const base = mod._getCloudRoomApiBase();
+                        const res = await fetch(`${base}/rollsight-room/create`, {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                        });
+                        if (!res.ok) {
+                            ui.notifications.error("Could not link this world. Try again later.");
+                            return;
+                        }
+                        const data = await res.json();
+                        const room_code = data.room_code || data.room_key;
+                        if (!room_code) {
+                            ui.notifications.error("Invalid response from server.");
+                            return;
+                        }
+                        await game.settings.set("rollsight-integration", "cloudRoomKey", room_code);
+                        await mod._autoProvisionPlayerCodeOnly();
+                        const $pin = $html.find('input[name="rollsight-integration.cloudPlayerKey"]');
+                        const pk = (game.settings.get("rollsight-integration", "cloudPlayerKey") ?? "").toString().trim();
+                        if ($pin.length && pk) $pin.val(pk);
+                        ui.notifications.info(
+                            pk
+                                ? "World linked — your player code is filled in. Copy it into the RollSight app."
+                                : "World linked. If your player code is still empty, click Refresh beside it."
+                        );
+                    } catch (e) {
+                        console.error(e);
+                        ui.notifications.error("Could not reach RollSight server.");
                     }
-                    const data = await res.json();
-                    const room_code = data.room_code || data.room_key;
-                    if (!room_code) {
-                        ui.notifications.error("Invalid response from server.");
-                        return;
-                    }
-                    await game.settings.set("rollsight-integration", "cloudRoomKey", room_code);
-                    const $rk = $html.find('input[name="rollsight-integration.cloudRoomKey"]');
-                    if ($rk.length) $rk.val(room_code);
-                    ui.notifications.info("Cloud table registered for this world. Player codes can be refreshed if needed.");
-                } catch (e) {
-                    console.error(e);
-                    ui.notifications.error("Could not reach RollSight server.");
-                }
-            });
-            $anchor.after($wrap);
+                });
+            } else {
+                $fields.append($('<p class="notes" style="opacity:0.9;margin:0;">Cloud link active for this world.</p>'));
+            }
+            $playerGroup.before($wrap);
         } catch (err) {
             console.error("RollSight Real Dice Reader | Module settings UI hook failed:", err);
         }

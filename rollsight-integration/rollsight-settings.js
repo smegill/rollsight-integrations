@@ -44,28 +44,22 @@ function registerRollSightSettingSchemas() {
 
         game.settings.register(RS_NS, "cloudPlayerKey", {
             name: "RollSight app — your player code",
-            hint: "Paste this into the RollSight app on this PC. It is tied to this Foundry world and your account automatically. Use Copy / Refresh. You do not use the GM table code here.",
+            hint: "8 characters — paste into the RollSight app on this PC (GM and players each get their own). Use Copy or Refresh if empty.",
             scope: "client",
             config: true,
             type: String,
             default: ""
         });
 
-        const cloudRoomKeyDef = {
-            name: "Cloud table code (GM)",
-            hint: "This world's cloud relay id. Copy if you need it for support or special setups. Players should only use their personal player code in RollSight, not this value.",
+        // Internal: 8-char table code or legacy rs_* key — never shown in Configure Settings.
+        game.settings.register(RS_NS, "cloudRoomKey", {
+            name: "Cloud table link (internal)",
+            hint: "Managed automatically. Not shown in the UI.",
             scope: "world",
-            config: true,
+            config: false,
             type: String,
-            default: "",
-            restricted: true
-        };
-        try {
-            game.settings.register(RS_NS, "cloudRoomKey", cloudRoomKeyDef);
-        } catch (_e) {
-            const { restricted, ...rest } = cloudRoomKeyDef;
-            game.settings.register(RS_NS, "cloudRoomKey", rest);
-        }
+            default: ""
+        });
 
         game.settings.register(RS_NS, "cloudRoomApiBase", {
             name: "Cloud API base URL (advanced)",

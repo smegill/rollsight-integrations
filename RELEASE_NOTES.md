@@ -1,3 +1,8 @@
+## v1.1.64 - 2026-03-27
+
+- **Player codes for everyone (incl. GM):** the cloud API expected a UUID for `foundry_user_id`; Foundry uses short random ids (e.g. 16 chars). The website `/rollsight-room/player-key` route now accepts real Foundry user ids — deploy the site for this fix to apply in production.
+- **Cloud table link is internal only:** `cloudRoomKey` is no longer shown in Configure Settings. GMs use **Link this world to RollSight cloud**; only the **8-character player code** is shown for pasting into the RollSight app.
+
 ## v1.1.63 - 2026-03-27
 
 - **Split entry script:** `rollsight-settings.js` loads **first** with **no imports** — it only calls `game.settings.register`. If `rollsight.js` fails while importing `socket-handler.js` / etc., Foundry previously never ran any registration code; settings were empty.
