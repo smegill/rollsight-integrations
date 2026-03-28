@@ -1,3 +1,8 @@
+## v1.1.63 - 2026-03-27
+
+- **Split entry script:** `rollsight-settings.js` loads **first** with **no imports** — it only calls `game.settings.register`. If `rollsight.js` fails while importing `socket-handler.js` / etc., Foundry previously never ran any registration code; settings were empty.
+- **Main logic:** `rollsight.js` now only starts `RollSightIntegration` after it can read `playerActive` (schemas exist), and attaches the settings UI hook separately.
+
 ## v1.1.62 - 2026-03-27
 
 - **Critical:** `tryRegisterRollSightSettings` previously set “registration done” even when `registerRollSightSettings()` returned early (no `game.settings` yet), so **retries never ran** and the module could register **zero** settings (empty Configure Settings sidebar).
