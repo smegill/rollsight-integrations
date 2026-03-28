@@ -3821,9 +3821,8 @@ Hooks.once('ready', () => {
     // ensureFulfillmentRegistered is a no-op (we don't register RollSight as a method; only Manual is used)
 });
 
-// Register settings and create module in 'setup' so game.settings exists and our Hooks.once('ready') will fire later.
-// (In 'init', game can be missing; deferring to ready then meant we registered Hooks.once('ready') after ready had already fired, so the module never ran.)
-Hooks.once('setup', () => {
+// Register settings in `setup` (v12 + v13): `game.settings` is guaranteed; `rollsight.init()` only queues `Hooks.once('ready', ...)`.
+Hooks.once("setup", () => {
     try {
         registerRollSightSettings();
     } catch (err) {
@@ -3832,7 +3831,7 @@ Hooks.once('setup', () => {
 });
 
 function registerRollSightSettings() {
-    const game = (typeof foundry !== 'undefined' && foundry.game) ? foundry.game : globalThis.game;
+    const game = globalThis.game ?? ((typeof foundry !== "undefined" && foundry.game) ? foundry.game : null);
     if (!game?.settings) return;
 
     // --- This client ---
@@ -3862,14 +3861,6 @@ function registerRollSightSettings() {
     });
 
     // --- Cloud relay (Forge / no extension) ---
-    game.settings.register("rollsight-integration", "cloudRoomKey", {
-        name: "Cloud table (internal)",
-        hint: "World relay id (short code or legacy key). Stored automatically; not shown in this form. GMs can re-link via Register cloud table if needed.",
-        scope: "world",
-        config: false,
-        type: String,
-        default: ""
-    });
     game.settings.register("rollsight-integration", "cloudPlayerKey", {
         name: "RollSight app — your player code",
         hint: "Paste this into the RollSight app on this PC. It is tied to this Foundry world and your account automatically (you never need a separate table key). Copy to clipboard, or Refresh if empty.",
@@ -3946,6 +3937,16 @@ function registerRollSightSettings() {
         config: true,
         type: Boolean,
         default: false
+    });
+
+    // Hidden world key last so a registration error here cannot hide all other module options.
+    game.settings.register("rollsight-integration", "cloudRoomKey", {
+        name: "Cloud table (internal)",
+        hint: "World relay id (short code or legacy key). Stored automatically; not shown in this form. GMs can re-link via Register cloud table if needed.",
+        scope: "world",
+        config: false,
+        type: String,
+        default: ""
     });
 
     const rollsight = new RollSightIntegration();

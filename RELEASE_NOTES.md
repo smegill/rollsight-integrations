@@ -1,3 +1,12 @@
+## v1.1.60 - 2026-03-27
+
+- **Foundry v12 (primary):** Revert v13-only tweaks that hurt v12: settings use primitive **`Boolean` / `Number`** again, and registration runs on **`setup` only** (v12 lifecycle). v13-oriented **`BooleanField` / `NumberField`** and **`init`** registration are removed.
+- **Kept:** `cloudRoomKey` **`hint`** (helps v13 if you upgrade later), **`cloudRoomKey` registered last**, and defensive **`renderSettingsConfig` / registration** error logging.
+
+## v1.1.59 - 2026-03-27
+
+- Superseded by **v1.1.60** for v12 hosts (1.1.59 used DataField types and `init` registration targeted at v13).
+
 ## v1.1.58 - 2026-03-27
 
 - **Foundry v13 settings:** The hidden world setting `cloudRoomKey` now includes a `hint` string. v13 treats setting config as strict; omitting `hint` caused `game.settings.register` to throw and **no RollSight module options appeared** in Configure Settings.
