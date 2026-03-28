@@ -1,3 +1,9 @@
+## v1.1.67 - 2026-03-27
+
+- **Module settings UI:** Mount Copy / Refresh / “Get my player code” / GM link using the **live settings sheet** (`app.element`), not only the partial `html` from `renderSettingsConfig` (fixes missing controls on Foundry v13 tabbed settings).
+- Retry mount on `requestAnimationFrame` and at **0 / 50 / 150 / 400 / 800 ms** so lazy-rendered module tabs still get the extras.
+- If no `.form-group` wraps the player code field, insert the button **after the input** (layout fallback).
+
 ## v1.1.66 - 2026-03-27
 
 - Module settings: prominent **Get my RollSight player code** button under the player code field (same action as the sync icon), with loading state and clearer error logging when the server returns non-JSON.
