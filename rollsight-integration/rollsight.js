@@ -96,6 +96,8 @@ class RollSightIntegration {
         this._cloudUnknownRoomLastLog = 0;
         /** Throttle debug console lines when cloud poll returns 0 events */
         this._cloudPollDebugEmptyNextLog = 0;
+        /** Idempotent guard: post-ready hooks must not run twice (late module load vs ready timing). */
+        this._rollsightPostReadyBound = false;
     }
 
     /**
@@ -344,7 +346,9 @@ class RollSightIntegration {
             }
         });
         
-        Hooks.once('ready', () => {
+        const rollSightPostReady = () => {
+            if (this._rollsightPostReadyBound) return;
+            this._rollsightPostReadyBound = true;
             this.onReady();
             // Make API available globally (using namespaced API for Foundry v13+ if available)
             const game = (typeof foundry !== 'undefined' && foundry.game) ? foundry.game : globalThis.game;
@@ -525,7 +529,13 @@ class RollSightIntegration {
                 self._startDesktopBridgePollIfEnabled();
                 self._startCloudRoomPollIfEnabled();
             })();
-        });
+        };
+        const _rsGame = globalThis.game ?? ((typeof foundry !== "undefined" && foundry.game) ? foundry.game : null);
+        if (_rsGame?.ready) {
+            queueMicrotask(() => rollSightPostReady.call(this));
+        } else {
+            Hooks.once("ready", () => rollSightPostReady.call(this));
+        }
     }
 
     /**
@@ -3825,23 +3835,32 @@ Hooks.once('ready', () => {
 // `Hooks.once("setup")` never runs and the module would register zero settings. `init` runs while
 // packages load; `setup` is a fallback if `game.settings` was not ready in `init`.
 let _rollsightSettingsRegisterDone = false;
+let _rollsightSettingsRegisterInFlight = false;
 function tryRegisterRollSightSettings() {
-    if (_rollsightSettingsRegisterDone) return;
-    const game = globalThis.game ?? ((typeof foundry !== "undefined" && foundry.game) ? foundry.game : null);
-    if (!game?.settings?.register) return;
+    if (_rollsightSettingsRegisterDone || _rollsightSettingsRegisterInFlight) return;
+    _rollsightSettingsRegisterInFlight = true;
     try {
-        registerRollSightSettings();
-        _rollsightSettingsRegisterDone = true;
+        if (registerRollSightSettings() === true) {
+            _rollsightSettingsRegisterDone = true;
+        }
     } catch (err) {
         console.error("RollSight Real Dice Reader | registerRollSightSettings failed — module options will be missing:", err);
+    } finally {
+        _rollsightSettingsRegisterInFlight = false;
     }
 }
 Hooks.once("init", tryRegisterRollSightSettings);
 Hooks.once("setup", tryRegisterRollSightSettings);
+// Retries: hooks can fire before game.settings exists, and we must not set "done" on a no-op (see registerRollSightSettings return value).
+[0, 50, 150, 400, 1000, 2500].forEach((ms) => {
+    setTimeout(() => tryRegisterRollSightSettings(), ms);
+});
 
 function registerRollSightSettings() {
     const game = globalThis.game ?? ((typeof foundry !== "undefined" && foundry.game) ? foundry.game : null);
-    if (!game?.settings) return;
+    if (!game?.settings || typeof game.settings.register !== "function") {
+        return false;
+    }
 
     // --- This client ---
     game.settings.register("rollsight-integration", "playerActive", {
@@ -4119,5 +4138,6 @@ function registerRollSightSettings() {
             console.error("RollSight Real Dice Reader | Module settings UI hook failed:", err);
         }
     });
+    return true;
 }
 

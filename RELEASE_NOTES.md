@@ -1,3 +1,11 @@
+## v1.1.62 - 2026-03-27
+
+- **Critical:** `tryRegisterRollSightSettings` previously set “registration done” even when `registerRollSightSettings()` returned early (no `game.settings` yet), so **retries never ran** and the module could register **zero** settings (empty Configure Settings sidebar).
+- **Return value:** `registerRollSightSettings()` now returns `true` only after all settings + hooks are registered; otherwise `false`.
+- **Retries:** Timed retries at 0 / 50 / 150 / 400 / 1000 / 2500 ms if the first hook fires too early.
+- **In-flight guard:** Avoid concurrent double-registration from overlapping timeouts.
+- **Post-ready:** If `game.ready` is already true when `init()` runs, run the former `ready` callback on the next microtask (idempotent guard) so `Hooks.once('ready')` is not missed.
+
 ## v1.1.61 - 2026-03-27
 
 - **Fix empty module settings (v12):** Register settings on both **`init` and `setup`** (once). If the module script loads after `setup` has already fired, `Hooks.once("setup")` never runs and **no options appeared**.
