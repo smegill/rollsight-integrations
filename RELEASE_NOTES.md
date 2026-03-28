@@ -1,3 +1,7 @@
+## v1.1.72 - 2026-03-28
+
+- **Module settings UI:** Removed the large “Get my RollSight player code” block; the inline sync button next to the player code field already runs the same request.
+
 ## v1.1.71 - 2026-03-28
 
 - **Fix:** Removed duplicate `const self = this` in the post-`ready` callback (same scope) that caused `SyntaxError: Identifier 'self' has already been declared` and prevented `rollsight.js` from loading.

@@ -45,7 +45,7 @@ function registerRollSightSettingSchemas() {
 
         game.settings.register(RS_NS, "cloudPlayerKey", {
             name: "RollSight app — your player code",
-            hint: "Display only (assigned by RollSight). Copy into the RollSight app on this PC. If blank, use “Get my RollSight player code” below.",
+            hint: "Display only (assigned by RollSight). Copy into the RollSight app on this PC. If blank, use the sync button beside the field to fetch your code.",
             scope: "client",
             config: true,
             type: String,
@@ -403,7 +403,7 @@ function registerRollSightConfigureSettingsUiHook() {
 
                 bindReadonlyCodeRow(
                     $playerInp,
-                    "No player code yet — use “Get my RollSight player code” below or the sync button."
+                    "No player code yet — use the sync button beside this field to fetch your code."
                 );
 
                 const $playerGroup = rsPlayerSettingGroup($playerInp);
@@ -479,31 +479,6 @@ function registerRollSightConfigureSettingsUiHook() {
                     $playerRow.append($refresh);
                 }
 
-                const $insertAfter = $playerGroup.length ? $playerGroup : $playerInp;
-                if (!$sheet.find(".rollsight-get-player-code-block").length && $insertAfter.length) {
-                    const $block = $(
-                        '<div class="form-group rollsight-get-player-code-block"><p class="hint" style="margin:0 0 0.35em 0;">If your code is blank, request it from the RollSight servers:</p><div class="form-fields"></div></div>'
-                    );
-                    const $getBtn = $(
-                        '<button type="button" class="rollsight-get-player-code"><i class="fas fa-cloud-download-alt"></i> Get my RollSight player code</button>'
-                    );
-                    $block.find(".form-fields").append($getBtn);
-                    $insertAfter.after($block);
-                    $getBtn.on("click", async (ev) => {
-                        ev.preventDefault();
-                        const label = "Get my RollSight player code";
-                        $getBtn.prop("disabled", true).text("Requesting…");
-                        try {
-                            await runPlayerCodeRequest();
-                        } catch (e) {
-                            console.error(e);
-                            ui.notifications.error("Could not reach RollSight server.");
-                        } finally {
-                            $getBtn.prop("disabled", false).html('<i class="fas fa-cloud-download-alt"></i> ' + label);
-                        }
-                    });
-                }
-
                 if (!$playerInp.data("rollsightAutoProvisionQueued")) {
                     $playerInp.data("rollsightAutoProvisionQueued", true);
                     void (async () => {
@@ -562,7 +537,7 @@ function registerRollSightConfigureSettingsUiHook() {
                             ui.notifications.info(
                                 pk
                                     ? "World linked — your player code is filled in. Copy it into the RollSight app."
-                                    : "World linked. Use “Get my RollSight player code” below if the field is still empty."
+                                    : "World linked. Use the sync button beside the player code field if it is still empty."
                             );
                         } catch (e) {
                             console.error(e);

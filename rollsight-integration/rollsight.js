@@ -1902,7 +1902,7 @@ class RollSightIntegration {
                     hasTableRoomKey: this._hasTableCloudRoomKey(),
                     playerKeyLength: pk.length,
                     playerKeyIs8Char: this._isShortPublicCode(pk),
-                    hint: "Paste the 8-character code from Module Settings into the RollSight app on this PC. Use “Get my RollSight player code” if the field is empty.",
+                    hint: "Paste the 8-character code from Module Settings into the RollSight app on this PC. Use the sync button beside the field if the code is empty.",
                 });
             }
             return;
