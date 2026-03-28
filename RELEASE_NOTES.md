@@ -1,3 +1,7 @@
+## v1.1.68 - 2026-03-27
+
+- Player code field in module settings is **display-only**: `readOnly`, blocks paste/cut/drop/`beforeinput` edits; still selectable for Ctrl+C. Supports `input` or `textarea` from Foundry.
+
 ## v1.1.67 - 2026-03-27
 
 - **Module settings UI:** Mount Copy / Refresh / “Get my player code” / GM link using the **live settings sheet** (`app.element`), not only the partial `html` from `renderSettingsConfig` (fixes missing controls on Foundry v13 tabbed settings).

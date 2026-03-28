@@ -3859,6 +3859,10 @@ function rollSightSettingsSheetRoot(app, html) {
     return $(html);
 }
 
+/** Module settings field for cloud player code (input or textarea depending on Foundry version). */
+const ROLLSIGHT_SETTINGS_PLAYER_CODE_SEL =
+    'input[name="rollsight-integration.cloudPlayerKey"],textarea[name="rollsight-integration.cloudPlayerKey"]';
+
 /** Setting row wrapper — class names differ by Foundry version. */
 function rollSightPlayerSettingGroup($inp) {
     if (!$inp?.length) return $();
@@ -3879,17 +3883,37 @@ function attachRollSightSettingsConfigHook(game, integ) {
                 const $sheet = rollSightSettingsSheetRoot(app, html);
                 if (!$sheet.length) return;
 
-                const $playerInp = $sheet.find('input[name="rollsight-integration.cloudPlayerKey"]');
+                const $playerInp = $sheet.find(ROLLSIGHT_SETTINGS_PLAYER_CODE_SEL);
                 if (!$playerInp.length) return;
 
                 const bindReadonlyCodeRow = ($inp, emptyWarn) => {
                     if (!$inp.length || $inp.data("rollsightReadonlyBound")) return;
                     $inp.data("rollsightReadonlyBound", true);
-                    $inp.attr("readonly", "readonly").attr("spellcheck", "false").attr("autocomplete", "off").addClass("rollsight-readonly-code");
-                    $inp.on("paste", (ev) => {
+                    $inp
+                        .attr("readonly", "readonly")
+                        .attr("spellcheck", "false")
+                        .attr("autocomplete", "off")
+                        .addClass("rollsight-readonly-code");
+                    const el = $inp[0];
+                    if (el) {
+                        el.readOnly = true;
+                        if (el.tagName === "TEXTAREA") {
+                            el.rows = 1;
+                            el.style.resize = "none";
+                        }
+                    }
+                    const blockMutate = (ev) => {
                         ev.preventDefault();
+                        ev.stopPropagation();
                         return false;
-                    });
+                    };
+                    $inp.on("paste cut drop dragover", blockMutate);
+                    if (typeof InputEvent !== "undefined" && "onbeforeinput" in document.createElement("input")) {
+                        $inp.on("beforeinput", (ev) => {
+                            const t = ev.originalEvent?.inputType || "";
+                            if (t.startsWith("insert") || t.startsWith("delete")) return blockMutate(ev);
+                        });
+                    }
                     const $row = $('<span class="rollsight-code-actions" style="display:inline-flex;align-items:center;gap:6px;margin-left:6px;vertical-align:middle;"></span>');
                     const $copy = $(
                         '<button type="button" class="rollsight-code-copy" title="Copy to clipboard"><i class="fas fa-copy"></i></button>'
@@ -3968,7 +3992,7 @@ function attachRollSightSettingsConfigHook(game, integ) {
                         return false;
                     }
                     await game.settings.set("rollsight-integration", "cloudPlayerKey", player_code);
-                    const $el = rollSightSettingsSheetRoot(app, html).find('input[name="rollsight-integration.cloudPlayerKey"]');
+                    const $el = rollSightSettingsSheetRoot(app, html).find(ROLLSIGHT_SETTINGS_PLAYER_CODE_SEL);
                     if ($el.length) $el.val(player_code);
                     ui.notifications.info("Player code saved — use Copy to paste into the RollSight app.");
                     return true;
@@ -4026,7 +4050,7 @@ function attachRollSightSettingsConfigHook(game, integ) {
                         try {
                             await mod._autoProvisionRollSightCloudRelay();
                             const pk = (game.settings.get("rollsight-integration", "cloudPlayerKey") ?? "").toString().trim();
-                            const $el = rollSightSettingsSheetRoot(app, html).find('input[name="rollsight-integration.cloudPlayerKey"]');
+                            const $el = rollSightSettingsSheetRoot(app, html).find(ROLLSIGHT_SETTINGS_PLAYER_CODE_SEL);
                             if ($el.length && pk) $el.val(pk);
                         } catch (_e) {
                             /* ignore */
@@ -4070,7 +4094,7 @@ function attachRollSightSettingsConfigHook(game, integ) {
                             }
                             await game.settings.set("rollsight-integration", "cloudRoomKey", room_code);
                             await mod._autoProvisionPlayerCodeOnly();
-                            const $pin = rollSightSettingsSheetRoot(app, html).find('input[name="rollsight-integration.cloudPlayerKey"]');
+                            const $pin = rollSightSettingsSheetRoot(app, html).find(ROLLSIGHT_SETTINGS_PLAYER_CODE_SEL);
                             const pk = (game.settings.get("rollsight-integration", "cloudPlayerKey") ?? "").toString().trim();
                             if ($pin.length && pk) $pin.val(pk);
                             ui.notifications.info(

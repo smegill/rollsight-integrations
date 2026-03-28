@@ -201,12 +201,18 @@
   color: var(--color-text-light-5, #b0b0a0);
 }
 
-/* Configure Settings: cloud codes are read-only; Copy / Refresh / Create are buttons beside the field */
-input.rollsight-readonly-code {
+/* Configure Settings: cloud player code is display-only; use Copy or Get code button */
+input.rollsight-readonly-code,
+textarea.rollsight-readonly-code {
   cursor: default;
   font-family: Consolas, "Ubuntu Mono", monospace;
   font-size: 0.95em;
   max-width: min(22em, 100%);
+  user-select: text;
+}
+textarea.rollsight-readonly-code {
+  resize: none;
+  min-height: 2em;
 }
 button.rollsight-code-copy,
 button.rollsight-code-refresh {

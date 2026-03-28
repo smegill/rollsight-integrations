@@ -45,7 +45,7 @@ function registerRollSightSettingSchemas() {
 
         game.settings.register(RS_NS, "cloudPlayerKey", {
             name: "RollSight app — your player code",
-            hint: "8 characters — paste into the RollSight app on this PC. If blank, use the “Get my RollSight player code” button below.",
+            hint: "Display only (assigned by RollSight). Copy into the RollSight app on this PC. If blank, use “Get my RollSight player code” below.",
             scope: "client",
             config: true,
             type: String,
