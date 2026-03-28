@@ -17,27 +17,28 @@ function registerRollSightSettingSchemas() {
             return false;
         }
 
+        // Hidden legacy toggles (cloud path only in UI for now).
         game.settings.register(RS_NS, "playerActive", {
-            name: "Use RollSight on this browser",
-            hint: "Off: this tab will not poll the cloud or desktop bridge or apply RollSight rolls. On: normal operation. (The VTT Bridge browser extension is separate.)",
+            name: "RollSight active (this browser)",
+            hint: "Legacy internal flag.",
             scope: "client",
-            config: true,
+            config: false,
             type: Boolean,
             default: true
         });
         game.settings.register(RS_NS, "desktopBridgePoll", {
-            name: "Poll RollSight desktop bridge (local)",
-            hint: "Use when Foundry runs in the desktop app on the same PC as RollSight. Polls the HTTP bridge (default port 8766). If enabled, this wins over cloud polling. Do not turn on together with the VTT Bridge extension on the same machine (same queue).",
+            name: "Poll desktop bridge",
+            hint: "Legacy internal.",
             scope: "client",
-            config: true,
+            config: false,
             type: Boolean,
             default: false
         });
         game.settings.register(RS_NS, "desktopBridgeUrl", {
             name: "Desktop bridge URL",
-            hint: "Default http://127.0.0.1:8766. On Windows prefer 127.0.0.1 over localhost. Only used when Poll RollSight desktop bridge is on.",
+            hint: "Legacy internal.",
             scope: "client",
-            config: true,
+            config: false,
             type: String,
             default: "http://127.0.0.1:8766"
         });
@@ -62,10 +63,10 @@ function registerRollSightSettingSchemas() {
         });
 
         game.settings.register(RS_NS, "cloudRoomApiBase", {
-            name: "Cloud API base URL (advanced)",
-            hint: "Leave empty to use rollsight.com. Only for self-hosted or development.",
+            name: "Cloud API base URL (internal)",
+            hint: "Leave empty for rollsight.com. Shown only via API override in code.",
             scope: "world",
-            config: true,
+            config: false,
             type: String,
             default: ""
         });

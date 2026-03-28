@@ -1,3 +1,9 @@
+## v1.1.65 - 2026-03-27
+
+- **Settings UI: cloud only** — hide Use RollSight on this browser, desktop bridge + URL, and Cloud API base (still stored internally with defaults).
+- **Player code** — use robust Foundry user id (`_getFoundryUserIdForCloud`), re-fetch when Module Settings opens, log failed `/player-key` responses to the console. Do not poll cloud with the world’s 8-char table code (player code required).
+- **Startup log** — drop extension probe; messages describe cloud vs optional desktop bridge only.
+
 ## v1.1.64 - 2026-03-27
 
 - **Player codes for everyone (incl. GM):** the cloud API expected a UUID for `foundry_user_id`; Foundry uses short random ids (e.g. 16 chars). The website `/rollsight-room/player-key` route now accepts real Foundry user ids — deploy the site for this fix to apply in production.

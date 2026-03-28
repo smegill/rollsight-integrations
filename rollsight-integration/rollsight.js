@@ -500,31 +500,26 @@ class RollSightIntegration {
                     console.warn("RollSight Real Dice Reader | Cloud auto-provision:", err);
                 }
 
-                // One-time check: is the RollSight extension on this tab? (after cloud codes may exist)
                 const useDesktopBridge = game.settings.get("rollsight-integration", "desktopBridgePoll");
                 const useCloudRoom = Boolean(self._getCloudPollBearerKey());
-                const statusTimeout = setTimeout(() => {
-                    window.removeEventListener('message', onStatusResponse);
+                setTimeout(() => {
                     if (useDesktopBridge) {
-                        console.log("RollSight Real Dice Reader | Desktop bridge polling enabled — rolls are read from the RollSight app HTTP bridge. No browser extension required.");
+                        console.log(
+                            "RollSight Real Dice Reader | Desktop bridge polling is on — rolls come from the RollSight app HTTP bridge on this PC."
+                        );
                         return;
                     }
                     if (useCloudRoom) {
-                        console.log("RollSight Real Dice Reader | Cloud room / player key is set — rolls are delivered over the internet. No browser extension required.");
+                        console.log(
+                            "RollSight Real Dice Reader | Cloud relay active — paste your 8-character player code from Module Settings into the RollSight app on this machine."
+                        );
                         return;
                     }
-                    console.warn("RollSight Real Dice Reader | Extension not detected on this tab. If rolls don't reach Foundry: install/reload the RollSight VTT Bridge extension, enable Desktop bridge polling in module settings for the Foundry desktop app, ensure RollSight app + bridge are running, then refresh this page.");
-                }, 2500);
-                function onStatusResponse(event) {
-                    if (event.data?.type !== 'rollsight-status-response') return;
-                    clearTimeout(statusTimeout);
-                    window.removeEventListener('message', onStatusResponse);
-                    if (event.data?.contentScriptLoaded) {
-                        console.log("RollSight Real Dice Reader | Extension is active on this tab. Roll in RollSight to send rolls here.");
-                    }
-                }
-                window.addEventListener('message', onStatusResponse);
-                window.postMessage({ type: 'rollsight-status-request' }, '*');
+                    console.warn(
+                        "RollSight Real Dice Reader | No cloud player code yet (and no desktop bridge). " +
+                            "GM: Module Settings → link world → copy your code into RollSight. Players: wait for the GM, then open Module Settings and use Refresh if needed."
+                    );
+                }, 1200);
 
                 self._startDesktopBridgePollIfEnabled();
                 self._startCloudRoomPollIfEnabled();
@@ -1584,10 +1579,7 @@ class RollSightIntegration {
         this._staleCleanupIntervalId = setInterval(() => this._runStaleStateCleanup(), CLEANUP_INTERVAL_MS);
         
         // Mark socket handler ready so module socket events are accepted (extension/bridge/cloud use other paths too).
-        const game = (typeof foundry !== 'undefined' && foundry.game) ? foundry.game : globalThis.game;
-        if (game?.settings?.get("rollsight-integration", "playerActive") !== false) {
-            this.connect();
-        }
+        this.connect();
     }
     
     /**
@@ -1697,6 +1689,21 @@ class RollSightIntegration {
     }
 
     /**
+     * Foundry user document id for cloud APIs (randomID-style string, not a UUID).
+     */
+    _getFoundryUserIdForCloud() {
+        const game = (typeof foundry !== "undefined" && foundry.game) ? foundry.game : globalThis.game;
+        const u = game?.user;
+        if (u) {
+            const id = u.id ?? u._id;
+            if (id != null && String(id).trim() !== "") return String(id).trim();
+        }
+        const uid = game?.userId;
+        if (typeof uid === "string" && uid.trim() !== "") return uid.trim();
+        return "";
+    }
+
+    /**
      * True if a table cloud code is set (8-char or legacy rs_…).
      */
     _hasTableCloudRoomKey() {
@@ -1714,14 +1721,18 @@ class RollSightIntegration {
     async _autoProvisionPlayerCodeOnly() {
         const game = (typeof foundry !== 'undefined' && foundry.game) ? foundry.game : globalThis.game;
         if (!game?.settings || !game.user) return;
-        if (game.settings.get("rollsight-integration", "playerActive") === false) return;
         const pk = (game.settings.get("rollsight-integration", "cloudPlayerKey") ?? "").toString().trim();
         if (pk) return;
         if (!this._hasTableCloudRoomKey()) return;
+        const foundryUserId = this._getFoundryUserIdForCloud();
+        if (!foundryUserId) {
+            console.warn("RollSight Real Dice Reader | No Foundry user id — cannot request cloud player code.");
+            return;
+        }
         const roomKey = (game.settings.get("rollsight-integration", "cloudRoomKey") ?? "").toString().trim();
         try {
             const base = this._getCloudRoomApiBase();
-            const body = { foundry_user_id: game.user.id };
+            const body = { foundry_user_id: foundryUserId };
             if (this._isShortPublicCode(roomKey)) {
                 body.room_code = this._normalizeShortPublicCode(roomKey);
             } else {
@@ -1733,9 +1744,12 @@ class RollSightIntegration {
                 body: JSON.stringify(body),
             });
             if (!res.ok) {
-                if (game.settings.get("rollsight-integration", "debugLogging")) {
-                    console.warn("RollSight Real Dice Reader | Auto player code request failed:", res.status);
-                }
+                const errText = await res.text().catch(() => "");
+                console.warn(
+                    "RollSight Real Dice Reader | Player code request failed:",
+                    res.status,
+                    errText.slice(0, 200)
+                );
                 return;
             }
             const data = await res.json();
@@ -1797,9 +1811,7 @@ class RollSightIntegration {
             );
         }
 
-        if (game.settings.get("rollsight-integration", "playerActive") !== false) {
-            await this._autoProvisionPlayerCodeOnly();
-        }
+        await this._autoProvisionPlayerCodeOnly();
     }
 
     _normalizeShortPublicCode(s) {
@@ -1811,7 +1823,8 @@ class RollSightIntegration {
     }
 
     /**
-     * Bearer for cloud polling: 8-char player/table code, legacy rs_u_ player token, or rs_ table key.
+     * Bearer for cloud polling: 8-char player code, rs_u_ token, or legacy long rs_ table key only.
+     * (Do not poll with the world's 8-char table code — that would mix everyone's events.)
      */
     _getCloudPollBearerKey() {
         const game = (typeof foundry !== 'undefined' && foundry.game) ? foundry.game : globalThis.game;
@@ -1820,7 +1833,6 @@ class RollSightIntegration {
         if (this._isShortPublicCode(pk)) return this._normalizeShortPublicCode(pk);
         if (pk.startsWith("rs_u_") && pk.length >= 24) return pk;
         const ck = (game.settings.get("rollsight-integration", "cloudRoomKey") ?? "").toString().trim();
-        if (this._isShortPublicCode(ck)) return this._normalizeShortPublicCode(ck);
         if (ck.startsWith("rs_") && ck.length >= 16 && !ck.startsWith("rs_u_")) return ck;
         return "";
     }
@@ -1837,8 +1849,8 @@ class RollSightIntegration {
         if (now - this._cloudLastUnreachableLog < 20000) return;
         this._cloudLastUnreachableLog = now;
         console.warn(
-            "RollSight Real Dice Reader | Cloud room unreachable at " + base + ". " +
-            "Check your network, or confirm the room key in module settings matches RollSight."
+            "RollSight Real Dice Reader | Cloud relay unreachable at " + base + ". " +
+                "Check your network. In Module Settings, ensure this world is linked and your 8-character player code is set."
         );
     }
 
@@ -1851,7 +1863,6 @@ class RollSightIntegration {
         const game = (typeof foundry !== 'undefined' && foundry.game) ? foundry.game : globalThis.game;
         this._stopCloudRoomPoll();
         if (!game?.settings) return;
-        if (game.settings.get("rollsight-integration", "playerActive") === false) return;
         if (game.settings.get("rollsight-integration", "desktopBridgePoll")) return;
         const ck = this._getCloudPollBearerKey();
         if (!ck) return;
@@ -1866,7 +1877,6 @@ class RollSightIntegration {
         const run = async () => {
             self._cloudPollTimeoutId = null;
             if (!self._getCloudPollBearerKey()) return;
-            if (game.settings.get("rollsight-integration", "playerActive") === false) return;
             if (game.settings.get("rollsight-integration", "desktopBridgePoll")) return;
             if (self._cloudPollInFlight) {
                 schedule(fastMs);
@@ -2050,7 +2060,6 @@ class RollSightIntegration {
         const game = (typeof foundry !== 'undefined' && foundry.game) ? foundry.game : globalThis.game;
         this._stopDesktopBridgePoll();
         if (!game?.settings) return;
-        if (game.settings.get("rollsight-integration", "playerActive") === false) return;
         if (!game.settings.get("rollsight-integration", "desktopBridgePoll")) return;
         // Desktop bridge polling is explicit: when ON, poll the local HTTP bridge even if a cloud room key
         // is still saved in world settings (e.g. switching from cloud back to local RollSight session).
@@ -2067,7 +2076,6 @@ class RollSightIntegration {
         const run = async () => {
             self._bridgePollTimeoutId = null;
             if (!game?.settings?.get("rollsight-integration", "desktopBridgePoll")) return;
-            if (game.settings.get("rollsight-integration", "playerActive") === false) return;
             if (self._bridgePollInFlight) {
                 schedule(fastMs);
                 return;
@@ -2094,7 +2102,6 @@ class RollSightIntegration {
     async _pollDesktopBridgeOnce() {
         const game = (typeof foundry !== 'undefined' && foundry.game) ? foundry.game : globalThis.game;
         if (!game?.settings?.get("rollsight-integration", "desktopBridgePoll")) return false;
-        if (game.settings.get("rollsight-integration", "playerActive") === false) return false;
         const base = this._getDesktopBridgeBaseUrl();
         if (!base) return false;
         const url = `${base}/poll?since=${this._bridgePollSince}`;
@@ -3876,12 +3883,6 @@ function attachRollSightSettingsConfigHook(game, integ) {
                 $inp.after($row);
             };
 
-            if (game.user.isGM) {
-                bindReadonlyCodeRow(
-                    $html.find('input[name="rollsight-integration.cloudRoomKey"]'),
-                    "No cloud table yet — use Register cloud table below, or reload after the world finishes loading."
-                );
-            }
             bindReadonlyCodeRow(
                 $html.find('input[name="rollsight-integration.cloudPlayerKey"]'),
                 "No player code yet — click Refresh, or wait for this world to finish loading."
@@ -3907,8 +3908,13 @@ function attachRollSightSettingsConfigHook(game, integ) {
                         return;
                     }
                     try {
+                        const fid = mod._getFoundryUserIdForCloud();
+                        if (!fid) {
+                            ui.notifications.error("Could not read your Foundry user id — reload the page and try again.");
+                            return;
+                        }
                         const base = mod._getCloudRoomApiBase();
-                        const body = { foundry_user_id: game.user.id };
+                        const body = { foundry_user_id: fid };
                         if (mod._isShortPublicCode(roomKey)) {
                             body.room_code = mod._normalizeShortPublicCode(roomKey);
                         } else {
@@ -3944,6 +3950,20 @@ function attachRollSightSettingsConfigHook(game, integ) {
                     }
                 });
                 $playerRow.append($refresh);
+            }
+
+            const $pinProbe = $html.find('input[name="rollsight-integration.cloudPlayerKey"]');
+            if ($pinProbe.length) {
+                void (async () => {
+                    try {
+                        await mod._autoProvisionRollSightCloudRelay();
+                        const pk = (game.settings.get("rollsight-integration", "cloudPlayerKey") ?? "").toString().trim();
+                        const $el = $html.find('input[name="rollsight-integration.cloudPlayerKey"]');
+                        if ($el.length && pk) $el.val(pk);
+                    } catch (_e) {
+                        /* ignore */
+                    }
+                })();
             }
 
             if (!game.user.isGM || $html.find(".rollsight-gm-cloud-relay").length) return;
