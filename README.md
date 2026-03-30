@@ -18,4 +18,4 @@ See **rollsight-integration/README.md** for setup and **FORGE_INSTALL.md** for d
 - **release.sh**, **build-release-zip.sh** — Release and zip build
 - **FORGE_INSTALL.md**, **PUBLIC_REPO_SETUP.md**, etc. — Docs for install and maintainers
 
-The full RollSight app (desktop app, website, scripts, firmware) lives in the private repository.
+The full RollSight app (desktop app, website, scripts, firmware) lives in the private repository. **Cloud Foundry play** uses HTTPS APIs on the public site (`/api/rollsight-room/*`) documented in the private repo’s `website/README.md` and `docs/ROLLSIGHT_ENVIRONMENT_VARIABLES.md`; the module in this tree consumes those endpoints when cloud room mode is enabled.

@@ -2,13 +2,16 @@
 
 This Foundry VTT module integrates with RollSight to receive physical dice rolls and send roll requests.
 
+**Handoff note:** Rolls reach Foundry by one of three paths: **browser extension** (`postMessage` to the page), **local HTTP bridge** (Foundry desktop or any client that can reach the player’s RollSight machine), or **cloud room** (HTTPS long-poll to `rollsight.com` with a GM **room key** and per-user **player key**). The desktop app chooses local vs cloud when starting a **play session**; see the private repo’s `docs/ROLLSIGHT_PLAY_SESSION.md` and the site guide under `website/app/guides/foundry-vtt/`.
+
 ## Features
 
-- **In-context rolls (Foundry v12+)**: When you choose "RollSight" in **Dice Configuration** for a die type (e.g. d20), attack/spell/save rolls wait for physical dice and use your RollSight result in the same roll—no chat-only fallback.
+- **In-context rolls (Foundry v12+)**: In **Dice Configuration**, set die types you roll physically to **Manual** (not a separate “RollSight” fulfillment menu entry). The module intercepts the Manual / RollResolver flow and fills results from RollSight.
 - **Receive physical rolls**: Rolls from RollSight are either fed into the active RollResolver (in-context) or, if none is open, sent to chat (configurable).
 - **3D dice**: Triggers Foundry's 3D dice when a roll is fulfilled or sent to chat.
 - **Roll amendments**: Updates chat messages when rolls are corrected in RollSight.
-- **Roll requests**: Optional: when a RollResolver opens for RollSight, the module can POST to RollSight so the app shows "Foundry is waiting for: 1d20" (set **Roll request URL** in module settings).
+- **Roll requests**: Optional: when a RollResolver opens for physical dice, the module can POST to RollSight so the app shows "Foundry is waiting for: 1d20" (set **Roll request URL** in module settings).
+- **Cloud room**: When enabled in module settings, the client polls **`GET /api/rollsight-room/events`** on the configured **RollSight API base URL** (default production site) using the **room key**; each player uses a **player key** from the RollSight desktop session dialog so publishes are attributed correctly.
 
 ## Installation
 
@@ -32,7 +35,7 @@ This Foundry VTT module integrates with RollSight to receive physical dice rolls
 1. Open your world in Foundry VTT (as GM).
 2. Go to **Settings** → **Manage Modules**.
 3. Enable **RollSight Integration**.
-4. The module then runs for **all users** (GM and players). Players do not need to enable anything; they just need the RollSight browser extension and RollSight app to send rolls from their client.
+4. The module then runs for **all users** (GM and players). Players do not enable the module themselves; each player needs either the **extension + local RollSight**, **desktop Foundry + local bridge**, or **cloud room keys** plus the RollSight desktop app running with a matching play session, depending on the table’s chosen path.
 
 **Making it available to everyone:** Once the GM enables the module in Manage Modules, it is active for every connected client. If your host (e.g. The Forge) has an option like "Include for players" or "Available to players" for this module, ensure it is set so the module loads for players. Players can confirm the module is active by opening **Configure Settings** → **RollSight Integration** and seeing the "RollSight Integration (this client)" option.
 
@@ -41,19 +44,25 @@ This Foundry VTT module integrates with RollSight to receive physical dice rolls
 To use physical dice **in-context** (e.g. for attack rolls, spell rolls):
 
 1. Open **Setup** → **Dice Configuration** (or the equivalent in your Foundry version).
-2. For each die type (d4, d6, d20, etc.) choose **RollSight (Physical Dice)** as the fulfillment method.
-3. When you roll (e.g. attack), Foundry will open the roll dialog and wait for a result; roll in RollSight and the value is applied to that same roll.
+2. For each die type (d4, d6, d20, etc.) choose **Manual** as the fulfillment method for dice you will roll in RollSight.
+3. When you roll (e.g. attack), Foundry opens the roll dialog; roll in RollSight and the module merges the result into that roll.
 
 ### 3. Configure RollSight Connection
 
-The module receives rolls via the **RollSight VTT Bridge** browser extension (`postMessage`) or, for **Foundry’s desktop application** (where extensions do not run), via **Desktop bridge (poll HTTP bridge)** in module settings.
+The module receives rolls via one or more of:
 
-- **Browser (Chrome/Edge, etc.)**: Install the RollSight VTT Bridge extension; leave Desktop bridge **off** on that client.
-- **Foundry desktop app**: In **Configure Settings → Module Settings → RollSight Real Dice Reader**, enable **Desktop bridge (Foundry app — poll HTTP bridge)**. Keep RollSight running so its HTTP bridge is available (default `http://127.0.0.1:8766`). Adjust **Desktop bridge base URL** only if you changed the bridge port in RollSight.
+- **RollSight VTT Bridge** browser extension (`postMessage` into the Foundry tab).
+- **Desktop bridge** — HTTP poll against the PC running RollSight (default `http://127.0.0.1:8766`), required for **Foundry’s desktop app** where extensions do not run.
+- **Cloud room** — HTTPS long-poll to the **RollSight API base URL** with **Room key** and **Player key** from the GM / player setup in the desktop app (no extension or LAN bridge required for that path).
+
+**Local paths**
+
+- **Browser (Chrome/Edge, etc.)**: Install the RollSight VTT Bridge extension; leave Desktop bridge **off** on that client unless you intentionally use poll-only delivery.
+- **Foundry desktop app**: In **Configure Settings → Module Settings → RollSight Real Dice Reader**, enable **Desktop bridge (Foundry app — poll HTTP bridge)**. Keep RollSight running with an active play session that uses **Foundry (local bridge)** so its HTTP bridge is listening. Adjust **Desktop bridge base URL** only if you changed the bridge port in RollSight.
 
 Do **not** enable Desktop bridge and the browser extension on the **same machine** for the same session — they share one roll queue and would compete for rolls.
 
-For cloud-hosted Foundry in a normal browser, keep using the extension; the desktop bridge only helps the local Foundry app (or any client that can reach your machine’s bridge URL).
+**Cloud room:** Enable the cloud-room options in module settings, paste the **room key** the GM copied from RollSight, and **Generate / paste player key** per user (from each player’s RollSight session). The module polls **`/api/rollsight-room/events`**; the desktop app publishes to **`/api/rollsight-room/publish`**. Server operators need Supabase + `ROLLSIGHT_PLAYER_TOKEN_SECRET` configured (see private repo `docs/ROLLSIGHT_ENVIRONMENT_VARIABLES.md`).
 
 **Desktop bridge not receiving rolls (Windows):** The module polls `http://127.0.0.1:8766` by default. If nothing happens, try **`http://localhost:8766`** as the Desktop bridge base URL, or update RollSight so its HTTP bridge binds to IPv4 (RollSight builds after 2026-03-21 bind `127.0.0.1` so `127.0.0.1` works reliably).
 
@@ -140,13 +149,16 @@ game.rollsight.isConnected();
 
 ```
 rollsight-integration/
-├── module.json             # Module manifest
-├── rollsight.js            # Main module code
-├── fulfillment-provider.js # Foundry v12+ Dice Fulfillment registration & routing
-├── socket-handler.js       # Socket.io event handlers
-├── chat-handler.js         # Chat message creation
-├── dice-handler.js         # 3D dice integration
-├── roll-request-handler.js # Optional roll-request POST to RollSight
+├── module.json                      # Module manifest
+├── rollsight.js                     # Main module entry / hooks
+├── rollsight.configure-roll-interception.js  # Manual resolver interception, cloud poll, desktop bridge
+├── rollsight-settings.js            # Module settings UI (bridge, cloud room, URLs)
+├── fulfillment-provider.js        # Manual-dice / RollResolver helpers (legacy naming)
+├── socket-handler.js              # Socket.io-related helpers
+├── chat-handler.js                # Chat message creation and amendments
+├── dice-handler.js                # 3D dice integration
+├── http-handler.js                # HTTP ingress (where used)
+├── roll-proof-html.js             # Optional roll replay HTML in chat
 └── README.md
 ```
 
@@ -154,7 +166,7 @@ For architecture and options (fulfillment API, communication, fallback), see **F
 
 ## Development
 
-See `DEVELOPMENT.md` for development setup and contribution guidelines.
+See **[`docs/DEVELOPMENT.md`](../../docs/DEVELOPMENT.md)** (repository root `docs/`) for desktop development setup; this module’s **[`DEVELOPMENT.md`](DEVELOPMENT.md)** covers module-specific notes.
 
 
 
