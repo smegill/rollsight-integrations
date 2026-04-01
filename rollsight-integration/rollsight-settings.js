@@ -96,13 +96,14 @@ function registerRollSightSettingSchemas() {
             default: true
         });
 
+        // Default on; not shown in Configure Settings — session + app handle capture; no extra toggle.
         game.settings.register(RS_NS, "autoExpandRollReplay", {
             name: "Auto-expand roll replay in chat",
             hint: "Open the RollSight Replay block when a message includes replay media.",
             scope: "client",
-            config: true,
+            config: false,
             type: Boolean,
-            default: false
+            default: true
         });
         game.settings.register(RS_NS, "rollReplayRefreshEverySeconds", {
             name: "Replay retry interval (sec)",

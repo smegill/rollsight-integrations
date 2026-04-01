@@ -100,6 +100,11 @@ class RollSightIntegration {
         this._cloud401LastLog = 0;
         /** Idempotent guard: post-ready hooks must not run twice (late module load vs ready timing). */
         this._rollsightPostReadyBound = false;
+        /** Ctrl / Alt while focused in Foundry — pair two physical unsolicited d20s as adv/dis (no digital dice). */
+        this._rollsightKeyModifiers = { ctrl: false, alt: false };
+        /** First unsolicited d20 waiting for a second physical die within {@link _UNSOLICITED_D20_PAIR_MS}. */
+        this._unsolicitedD20Buffer = null;
+        this._UNSOLICITED_D20_PAIR_MS = 3800;
     }
 
     /** Redact bearer for console (8-char codes and tokens). */
@@ -109,6 +114,70 @@ class RollSightIntegration {
         if (s.length <= 10) return s.length <= 4 ? "****" : `${s.slice(0, 2)}…${s.slice(-2)}`;
         if (s.startsWith("rs_u_")) return `rs_u_…${s.slice(-4)}`;
         return `${s.slice(0, 6)}…${s.slice(-4)}`;
+    }
+
+    /** Stable short hash for localStorage keys (no PII in key name). */
+    _hashStorageFragment(s) {
+        const str = String(s ?? "");
+        let h = 0;
+        for (let i = 0; i < str.length; i++) h = Math.imul(31, h) + str.charCodeAt(i) | 0;
+        return (h >>> 0).toString(36);
+    }
+
+    /**
+     * Persisted cloud poll cursor so a tab reload does not re-apply every historical room event.
+     */
+    _getCloudPollStorageKey() {
+        const bearer = this._getCloudPollBearerKey();
+        if (!bearer) return null;
+        const game = (typeof foundry !== "undefined" && foundry.game) ? foundry.game : globalThis.game;
+        let apiBase = "";
+        try {
+            apiBase = (game?.settings?.get("rollsight-integration", "cloudRoomApiBase") ?? "").toString().trim();
+        } catch (_) {}
+        return `rollsight-integration.cloudPollSinceSeq.v1.${this._hashStorageFragment(apiBase)}.${this._hashStorageFragment(bearer)}`;
+    }
+
+    _loadPersistedCloudPollSeq() {
+        try {
+            const sk = this._getCloudPollStorageKey();
+            if (!sk || typeof localStorage === "undefined") return;
+            const raw = localStorage.getItem(sk);
+            const v = parseInt(raw, 10);
+            if (Number.isFinite(v) && v >= 0) this._cloudPollSinceSeq = v;
+        } catch (_) {}
+    }
+
+    _persistCloudPollSeq() {
+        try {
+            const sk = this._getCloudPollStorageKey();
+            if (!sk || typeof localStorage === "undefined") return;
+            localStorage.setItem(sk, String(this._cloudPollSinceSeq ?? 0));
+        } catch (_) {}
+    }
+
+    _getDesktopBridgeStorageKey() {
+        const base = this._getDesktopBridgeBaseUrl();
+        if (!base) return null;
+        return `rollsight-integration.bridgePollSince.v1.${this._hashStorageFragment(base)}`;
+    }
+
+    _loadPersistedBridgePollSince() {
+        try {
+            const sk = this._getDesktopBridgeStorageKey();
+            if (!sk || typeof localStorage === "undefined") return;
+            const raw = localStorage.getItem(sk);
+            const v = parseInt(raw, 10);
+            if (Number.isFinite(v) && v >= 0) this._bridgePollSince = v;
+        } catch (_) {}
+    }
+
+    _persistBridgePollSince() {
+        try {
+            const sk = this._getDesktopBridgeStorageKey();
+            if (!sk || typeof localStorage === "undefined") return;
+            localStorage.setItem(sk, String(this._bridgePollSince ?? 0));
+        } catch (_) {}
     }
 
     _logCloud401Throttled() {
@@ -196,15 +265,10 @@ class RollSightIntegration {
     }
 
     /**
-     * Per-user setting: auto-open RollSight replay details on render.
+     * Auto-open RollSight replay details on render (always on — setting no longer shown in module config).
      */
     _shouldAutoExpandRollReplay() {
-        try {
-            const game = (typeof foundry !== "undefined" && foundry.game) ? foundry.game : globalThis.game;
-            return !!game?.settings?.get("rollsight-integration", "autoExpandRollReplay");
-        } catch (_) {
-            return false;
-        }
+        return true;
     }
 
     _getRollReplayRefreshConfig() {
@@ -236,7 +300,7 @@ class RollSightIntegration {
                 self._postRollProofSupplement(snapshot);
                 self._pendingAttachRollProof = null;
             }
-        }, 4500);
+        }, 8000);
     }
 
     /** Known roll dialog title substrings (Attack Roll, Damage Roll, Ability Check, etc.). Not Configure Roll / Initiative. */
@@ -341,7 +405,7 @@ class RollSightIntegration {
             this._lastRollProofRollData = null;
         }, -900);
 
-        Hooks.on("renderChatMessage", (message, html /* , data */) => {
+        const _rollsightRenderReplayIntoHtml = (message, html) => {
             try {
                 const $root = html?.jquery ? html : (typeof jQuery !== "undefined" ? jQuery(html) : null);
                 if (!$root?.find) return;
@@ -366,11 +430,19 @@ class RollSightIntegration {
             } catch (e) {
                 console.warn("RollSight Real Dice Reader | renderChatMessage roll replay:", e);
             }
+        };
+        Hooks.on("renderChatMessage", (message, html /* , data */) => {
+            _rollsightRenderReplayIntoHtml.call(this, message, html);
+        });
+        // v13+: re-render when message HTML is refreshed (e.g. flags updated); v12 may not define this hook.
+        Hooks.on("renderChatMessageHTML", (message, html /* , data */) => {
+            _rollsightRenderReplayIntoHtml.call(this, message, html);
         });
         
         const rollSightPostReady = () => {
             if (this._rollsightPostReadyBound) return;
             this._rollsightPostReadyBound = true;
+            this._bindRollSightModifierKeys();
             this.onReady();
             // Make API available globally (using namespaced API for Foundry v13+ if available)
             const game = (typeof foundry !== 'undefined' && foundry.game) ? foundry.game : globalThis.game;
@@ -463,6 +535,15 @@ class RollSightIntegration {
 
             // 1) Patch Roll.evaluate so RollSight dice always use interactive (RollResolver) path.
             this._patchRollEvaluateForRollSight();
+            // Game systems may register CONFIG.Dice.rolls after our first pass — re-scan a few times.
+            const repatch = () => {
+                try {
+                    this._patchRollEvaluateForRollSight();
+                } catch (e) {
+                    console.warn("RollSight Real Dice Reader | Roll.evaluate re-patch:", e);
+                }
+            };
+            [500, 2000, 5000, 10000, 15000, 20000].forEach((ms) => setTimeout(repatch, ms));
             // 2) Intercept chat /roll so we open RollResolver when evaluate() isn't used (e.g. chat/initiative).
             this._wrapChatProcessMessage();
             // 3) Intercept roll dialogs (Attack/Damage/Ability Check/Saving Throw/etc.) first, then Configure Roll (initiative).
@@ -505,7 +586,7 @@ class RollSightIntegration {
                     self._restartCloudRoomPoll();
                 }
                 if (key === "cloudRoomKey" || key === "cloudRoomApiBase" || key === "cloudPlayerKey") {
-                    self._cloudPollSinceSeq = 0;
+                    // Per-bearer seq is stored in localStorage — do not reset to 0 here (would replay full history on reload).
                     self._restartCloudRoomPoll();
                     self._restartDesktopBridgePoll();
                 }
@@ -569,6 +650,26 @@ class RollSightIntegration {
         if (Array.isArray(configRolls)) {
             for (const R of configRolls) {
                 if (R?.prototype?.evaluate && !rollClasses.includes(R)) rollClasses.push(R);
+            }
+        }
+        // D&D 5e (and similar) register D20Roll / DamageRoll on CONFIG.Dice in addition to CONFIG.Dice.rolls — patch explicitly for Midi-QOL + dnd5e timing.
+        const diceCfg = CONFIG?.Dice;
+        if (diceCfg && typeof diceCfg === "object") {
+            for (const key of ["D20Roll", "DamageRoll", "BasicRoll"]) {
+                const R = diceCfg[key];
+                if (R?.prototype?.evaluate && typeof R.prototype.evaluate === "function" && !rollClasses.includes(R)) {
+                    rollClasses.push(R);
+                }
+            }
+        }
+        for (const gname of ["D20Roll", "DamageRoll"]) {
+            try {
+                const GR = globalThis[gname];
+                if (GR?.prototype?.evaluate && typeof GR.prototype.evaluate === "function" && !rollClasses.includes(GR)) {
+                    rollClasses.push(GR);
+                }
+            } catch (_e) {
+                /* ignore */
             }
         }
         const game = (typeof foundry !== 'undefined' && foundry.game) ? foundry.game : globalThis.game;
@@ -1163,6 +1264,12 @@ class RollSightIntegration {
     }
 
     _showRollSightWaitDialog(formula, resolver, resolveOutcome, game) {
+        let settled = false;
+        const safeResolve = (outcome) => {
+            if (settled) return;
+            settled = true;
+            resolveOutcome(outcome);
+        };
         const _t = (key, fallback) => {
             const s = game.i18n?.localize?.(key);
             return (s && s !== key) ? s : fallback;
@@ -1196,11 +1303,28 @@ class RollSightIntegration {
                 window: { title },
                 content,
                 buttons: [
-                    { action: "digital", label: labelDigital, icon: "<i class=\"fas fa-dice\"></i>", callback: async () => { await this._completeResolverWithDigitalRolls(resolver); resolveOutcome("fulfilled"); } },
-                    { action: "cancel", label: labelCancel, icon: "<i class=\"fas fa-times\"></i>", "default": true, callback: () => resolveOutcome("cancelled") }
+                    {
+                        action: "digital",
+                        label: labelDigital,
+                        icon: "<i class=\"fas fa-dice\"></i>",
+                        callback: async () => {
+                            await this._completeResolverWithDigitalRolls(resolver);
+                            safeResolve("fulfilled");
+                        }
+                    },
+                    {
+                        action: "cancel",
+                        label: labelCancel,
+                        icon: "<i class=\"fas fa-times\"></i>",
+                        "default": true,
+                        callback: () => safeResolve("cancelled")
+                    }
                 ]
             });
             dlg.render({ force: true });
+            if (typeof dlg?.addEventListener === "function") {
+                dlg.addEventListener("close", () => safeResolve("cancelled"));
+            }
             stripButtonPrefix();
             return dlg;
         }
@@ -1211,11 +1335,18 @@ class RollSightIntegration {
                 title,
                 content,
                 buttons: {
-                    digital: { icon: "<i class=\"fas fa-dice\"></i>", label: labelDigital, callback: async () => { await this._completeResolverWithDigitalRolls(resolver); resolveOutcome("fulfilled"); } },
-                    cancel: { icon: "<i class=\"fas fa-times\"></i>", label: labelCancel, callback: () => resolveOutcome("cancelled") }
+                    digital: {
+                        icon: "<i class=\"fas fa-dice\"></i>",
+                        label: labelDigital,
+                        callback: async () => {
+                            await this._completeResolverWithDigitalRolls(resolver);
+                            safeResolve("fulfilled");
+                        }
+                    },
+                    cancel: { icon: "<i class=\"fas fa-times\"></i>", label: labelCancel, callback: () => safeResolve("cancelled") }
                 },
                 "default": "cancel",
-                close: () => { if (resolveOutcome) resolveOutcome("cancelled"); }
+                close: () => safeResolve("cancelled")
             }, { width: 380 });
             dlg.render(true);
             stripButtonPrefix();
@@ -1907,6 +2038,7 @@ class RollSightIntegration {
             }
             return;
         }
+        this._loadPersistedCloudPollSeq();
         const base = this._getCloudRoomApiBase();
         const fastMs = 500;
         const slowMs = 4000;
@@ -2089,6 +2221,7 @@ class RollSightIntegration {
         } else if (maxSeq >= this._cloudPollSinceSeq) {
             this._cloudPollSinceSeq = maxSeq;
         }
+        this._persistCloudPollSeq();
         return true;
     }
 
@@ -2134,6 +2267,7 @@ class RollSightIntegration {
         // Cloud polling is skipped when desktopBridgePoll is on — see _startCloudRoomPollIfEnabled.
         const base = this._getDesktopBridgeBaseUrl();
         if (!base) return;
+        this._loadPersistedBridgePollSince();
         const fastMs = 500;
         const slowMs = 4000;
         const self = this;
@@ -2214,6 +2348,7 @@ class RollSightIntegration {
         if (maxTs >= this._bridgePollSince) {
             this._bridgePollSince = maxTs;
         }
+        this._persistBridgePollSince();
         return true;
     }
     
@@ -2243,7 +2378,185 @@ class RollSightIntegration {
         if (proof != null && String(proof).length > 0) return `${base}|proof:${proof}`;
         const bts = rollData?._rollsightBridgeTs;
         if (typeof bts === "number") return `${base}|bts:${bts}`;
+        const pseq = rollData?._rollsightPairSeq;
+        if (typeof pseq === "number") return `${base}|pair:${pseq}`;
         return base;
+    }
+
+    /**
+     * Track Ctrl/Alt like Foundry’s digital roll shortcuts (adv/dis), for pairing two physical d20s only.
+     */
+    _bindRollSightModifierKeys() {
+        if (typeof document === "undefined") return;
+        const sync = (ev) => {
+            if (!ev) return;
+            this._rollsightKeyModifiers.ctrl = !!ev.ctrlKey;
+            this._rollsightKeyModifiers.alt = !!ev.altKey;
+        };
+        document.addEventListener("keydown", sync, true);
+        document.addEventListener("keyup", sync, true);
+        if (typeof window !== "undefined") {
+            window.addEventListener("blur", () => {
+                this._rollsightKeyModifiers.ctrl = false;
+                this._rollsightKeyModifiers.alt = false;
+            });
+        }
+    }
+
+    /**
+     * @returns {null | { value: number, rollData: object }}
+     */
+    _parseSinglePhysicalD20(rollData) {
+        if (!rollData || rollData._rollsightSkipPairBuffer) return null;
+        const dice = rollData.dice;
+        if (!Array.isArray(dice) || dice.length !== 1) return null;
+        const d0 = dice[0];
+        const faces = Number(d0?.faces) || 0;
+        const shape = (d0?.shape ?? "").toString().toLowerCase();
+        const isD20 = faces === 20 || shape === "d20";
+        if (!isD20) return null;
+        const vRaw = d0.value ?? d0.results?.[0];
+        if (vRaw == null || Number.isNaN(Number(vRaw))) return null;
+        const value = Number(vRaw);
+        const f = (rollData.formula ?? "").toString().trim().toLowerCase().replace(/\s/g, "");
+        if (f && !/^1d20$|^d20$/.test(f)) return null;
+        return { value, rollData };
+    }
+
+    _buildCombinedTwoPhysicalD20RollData(firstRd, secondRd, v1, v2, keepHigh) {
+        const total = keepHigh ? Math.max(v1, v2) : Math.min(v1, v2);
+        const formula = keepHigh ? "2d20kh1" : "2d20kl1";
+        const proof = firstRd.roll_proof_url || secondRd.roll_proof_url;
+        const rid = secondRd.roll_id || firstRd.roll_id;
+        return {
+            formula,
+            total,
+            dice: [
+                { shape: "d20", faces: 20, value: v1 },
+                { shape: "d20", faces: 20, value: v2 }
+            ],
+            roll_proof_url: proof,
+            roll_id: rid,
+            _rollsightRoom: secondRd._rollsightRoom || firstRd._rollsightRoom,
+            _rollsightTwoPhysicalD20Adv: keepHigh ? "high" : "low",
+            _rollsightD20Values: [v1, v2]
+        };
+    }
+
+    /**
+     * @returns {Promise<"buffered"|"handled"|"continue">}
+     */
+    async _tryUnsolicitedD20AdvDisPairing(rollData, debug) {
+        const single = this._parseSinglePhysicalD20(rollData);
+        if (!single) {
+            if (this._unsolicitedD20Buffer) {
+                await this._flushUnsolicitedD20BufferNow("non-d20-followup", debug);
+            }
+            return "continue";
+        }
+
+        if (!this._unsolicitedD20Buffer) {
+            this._unsolicitedD20Buffer = {
+                rollData: JSON.parse(JSON.stringify(rollData)),
+                flushTimerId: setTimeout(() => {
+                    void this._flushUnsolicitedD20BufferNow("timeout", debug);
+                }, this._UNSOLICITED_D20_PAIR_MS)
+            };
+            if (debug) {
+                console.log(
+                    "RollSight Real Dice Reader | [debug] Buffering first unsolicited physical d20 — roll a second d20 within " +
+                        this._UNSOLICITED_D20_PAIR_MS +
+                        " ms; hold Ctrl (adv) or Alt (dis) when the second die is sent."
+                );
+            }
+            return "buffered";
+        }
+
+        clearTimeout(this._unsolicitedD20Buffer.flushTimerId);
+        const firstRd = this._unsolicitedD20Buffer.rollData;
+        this._unsolicitedD20Buffer = null;
+
+        const v1 = this._parseSinglePhysicalD20(firstRd)?.value;
+        const v2 = single.value;
+        if (v1 == null || v2 == null) {
+            await this._postUnsolicitedPairSequentially(firstRd, rollData, debug);
+            return "handled";
+        }
+
+        const ctrl = !!this._rollsightKeyModifiers.ctrl;
+        const alt = !!this._rollsightKeyModifiers.alt;
+        if ((ctrl && alt) || (!ctrl && !alt)) {
+            await this._postUnsolicitedPairSequentially(firstRd, rollData, debug);
+            return "handled";
+        }
+        const keepHigh = ctrl && !alt;
+        const combined = this._buildCombinedTwoPhysicalD20RollData(firstRd, rollData, v1, v2, keepHigh);
+        await this._postUnsolicitedFallbackRoll(combined, debug);
+        if (debug) {
+            console.log(
+                "RollSight Real Dice Reader | [debug] Posted combined physical " + (keepHigh ? "advantage" : "disadvantage") + " (2d20kh/kl from two RollSight dice)"
+            );
+        }
+        return "handled";
+    }
+
+    async _flushUnsolicitedD20BufferNow(reason, debug) {
+        const buf = this._unsolicitedD20Buffer;
+        if (!buf) return;
+        clearTimeout(buf.flushTimerId);
+        this._unsolicitedD20Buffer = null;
+        const rd = buf.rollData;
+        rd._rollsightSkipPairBuffer = true;
+        if (debug) console.log("RollSight Real Dice Reader | [debug] Flushing buffered d20 (" + reason + ")");
+        await this.handleRoll(rd);
+    }
+
+    async _postUnsolicitedPairSequentially(firstRd, secondRd, debug) {
+        firstRd._rollsightSkipPairBuffer = true;
+        secondRd._rollsightSkipPairBuffer = true;
+        const t = Date.now();
+        firstRd._rollsightPairSeq = t;
+        secondRd._rollsightPairSeq = t + 1;
+        await this._postUnsolicitedFallbackRoll(firstRd, debug);
+        await this._postUnsolicitedFallbackRoll(secondRd, debug);
+    }
+
+    /**
+     * One unsolicited chat post (duplicate debounce + createRollMessage) — used by pairing helpers.
+     */
+    async _postUnsolicitedFallbackRoll(rollData, debug) {
+        const fingerprint = this._rollFingerprint(rollData);
+        const now = Date.now();
+        const isDuplicateOfLastSent =
+            this._lastSentRollFingerprint != null &&
+            fingerprint === this._lastSentRollFingerprint &&
+            now - this._lastSentRollTime < this._SENT_ROLL_DEBOUNCE_MS;
+        if (isDuplicateOfLastSent) {
+            if (debug) console.log("RollSight Real Dice Reader | [debug] Pair post: skipping duplicate fingerprint:", fingerprint);
+            return null;
+        }
+        this._lastSentRollFingerprint = fingerprint;
+        this._lastSentRollTime = now;
+
+        const foundryRoll = this.createFoundryRoll(rollData);
+        if (rollData.roll_id) {
+            this.rollHistory.set(rollData.roll_id, {
+                roll: foundryRoll,
+                rollData: rollData,
+                chatMessage: null
+            });
+        }
+        const chatMessage = await this.chatHandler.createRollMessage(foundryRoll, rollData);
+        if (rollData.roll_proof_url) {
+            this._lastRollProofRollData = null;
+        }
+        if (rollData.roll_id && this.rollHistory.has(rollData.roll_id)) {
+            this.rollHistory.get(rollData.roll_id).chatMessage = chatMessage;
+        }
+        try {
+            this.diceHandler.animateDice(foundryRoll);
+        } catch (_) {}
+        return foundryRoll;
     }
 
     /**
@@ -2535,6 +2848,13 @@ class RollSightIntegration {
             }
 
             // No active resolver and not initiative: fall back to chat if enabled.
+            // Pair two physical unsolicited d20s as 2d20kh/kl when Ctrl/Alt held on the second delivery (no digital dice).
+            if (fallbackToChat) {
+                const pairResult = await this._tryUnsolicitedD20AdvDisPairing(rollData, debug);
+                if (pairResult === "buffered") return null;
+                if (pairResult === "handled") return null;
+            }
+
             // Suppress only when the bridge sends the exact same roll we just sent (e.g. duplicate after rescan); different rolls (e.g. "roll me a d20") always go through.
             if (fallbackToChat) {
                 const fingerprint = this._rollFingerprint(rollData);
@@ -3767,6 +4087,10 @@ class RollSightIntegration {
      * Uses Foundry's manual dice entry approach - create terms with results already set
      */
     createFoundryRoll(rollData) {
+        if (rollData?._rollsightTwoPhysicalD20Adv && Array.isArray(rollData._rollsightD20Values) && rollData._rollsightD20Values.length === 2) {
+            const r = this._createFoundryRollTwoManualD20KhKl(rollData);
+            if (r) return r;
+        }
         // Get Foundry classes (using namespaced API for Foundry v13+ if available)
         const RollClass = (typeof foundry !== 'undefined' && foundry.dice?.rolls?.Roll)
             ? foundry.dice.rolls.Roll
@@ -3844,6 +4168,68 @@ class RollSightIntegration {
             roll._total = rollData.total;
         }
         
+        return roll;
+    }
+
+    /**
+     * Two physical d20 values as one Foundry roll (2d20kh1 / 2d20kl1). No RNG — both results from RollSight.
+     */
+    _createFoundryRollTwoManualD20KhKl(rollData) {
+        const RollClass = (typeof foundry !== "undefined" && foundry.dice?.rolls?.Roll) ? foundry.dice.rolls.Roll : globalThis.Roll;
+        const DieClass = (typeof foundry !== "undefined" && foundry.dice?.terms?.Die) ? foundry.dice.terms.Die : globalThis.Die;
+        const PoolTerm = (typeof foundry !== "undefined" && foundry.dice?.terms?.PoolTerm) ? foundry.dice.terms.PoolTerm : globalThis.PoolTerm;
+        if (!RollClass?.fromFormula || !DieClass) return null;
+        const keepHigh = rollData._rollsightTwoPhysicalD20Adv === "high";
+        const [v1, v2] = rollData._rollsightD20Values;
+        if (v1 == null || v2 == null || Number.isNaN(Number(v1)) || Number.isNaN(Number(v2))) return null;
+        const formula = keepHigh ? "2d20kh1" : "2d20kl1";
+        let roll;
+        try {
+            roll = RollClass.fromFormula(formula);
+        } catch (_) {
+            return null;
+        }
+        const chosen = keepHigh ? Math.max(Number(v1), Number(v2)) : Math.min(Number(v1), Number(v2));
+        const n1 = Number(v1);
+        const n2 = Number(v2);
+
+        const fillTwoD20Die = (terms) => {
+            if (!Array.isArray(terms)) return false;
+            for (const term of terms) {
+                if (DieClass && term instanceof DieClass && term.faces === 20 && (term.number ?? 1) === 2) {
+                    term.results = [
+                        { result: n1, active: true, discarded: n1 !== chosen },
+                        { result: n2, active: true, discarded: n2 !== chosen }
+                    ];
+                    term._evaluated = true;
+                    return true;
+                }
+                if (PoolTerm && term instanceof PoolTerm && Array.isArray(term.rolls)) {
+                    for (const inner of term.rolls) {
+                        if (inner?.terms && fillTwoD20Die(inner.terms)) return true;
+                        if (inner?.roll?.terms && fillTwoD20Die(inner.roll.terms)) return true;
+                    }
+                }
+            }
+            return false;
+        };
+
+        let filled = fillTwoD20Die(roll.terms);
+        if (!filled) {
+            try {
+                const simple = RollClass.fromFormula("2d20");
+                if (fillTwoD20Die(simple.terms)) {
+                    roll = simple;
+                    if (typeof roll._formula !== "undefined") roll._formula = formula;
+                    filled = true;
+                }
+            } catch (_) {
+                return null;
+            }
+        }
+        if (!filled || !roll?.terms) return null;
+        roll._total = typeof rollData.total === "number" && !Number.isNaN(rollData.total) ? rollData.total : chosen;
+        roll._evaluated = true;
         return roll;
     }
     
@@ -3948,6 +4334,13 @@ function tryStartRollSightIntegration() {
         rollsight.init();
         game.rollsight = rollsight;
         _rollSightIntegrationStarted = true;
+        queueMicrotask(() => {
+            try {
+                rollsight._patchRollEvaluateForRollSight();
+            } catch (_e) {
+                /* ignore */
+            }
+        });
     } catch (err) {
         console.error("RollSight Real Dice Reader | rollsight.js failed to start (settings may still appear):", err);
     } finally {

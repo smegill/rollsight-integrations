@@ -1,3 +1,12 @@
+## v1.1.77 - 2026-03-31
+
+- **Reload / refresh:** Last processed cloud relay `since_seq` and desktop bridge `since` cursor persist in `localStorage` (per bearer / bridge URL) so reloads do not re-deliver the full historical queue.
+- **RollSight dialogs:** Wait prompts treat **Cancel** and **window close** as cancel — no implied digital completion.
+- **Replay in chat:** Replay blocks auto-expand; supplement delay and `renderChatMessageHTML` hooks improved for contextual rolls.
+- **D&D 5e / Midi-QOL:** `Roll.evaluate` patches **core Roll**, `CONFIG.Dice.rolls`, **`CONFIG.Dice.D20Roll` / `DamageRoll` / `BasicRoll`**, plus delayed re-patch at **500ms–20s** after integration start for late-loaded systems.
+- **Two physical d20s (no resolver):** Within ~3.8s, **Ctrl** on the second die → `2d20kh1`, **Alt** → `2d20kl1` (RollSight values only); otherwise separate single d20 posts.
+- **Desktop app:** Foundry **roll request** dialog close → cancel; **Windows** camera **5s** stall watchdog reopens the device if the pipeline stops emitting frames.
+
 ## v1.1.72 - 2026-03-28
 
 - **Module settings UI:** Removed the large “Get my RollSight player code” block; the inline sync button next to the player code field already runs the same request.
