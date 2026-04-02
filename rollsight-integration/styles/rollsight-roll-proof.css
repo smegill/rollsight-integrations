@@ -136,6 +136,8 @@
   border-radius: 4px;
   outline-offset: 2px;
   cursor: pointer;
+  max-width: 100%;
+  overflow: hidden;
 }
 
 .chat-message .rollsight-roll-replay-preview-link:hover .rollsight-roll-proof-gif {
@@ -199,6 +201,80 @@
 
 .theme-dark .chat-message .rollsight-roll-replay-preview-hint {
   color: var(--color-text-light-5, #b0b0a0);
+}
+
+/* Pending Advantage / Disadvantage (two physical d20s in one RollSight send) */
+.chat-message .rollsight-pending-advdis {
+  margin: 0.35em 0;
+  padding: 0.5em 0.65em;
+  border-radius: 6px;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.chat-message .rollsight-pending-advdis-title {
+  margin: 0 0 0.35em;
+  font-size: 1.05em;
+}
+
+.chat-message .rollsight-pending-advdis-hint {
+  margin: 0 0 0.5em;
+  font-size: 0.92em;
+  opacity: 0.9;
+  line-height: 1.35;
+}
+
+.chat-message .rollsight-pending-advdis-buttons {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5em;
+}
+
+.chat-message .rollsight-pending-adv-btn,
+.chat-message .rollsight-pending-dis-btn {
+  cursor: pointer;
+  padding: 0.35em 0.85em;
+  border-radius: 6px;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  font-weight: 600;
+  font-size: 0.95em;
+}
+
+.chat-message .rollsight-pending-adv-btn {
+  background: #2e7d32;
+  color: #fff;
+  border-color: #1b5e20;
+}
+
+.chat-message .rollsight-pending-adv-btn:hover:not(:disabled) {
+  background: #1b5e20;
+}
+
+.chat-message .rollsight-pending-dis-btn {
+  background: #c62828;
+  color: #fff;
+  border-color: #8e0000;
+}
+
+.chat-message .rollsight-pending-dis-btn:hover:not(:disabled) {
+  background: #8e0000;
+}
+
+.chat-message .rollsight-pending-adv-btn:disabled,
+.chat-message .rollsight-pending-dis-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.theme-dark .chat-message .rollsight-pending-advdis {
+  border-color: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.theme-dark .chat-message .rollsight-pending-adv-btn,
+.theme-dark .chat-message .rollsight-pending-dis-btn {
+  border-color: rgba(255, 255, 255, 0.25);
 }
 
 /* Configure Settings: cloud player code is display-only; use Copy or Get code button */

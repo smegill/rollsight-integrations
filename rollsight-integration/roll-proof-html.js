@@ -57,7 +57,7 @@ export function buildRollReplayInjectHtml(rollData) {
   <div class="rollsight-roll-replay-panel">
     <figure class="rollsight-roll-proof-figure">
       <a class="rollsight-roll-replay-preview-link" href="${href}" target="_blank" rel="noopener noreferrer" title="Open full-size RollSight replay">
-        <img src="${href}" alt="RollSight replay (click for full size)" class="rollsight-roll-proof-gif rollsight-roll-replay-gif" width="480" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+        <img src="${href}" alt="" class="rollsight-roll-proof-gif rollsight-roll-replay-gif" width="480" loading="lazy" decoding="async" referrerpolicy="no-referrer" role="presentation" />
       </a>
     </figure>
   </div>

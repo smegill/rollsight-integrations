@@ -96,12 +96,11 @@ function registerRollSightSettingSchemas() {
             default: true
         });
 
-        // Default on; not shown in Configure Settings — session + app handle capture; no extra toggle.
         game.settings.register(RS_NS, "autoExpandRollReplay", {
-            name: "Auto-expand roll replay in chat",
-            hint: "Open the RollSight Replay block when a message includes replay media.",
+            name: "Auto Expand RollSight Replays",
+            hint: "When enabled, the RollSight Replay section in chat opens expanded automatically. Per user (this browser only).",
             scope: "client",
-            config: false,
+            config: true,
             type: Boolean,
             default: true
         });
@@ -111,7 +110,7 @@ function registerRollSightSettingSchemas() {
             scope: "client",
             config: true,
             type: Number,
-            default: 3
+            default: 5
         });
         game.settings.register(RS_NS, "rollReplayRefreshMaxSeconds", {
             name: "Replay retry timeout (sec)",
@@ -119,7 +118,7 @@ function registerRollSightSettingSchemas() {
             scope: "client",
             config: true,
             type: Number,
-            default: 20
+            default: 60
         });
 
         game.settings.register(RS_NS, "debugLogging", {

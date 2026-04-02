@@ -1,3 +1,9 @@
+## v1.1.81 - 2026-03-31
+
+- **Two d20s, one RollSight send:** Chat shows **Advantage** / **Disadvantage** buttons; choosing one evaluates `2d20kh1` or `2d20kl1` with the physical values (replay preserved). **Legacy:** two separate unsolicited `1d20` within ~3.8s still support **Ctrl** / **Alt** on the second delivery.
+- **Module settings:** **Auto Expand RollSight Replays** — per-user client toggle (default on); replay retry settings unchanged.
+- **Replay appearance:** CSS and `roll-proof-html` tweaks for the roll replay block.
+
 ## v1.1.77 - 2026-03-31
 
 - **Reload / refresh:** Last processed cloud relay `since_seq` and desktop bridge `since` cursor persist in `localStorage` (per bearer / bridge URL) so reloads do not re-deliver the full historical queue.

@@ -105,6 +105,8 @@ class RollSightIntegration {
         /** First unsolicited d20 waiting for a second physical die within {@link _UNSOLICITED_D20_PAIR_MS}. */
         this._unsolicitedD20Buffer = null;
         this._UNSOLICITED_D20_PAIR_MS = 3800;
+        /** Prevents double-resolution if a pending adv/dis UI is clicked twice. */
+        this._pendingTwoD20ResolveIds = new Set();
     }
 
     /** Redact bearer for console (8-char codes and tokens). */
@@ -265,20 +267,25 @@ class RollSightIntegration {
     }
 
     /**
-     * Auto-open RollSight replay details on render (always on — setting no longer shown in module config).
+     * Auto-open RollSight replay details on render (client setting: autoExpandRollReplay).
      */
     _shouldAutoExpandRollReplay() {
-        return true;
+        try {
+            const game = (typeof foundry !== "undefined" && foundry.game) ? foundry.game : globalThis.game;
+            return game?.settings?.get("rollsight-integration", "autoExpandRollReplay") !== false;
+        } catch (_) {
+            return true;
+        }
     }
 
     _getRollReplayRefreshConfig() {
-        const cfg = { intervalMs: 3000, durationMs: 20000 };
+        const cfg = { intervalMs: 5000, durationMs: 60000 };
         try {
             const game = (typeof foundry !== "undefined" && foundry.game) ? foundry.game : globalThis.game;
             const everyRaw = Number(game?.settings?.get("rollsight-integration", "rollReplayRefreshEverySeconds"));
             const maxRaw = Number(game?.settings?.get("rollsight-integration", "rollReplayRefreshMaxSeconds"));
-            const every = Number.isFinite(everyRaw) ? everyRaw : 3;
-            const maxSec = Number.isFinite(maxRaw) ? maxRaw : 20;
+            const every = Number.isFinite(everyRaw) ? everyRaw : 5;
+            const maxSec = Number.isFinite(maxRaw) ? maxRaw : 60;
             cfg.intervalMs = Math.max(1, Math.min(30, every)) * 1000;
             cfg.durationMs = Math.max(5, Math.min(120, maxSec)) * 1000;
         } catch (_) {}
@@ -427,6 +434,7 @@ class RollSightIntegration {
                         if (details && !details.open) details.open = true;
                     }
                 });
+                this._bindPendingTwoD20AdvDisButtons(message, $root);
             } catch (e) {
                 console.warn("RollSight Real Dice Reader | renderChatMessage roll replay:", e);
             }
@@ -2444,6 +2452,273 @@ class RollSightIntegration {
     }
 
     /**
+     * Same combined roll as {@link _buildCombinedTwoPhysicalD20RollData} but from one RollSight payload (two d20s, one throw).
+     */
+    _buildCombinedTwoPhysicalD20FromValues(meta, v1, v2, keepHigh) {
+        const total = keepHigh ? Math.max(v1, v2) : Math.min(v1, v2);
+        const formula = keepHigh ? "2d20kh1" : "2d20kl1";
+        return {
+            formula,
+            total,
+            dice: [
+                { shape: "d20", faces: 20, value: v1 },
+                { shape: "d20", faces: 20, value: v2 }
+            ],
+            roll_proof_url: meta?.roll_proof_url,
+            roll_id: meta?.roll_id,
+            _rollsightRoom: meta?._rollsightRoom,
+            _rollsightTwoPhysicalD20Adv: keepHigh ? "high" : "low",
+            _rollsightD20Values: [v1, v2]
+        };
+    }
+
+    /**
+     * Unsolicited roll: exactly two physical d20s in one delivery (e.g. one toss of two dice).
+     * @returns {{ v1: number, v2: number } | null}
+     */
+    _parseTwoPhysicalD20SingleThrow(rollData) {
+        if (!rollData || rollData._rollsightSkipPairBuffer) return null;
+        const dice = rollData.dice;
+        if (!Array.isArray(dice) || dice.length !== 2) return null;
+        const normF = (s) => String(s ?? "").trim().toLowerCase().replace(/\s/g, "");
+        const f = normF(rollData.formula);
+        if (/kh|kl/.test(f)) return null;
+        const built = normF(this.buildFormula(rollData));
+        const twoD20Built =
+            built === "2d20" ||
+            built === "1d20+1d20" ||
+            built === "d20+d20" ||
+            built === "1d20+d20" ||
+            built === "d20+1d20";
+        const formulaOk =
+            !f ||
+            /^(2d20|1d20\+1d20|d20\+d20|1d20\+d20|d20\+1d20)$/.test(f) ||
+            (f === built && twoD20Built);
+        if (!formulaOk) return null;
+        if (!f && !twoD20Built) return null;
+
+        const vals = [];
+        for (const d of dice) {
+            const faces = Number(d?.faces) || 0;
+            const shape = (d?.shape ?? "").toString().toLowerCase();
+            if (!(faces === 20 || shape === "d20")) return null;
+            const vRaw = d.value ?? d?.results?.[0];
+            if (vRaw == null || Number.isNaN(Number(vRaw))) return null;
+            const v = Number(vRaw);
+            if (v < 1 || v > 20) return null;
+            vals.push(v);
+        }
+        return { v1: vals[0], v2: vals[1] };
+    }
+
+    _bindPendingTwoD20AdvDisButtons(message, $root) {
+        const game = (typeof foundry !== "undefined" && foundry.game) ? foundry.game : globalThis.game;
+        if (!game?.user || !$root?.find) return;
+        const pending = message.flags?.["rollsight-integration"]?.pendingTwoD20AdvDis;
+        if (!pending) return;
+        const authorId = message.author?.id ?? message.author;
+        const isAuthor = authorId === game.user.id;
+
+        $root.find(".rollsight-pending-advdis").each((_, el) => {
+            const $wrap = jQuery(el);
+            if ($wrap.data("rollsightAdvDisBound")) return;
+            $wrap.data("rollsightAdvDisBound", true);
+            if (!isAuthor) {
+                $wrap
+                    .find("button")
+                    .prop("disabled", true)
+                    .attr("title", "Only the player who rolled can choose Advantage or Disadvantage");
+                return;
+            }
+            const self = this;
+            $wrap.find('button[data-rollsight-adv-choice="high"]').on("click", async (ev) => {
+                ev.preventDefault();
+                ev.stopPropagation();
+                $wrap.find("button").prop("disabled", true);
+                await self._resolvePendingTwoD20AdvDis(message, true);
+            });
+            $wrap.find('button[data-rollsight-adv-choice="low"]').on("click", async (ev) => {
+                ev.preventDefault();
+                ev.stopPropagation();
+                $wrap.find("button").prop("disabled", true);
+                await self._resolvePendingTwoD20AdvDis(message, false);
+            });
+        });
+    }
+
+    async _resolvePendingTwoD20AdvDis(message, keepHigh) {
+        const game = (typeof foundry !== "undefined" && foundry.game) ? foundry.game : globalThis.game;
+        const ui = (typeof foundry !== "undefined" && foundry.ui) ? foundry.ui : globalThis.ui;
+        if (!game?.user) return;
+        const authorId = message.author?.id ?? message.author;
+        if (authorId !== game.user.id) {
+            ui?.notifications?.warn("Only the player who rolled can choose Advantage or Disadvantage.");
+            return;
+        }
+        const pending = message.flags?.["rollsight-integration"]?.pendingTwoD20AdvDis;
+        if (!pending) return;
+        if (this._pendingTwoD20ResolveIds.has(message.id)) return;
+        this._pendingTwoD20ResolveIds.add(message.id);
+
+        const v1 = Number(pending.v1);
+        const v2 = Number(pending.v2);
+        if (Number.isNaN(v1) || Number.isNaN(v2)) {
+            this._pendingTwoD20ResolveIds.delete(message.id);
+            return;
+        }
+
+        const meta = {
+            roll_proof_url: pending.roll_proof_url,
+            roll_id: pending.roll_id,
+            _rollsightRoom: pending._rollsightRoom,
+        };
+        const combined = this._buildCombinedTwoPhysicalD20FromValues(meta, v1, v2, keepHigh);
+        const foundryRoll = this.createFoundryRoll(combined);
+        if (!foundryRoll) {
+            this._pendingTwoD20ResolveIds.delete(message.id);
+            ui?.notifications?.error("RollSight: could not build advantage/disadvantage roll.");
+            return;
+        }
+
+        const CONFIG = (typeof foundry !== "undefined" && foundry.CONFIG) ? foundry.CONFIG : globalThis.CONFIG;
+        const sound = CONFIG?.sounds?.dice ?? message.sound;
+        const rpPayload = rollReplaySerializablePayload(combined);
+        const prevNs = { ...(message.flags?.["rollsight-integration"] ?? {}) };
+        const newFlags = { ...prevNs, source: "rollsight", rollId: combined.roll_id };
+        delete newFlags.pendingTwoD20AdvDis;
+        if (rpPayload) {
+            newFlags.rollReplayPayload = rpPayload;
+            newFlags.rollProofUrl = normalizeRollProofUrl(rpPayload.roll_proof_url) || rpPayload.roll_proof_url;
+        }
+
+        const major = Number(String(game.release?.version ?? game.data?.version ?? "0").split(".")[0]) || 0;
+        if (major >= 12 && foundryRoll && foundryRoll._evaluated !== true) {
+            const tt = foundryRoll.total ?? foundryRoll._total;
+            if (typeof tt === "number" && !Number.isNaN(tt)) {
+                foundryRoll._evaluated = true;
+                if (foundryRoll._total == null || Number.isNaN(foundryRoll._total)) foundryRoll._total = tt;
+            }
+        }
+
+        try {
+            await message.update({
+                content: "",
+                rolls: [foundryRoll],
+                sound,
+                flags: { "rollsight-integration": newFlags },
+            });
+            if (combined.roll_id) {
+                this.rollHistory.set(combined.roll_id, {
+                    roll: foundryRoll,
+                    rollData: combined,
+                    chatMessage: message,
+                });
+            }
+            try {
+                this.diceHandler.animateDice(foundryRoll);
+            } catch (_) {}
+            if (combined.roll_proof_url) {
+                this._lastRollProofRollData = null;
+            }
+            this._pendingTwoD20ResolveIds.delete(message.id);
+        } catch (err) {
+            console.error("RollSight: failed to update pending adv/dis message:", err);
+            this._pendingTwoD20ResolveIds.delete(message.id);
+            try {
+                await message.delete();
+                await this.chatHandler.createRollMessage(foundryRoll, combined);
+            } catch (e2) {
+                ui?.notifications?.error("RollSight: could not post advantage/disadvantage roll.");
+            }
+        }
+    }
+
+    async _createPendingTwoD20AdvDisChatMessage(rollData, v1, v2) {
+        const game = (typeof foundry !== "undefined" && foundry.game) ? foundry.game : globalThis.game;
+        const ChatMessageClass = game?.messages?.documentClass
+            ?? (typeof foundry !== "undefined" && foundry.chat?.messages?.ChatMessage)
+            ?? globalThis.ChatMessage;
+        const user = game?.user;
+        if (!user || !ChatMessageClass) return;
+
+        let speaker;
+        try {
+            speaker = ChatMessageClass.getSpeaker?.({ user }) ?? { alias: user.name ?? "Unknown" };
+        } catch (_) {
+            speaker = { alias: user.name ?? "Unknown" };
+        }
+
+        const content =
+            `<div class="rollsight-pending-advdis">` +
+            `<p class="rollsight-pending-advdis-title"><i class="fas fa-dice-d20"></i> <strong>RollSight</strong> — two d20s (${v1} and ${v2})</p>` +
+            `<p class="rollsight-pending-advdis-hint">Choose advantage (keep higher) or disadvantage (keep lower). Both dice were rolled together in RollSight.</p>` +
+            `<p class="rollsight-pending-advdis-buttons">` +
+            `<button type="button" class="rollsight-pending-adv-btn" data-rollsight-adv-choice="high">Advantage</button>` +
+            `<button type="button" class="rollsight-pending-dis-btn" data-rollsight-adv-choice="low">Disadvantage</button>` +
+            `</p></div>`;
+
+        await ChatMessageClass.create({
+            user: user.id,
+            speaker,
+            content,
+            flags: {
+                "rollsight-integration": {
+                    source: "rollsight",
+                    rollId: rollData.roll_id,
+                    pendingTwoD20AdvDis: {
+                        v1,
+                        v2,
+                        roll_id: rollData.roll_id,
+                        roll_proof_url: rollData.roll_proof_url,
+                        _rollsightRoom: rollData._rollsightRoom,
+                    },
+                },
+            },
+        });
+    }
+
+    /**
+     * @returns {Promise<boolean>} true if this roll was consumed (pending UI posted or duplicate skipped).
+     */
+    async _tryPostUnsolicitedTwoD20ChoiceMessage(rollData, debug) {
+        const parsed = this._parseTwoPhysicalD20SingleThrow(rollData);
+        if (!parsed) return false;
+
+        if (this._unsolicitedD20Buffer) {
+            clearTimeout(this._unsolicitedD20Buffer.flushTimerId);
+            this._unsolicitedD20Buffer = null;
+            if (debug) {
+                console.log(
+                    "RollSight Real Dice Reader | [debug] Cleared buffered single d20 (superseded by two d20s in one delivery)"
+                );
+            }
+        }
+
+        const fingerprint = this._rollFingerprint(rollData);
+        const now = Date.now();
+        const isDuplicateOfLastSent =
+            this._lastSentRollFingerprint != null &&
+            fingerprint === this._lastSentRollFingerprint &&
+            now - this._lastSentRollTime < this._SENT_ROLL_DEBOUNCE_MS;
+        if (isDuplicateOfLastSent) {
+            if (debug) {
+                console.log("RollSight Real Dice Reader | [debug] Two-d20 adv/dis: skipping duplicate fingerprint");
+            }
+            return true;
+        }
+        this._lastSentRollFingerprint = fingerprint;
+        this._lastSentRollTime = now;
+
+        await this._createPendingTwoD20AdvDisChatMessage(rollData, parsed.v1, parsed.v2);
+        if (debug) {
+            console.log(
+                "RollSight Real Dice Reader | [debug] Posted Advantage/Disadvantage buttons for two physical d20s (one RollSight delivery)"
+            );
+        }
+        return true;
+    }
+
+    /**
      * @returns {Promise<"buffered"|"handled"|"continue">}
      */
     async _tryUnsolicitedD20AdvDisPairing(rollData, debug) {
@@ -2848,8 +3123,11 @@ class RollSightIntegration {
             }
 
             // No active resolver and not initiative: fall back to chat if enabled.
-            // Pair two physical unsolicited d20s as 2d20kh/kl when Ctrl/Alt held on the second delivery (no digital dice).
+            // Two d20s in one RollSight delivery → chat buttons for Advantage / Disadvantage (single physical throw).
             if (fallbackToChat) {
+                const twoD20Choice = await this._tryPostUnsolicitedTwoD20ChoiceMessage(rollData, debug);
+                if (twoD20Choice) return null;
+                // Pair two separate physical 1d20 deliveries when Ctrl/Alt held on the second (legacy path).
                 const pairResult = await this._tryUnsolicitedD20AdvDisPairing(rollData, debug);
                 if (pairResult === "buffered") return null;
                 if (pairResult === "handled") return null;
