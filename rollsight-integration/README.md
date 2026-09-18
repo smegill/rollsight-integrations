@@ -53,7 +53,7 @@ The module receives rolls via one or more of:
 
 - **RollSight VTT Bridge** browser extension (`postMessage` into the Foundry tab).
 - **Desktop bridge** — HTTP poll against the PC running RollSight (default `http://127.0.0.1:8766`), required for **Foundry’s desktop app** where extensions do not run.
-- **Cloud room** — HTTPS long-poll to the **RollSight API base URL** with **Room key** and **Player key** from the GM / player setup in the desktop app (no extension or LAN bridge required for that path).
+- **Cloud room** — HTTPS long-poll to the **RollSight API base URL** with **Room key** and **Player key** from the GM / player setup in the desktop app (no extension or LAN bridge required for that path). Empty queues are held on the server (~20s) so idle tables do not hammer the API.
 
 **Local paths**
 

@@ -1,3 +1,7 @@
+## v1.1.82 - 2026-09-05
+
+- **Cloud room:** Long-poll `/events` (hold empty queues ~20s, reconnect immediately) instead of 500ms short-poll. Cuts idle Vercel/Supabase volume ~40×; rolls still return as soon as they are published.
+
 ## v1.1.81 - 2026-03-31
 
 - **Two d20s, one RollSight send:** Chat shows **Advantage** / **Disadvantage** buttons; choosing one evaluates `2d20kh1` or `2d20kl1` with the physical values (replay preserved). **Legacy:** two separate unsolicited `1d20` within ~3.8s still support **Ctrl** / **Alt** on the second delivery.

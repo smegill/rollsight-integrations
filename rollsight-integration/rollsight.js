@@ -24,6 +24,10 @@ import {
 const ROLLSIGHT_ROOM_API_DEFAULT = "https://www.rollsight.com/api";
 /** Matches website short codes (no 0/O/1/I/L). */
 const ROLLSIGHT_SHORT_CODE_RE = /^[23456789ABCDEFGHJKLMNPQRSTUVWXYZ]{8}$/i;
+/** Server holds empty /events until this many ms (or events arrive). Must stay ≤ API maxDuration. */
+const ROLLSIGHT_CLOUD_WAIT_MS = 20000;
+/** Client abort slightly above the server hold so hung sockets recover. */
+const ROLLSIGHT_CLOUD_FETCH_TIMEOUT_MS = 28000;
 
 class RollSightIntegration {
     constructor() {
@@ -86,8 +90,9 @@ class RollSightIntegration {
         /** Merge roll proof into the next ChatMessage via preCreateChatMessage (same card as system roll). */
         this._pendingAttachRollProof = null;
         this._rollProofAttachTimeoutId = null;
-        /** Cloud room relay (HTTPS poll; no browser extension). */
+        /** Cloud room relay (HTTPS long-poll; no browser extension). */
         this._cloudPollTimeoutId = null;
+        this._cloudPollAbort = null;
         this._cloudPollSinceSeq = 0;
         this._cloudPollInFlight = false;
         this._cloudLastUnreachableLog = 0;
@@ -2003,6 +2008,26 @@ class RollSightIntegration {
             clearTimeout(this._cloudPollTimeoutId);
             this._cloudPollTimeoutId = null;
         }
+        if (this._cloudPollAbort) {
+            try {
+                this._cloudPollAbort.abort();
+            } catch (_e) {
+                /* ignore */
+            }
+            this._cloudPollAbort = null;
+        }
+    }
+
+    _cloudPollFetchSignal() {
+        const signals = [];
+        if (this._cloudPollAbort?.signal) signals.push(this._cloudPollAbort.signal);
+        if (typeof AbortSignal !== "undefined" && typeof AbortSignal.timeout === "function") {
+            signals.push(AbortSignal.timeout(ROLLSIGHT_CLOUD_FETCH_TIMEOUT_MS));
+        }
+        if (!signals.length) return undefined;
+        if (signals.length === 1) return signals[0];
+        if (typeof AbortSignal.any === "function") return AbortSignal.any(signals);
+        return signals[0];
     }
 
     _logCloudRoomUnreachableThrottled(base) {
@@ -2048,34 +2073,36 @@ class RollSightIntegration {
         }
         this._loadPersistedCloudPollSeq();
         const base = this._getCloudRoomApiBase();
-        const fastMs = 500;
-        const slowMs = 4000;
+        const errorMs = 4000;
         const self = this;
+        this._cloudPollAbort = new AbortController();
+        const pollAbort = this._cloudPollAbort;
         const schedule = (delay) => {
+            if (pollAbort.signal.aborted) return;
             if (self._cloudPollTimeoutId != null) clearTimeout(self._cloudPollTimeoutId);
             self._cloudPollTimeoutId = setTimeout(run, delay);
         };
         const run = async () => {
             self._cloudPollTimeoutId = null;
+            if (pollAbort.signal.aborted) return;
             if (!self._getCloudPollBearerKey()) return;
             if (game.settings.get("rollsight-integration", "desktopBridgePoll")) return;
-            if (self._cloudPollInFlight) {
-                schedule(fastMs);
-                return;
-            }
             self._cloudPollInFlight = true;
             let ok = false;
             try {
                 ok = await self._pollCloudRoomOnce();
             } finally {
-                self._cloudPollInFlight = false;
+                if (self._cloudPollAbort === pollAbort) self._cloudPollInFlight = false;
             }
+            if (pollAbort.signal.aborted) return;
             if (!ok && !self._cloudPollLastWasUnknownRoom) self._logCloudRoomUnreachableThrottled(base);
-            schedule(ok ? fastMs : slowMs);
+            // Server long-polls empty queues; reconnect immediately after a completed wait.
+            schedule(ok ? 0 : errorMs);
         };
         if (debug) {
             console.log("RollSight Real Dice Reader | [debug] Cloud room polling enabled", {
                 eventsUrl: `${base}/rollsight-room/events`,
+                wait_ms: ROLLSIGHT_CLOUD_WAIT_MS,
                 bearer: self._maskCloudBearerForLog(ck),
                 since_seq: self._cloudPollSinceSeq || 0,
             });
@@ -2095,17 +2122,21 @@ class RollSightIntegration {
         if (!ck) return false;
         const base = this._getCloudRoomApiBase();
         const seq = this._cloudPollSinceSeq || 0;
-        const url = `${base}/rollsight-room/events?since_seq=${encodeURIComponent(String(seq))}`;
+        const url = `${base}/rollsight-room/events?since_seq=${encodeURIComponent(String(seq))}&wait_ms=${ROLLSIGHT_CLOUD_WAIT_MS}`;
         let res;
         const debug = game.settings.get("rollsight-integration", "debugLogging");
+        const signal = this._cloudPollFetchSignal();
         try {
-            res = await fetch(url, {
+            const fetchOpts = {
                 method: "GET",
                 headers: { Authorization: `Bearer ${ck}` },
                 cache: "no-store",
                 credentials: "omit",
-            });
+            };
+            if (signal) fetchOpts.signal = signal;
+            res = await fetch(url, fetchOpts);
         } catch (e) {
+            if (signal && signal.aborted) return false;
             if (debug) console.warn("RollSight Real Dice Reader | Cloud room poll fetch error:", e);
             return false;
         }
@@ -2163,7 +2194,7 @@ class RollSightIntegration {
             if (debug) {
                 const now = Date.now();
                 if (now >= (this._cloudPollDebugEmptyNextLog || 0)) {
-                    this._cloudPollDebugEmptyNextLog = now + 4000;
+                    this._cloudPollDebugEmptyNextLog = now + 20000;
                     console.log(
                         "RollSight Real Dice Reader | [debug] Cloud poll OK (0 events)",
                         { since_seq: seq, api_since_seq: data.since_seq, next_url: url.slice(0, 120) }
