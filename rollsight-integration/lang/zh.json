@@ -21,7 +21,7 @@
   "ROLLSIGHT.CopyManually": "请选择代码并手动复制。",
   "ROLLSIGHT.NotLinked": "GM 必须先关联此世界，您才能刷新玩家代码。",
   "ROLLSIGHT.CodeError": "RollSight 无法连接。请检查世界关联并在模块设置中刷新玩家代码。",
-  "ROLLSIGHT.AnotherTab": "另一个标签页正在为此玩家接收 RollSight 骰子。请关闭它，然后刷新此连接。",
+  "ROLLSIGHT.AnotherTab": "另一个 Foundry 窗口正在为此玩家接收骰子结果。关闭该窗口以使用此窗口。",
   "ROLLSIGHT.NoTabLock": "此浏览器无法协调标签页。每位 RollSight 玩家请只使用一个 Foundry 标签页。",
   "ROLLSIGHT.TimedOut": "RollSight 在五分钟后暂停了此掷骰。选择“使用此掷骰”以恢复，或在 Foundry 中手动完成。",
   "ROLLSIGHT.InvalidDice": "骰子未被接受。请发送各骰子范围内的整数值；百分骰请先在桌面应用中合并。",

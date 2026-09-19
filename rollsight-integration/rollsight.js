@@ -2,6 +2,7 @@
 import { getRollClass, registerFulfillmentMethod, rollDataToFulfillmentPairs } from './fulfillment-provider.js';
 import { RollSession } from './roll-session.js';
 import { CloudRelay } from './cloud-relay.js';
+import { ConsumerCoordinator, deliveryMessageId } from './consumer-coordinator.js';
 import { buildRollReplayInjectHtml, rollReplaySerializablePayload } from './roll-proof-html.js';
 
 export const NS = 'rollsight-integration';
@@ -14,7 +15,7 @@ const escapeHTML = value => String(value).replace(/[&<>"']/g, c => ({ '&': '&amp
 export class RollSightIntegration {
     constructor() {
         this.session = new RollSession({ notify, changed: () => this.refreshPrompts(), acceptManual: () => this.setting('replaceManualDialog') });
-        this.relay = new CloudRelay({ deliver: (...args) => this.deliver(...args), status: key => this.setStatus(key) });
+        this.relay = new CloudRelay({ deliver: (...args) => this.deliver(...args), status: key => this.setStatus(key), checkpoint: seq => this.coordinator?.checkpoint(seq) });
         this.history = new Map();
         this.deliveryQueue = Promise.resolve();
         this.status = 'Disconnected';
@@ -64,6 +65,8 @@ export class RollSightIntegration {
     disconnect() {
         this.generation++;
         this.provisionAbort?.abort();
+        this.coordinator?.stop();
+        this.coordinator = null;
         this.relay.stop();
         clearInterval(this.expiryTimer);
         this.session.leave();
@@ -89,7 +92,20 @@ export class RollSightIntegration {
             const scope = await this.scopeHash([game.world?.id, game.user.id, this.apiBase, bearer]);
             if (generation !== this.generation) return;
             this.setStatus('Connecting');
-            void this.relay.start({ base: this.apiBase, bearer, scope, sinceTime: this.session.startedAt });
+            const coordinator = this.coordinator = new ConsumerCoordinator({
+                socket: game.socket, scope, changed: leader => {
+                    if (generation !== this.generation) return;
+                    this.relay.stop();
+                    if (leader) {
+                        this.setStatus('Connecting');
+                        void this.relay.start({ base: this.apiBase, bearer, scope,
+                            sinceTime: this.session.startedAt, sinceSeq: coordinator.cursor,
+                            deliveryState: busy => coordinator.setBusy(busy) });
+                    } else this.setStatus('AnotherTab');
+                }
+            });
+            coordinator.setPriority(this.session.selected ? 2 : this.session.requests.size ? 1 : 0);
+            coordinator.start();
         } catch (error) {
             if (generation === this.generation) this.setStatus('CodeError');
         }
@@ -157,6 +173,7 @@ export class RollSightIntegration {
         this.refreshPrompts();
     }
     refreshPrompts() {
+        this.coordinator?.setPriority(this.session.selected ? 2 : this.session.requests.size ? 1 : 0);
         if (!this.session?.active && typeof document !== 'undefined') {
             for (const el of document.querySelectorAll('.rollsight-request-status')) el.textContent = t('Disconnected');
         }
@@ -166,10 +183,10 @@ export class RollSightIntegration {
             if (text) text.textContent = t(this.session.selected === resolver && !request.paused ? 'Waiting' : 'Paused', { formula: resolver.roll?.formula ?? '' });
         }
     }
-    handleRoll(data) {
+    handleRoll(data, current = () => true) {
         const epoch = this.session.epoch;
         const work = this.deliveryQueue.then(async () => {
-            if (epoch !== this.session.epoch || !this.session.accept(data)) return null;
+            if (!current() || epoch !== this.session.epoch || !this.session.accept(data)) return null;
             const pending = this.session.requests.get(this.session.selected);
             const proof = rollReplaySerializablePayload(data);
             const previousProof = pending && this.proofs.get(pending.id);
@@ -222,7 +239,7 @@ export class RollSightIntegration {
     async deliver(envelope, deliveryId, current = () => true) {
         if (!current() || !this.session.active) return;
         const meta = { _deliveryId: deliveryId, _rollsightBridgeTs: envelope.timestamp, _rollsightRoom: envelope._rollsightRoom };
-        if (envelope.type === 'roll') await this.handleRoll({ ...envelope.roll, ...meta });
+        if (envelope.type === 'roll') await this.handleRoll({ ...envelope.roll, ...meta }, current);
         else if (envelope.type === 'amendment' && this.session.accept(meta)) await this.handleAmendment(envelope.amendment);
         else if (envelope.type === 'chat_text' && this.session.accept(meta)) await this.postChatTextFromBridge(envelope.content);
     }
@@ -252,11 +269,26 @@ export class RollSightIntegration {
     async postRoll(roll, data) {
         const ChatMessage = game.messages.documentClass;
         const mode = this.coreRollMode();
-        return roll.toMessage({
+        const id = await deliveryMessageId(game.world?.id, game.user.id, data.roll_id || data._deliveryId);
+        const existing = game.messages.get(id);
+        if (existing) return existing;
+        const messageData = await roll.toMessage({
             speaker: ChatMessage.getSpeaker(),
             flags: { [NS]: { rollId: data.roll_id, source: 'rollsight', rollReplayPayload: rollReplaySerializablePayload(data) } }
-        }, Number(game.release?.generation ?? String(game.version).split('.')[0]) >= 14 ? { messageMode: mode } : { rollMode: mode });
+        }, Number(game.release?.generation ?? String(game.version).split('.')[0]) >= 14
+            ? { messageMode: mode, create: false } : { rollMode: mode, create: false });
+        messageData._id = id;
+        try {
+            return await ChatMessage.create(messageData, { keepId: true });
+        } catch (error) {
+            // Another client can win between the collection check and server create.
+            // Foundry broadcasts successful creates before rejecting the duplicate ID.
+            const winner = game.messages.get(id);
+            if (winner) return winner;
+            throw error;
+        }
     }
+
     coreRollMode() {
         // v14 renamed rollMode to messageMode; feature detection keeps earlier generations usable.
         for (const key of ['messageMode', 'rollMode']) {

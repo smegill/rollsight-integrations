@@ -21,7 +21,7 @@
   "ROLLSIGHT.CopyManually": "Sélectionnez le code et copiez-le manuellement.",
   "ROLLSIGHT.NotLinked": "Le MJ doit lier ce monde avant que vous puissiez actualiser votre code joueur.",
   "ROLLSIGHT.CodeError": "RollSight n’a pas pu se connecter. Vérifiez le lien du monde et actualisez votre code joueur dans les paramètres du module.",
-  "ROLLSIGHT.AnotherTab": "Un autre onglet reçoit les dés RollSight pour ce joueur. Fermez-le, puis actualisez cette connexion.",
+  "ROLLSIGHT.AnotherTab": "Une autre fenêtre Foundry reçoit les dés pour ce joueur. Fermez cette fenêtre pour utiliser celle-ci.",
   "ROLLSIGHT.NoTabLock": "Ce navigateur ne peut pas coordonner les onglets. Utilisez un seul onglet Foundry par joueur RollSight.",
   "ROLLSIGHT.TimedOut": "RollSight a suspendu ce jet après cinq minutes. Choisissez Utiliser ce jet pour reprendre, ou complétez-le manuellement dans Foundry.",
   "ROLLSIGHT.InvalidDice": "Les dés ont été refusés. Envoyez des entiers dans la plage de chaque dé ; combinez d’abord les dés de pourcentage dans l’application de bureau.",

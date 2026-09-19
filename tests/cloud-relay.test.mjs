@@ -32,3 +32,11 @@ test('invalid player key stops polling and asks for refresh', async () => {
     const relay = new CloudRelay({ storage: storage(), fetcher: async () => { calls++; return { ok: false, status: 401 }; }, status: s => states.push(s) });
     await relay.start(options); assert.equal(calls, 1); assert.ok(states.includes('CodeError')); relay.stop();
 });
+test('delivery ownership is released only after its consumed cursor is checkpointed', async () => {
+    const order = [];
+    const relay = new CloudRelay({storage: storage(), fetcher: async () => response([{seq: 1, payload: {timestamp:101}}]),
+        deliver: async () => order.push('delivered'), checkpoint: () => order.push('checkpoint'),
+        status: key => {if (key === 'Connected') relay.stop();}});
+    await relay.start({...options, deliveryState: busy => order.push(busy ? 'hold' : 'release')});
+    assert.deepEqual(order, ['hold', 'delivered', 'checkpoint', 'release']);
+});

@@ -21,7 +21,7 @@
   "ROLLSIGHT.CopyManually": "Selecciona el código y cópialo manualmente.",
   "ROLLSIGHT.NotLinked": "El GM debe vincular este mundo antes de que puedas actualizar tu código de jugador.",
   "ROLLSIGHT.CodeError": "RollSight no pudo conectarse. Comprueba el vínculo del mundo y actualiza tu código de jugador en los ajustes del módulo.",
-  "ROLLSIGHT.AnotherTab": "Otra pestaña recibe los dados de RollSight para este jugador. Ciérrala y actualiza esta conexión.",
+  "ROLLSIGHT.AnotherTab": "Otra ventana de Foundry está recibiendo dados para este jugador. Cierra esa ventana para usar esta.",
   "ROLLSIGHT.NoTabLock": "Este navegador no puede coordinar pestañas. Usa una sola pestaña de Foundry por jugador de RollSight.",
   "ROLLSIGHT.TimedOut": "RollSight pausó esta tirada tras cinco minutos. Elige Usar esta tirada para continuar o complétala manualmente en Foundry.",
   "ROLLSIGHT.InvalidDice": "No se aceptaron los dados. Envía valores enteros dentro del rango de cada dado; combina primero los dados percentiles en la app de escritorio.",

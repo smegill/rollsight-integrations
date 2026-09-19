@@ -21,7 +21,7 @@
   "ROLLSIGHT.CopyManually": "Pilih kode dan salin secara manual.",
   "ROLLSIGHT.NotLinked": "GM harus menghubungkan dunia ini sebelum Anda dapat menyegarkan kode pemain.",
   "ROLLSIGHT.CodeError": "RollSight tidak dapat terhubung. Periksa tautan dunia dan segarkan kode pemain di pengaturan modul.",
-  "ROLLSIGHT.AnotherTab": "Tab lain sedang menerima dadu RollSight untuk pemain ini. Tutup tab itu, lalu segarkan koneksi ini.",
+  "ROLLSIGHT.AnotherTab": "Jendela Foundry lain sedang menerima dadu untuk pemain ini. Tutup jendela tersebut untuk menggunakan jendela ini.",
   "ROLLSIGHT.NoTabLock": "Browser ini tidak dapat mengoordinasikan tab. Gunakan hanya satu tab Foundry per pemain RollSight.",
   "ROLLSIGHT.TimedOut": "RollSight menjeda lemparan ini setelah lima menit. Pilih Gunakan lemparan ini untuk melanjutkan, atau selesaikan secara manual di Foundry.",
   "ROLLSIGHT.InvalidDice": "Dadu tidak diterima. Kirim bilangan bulat dalam rentang setiap dadu; gabungkan dadu persentil di aplikasi desktop terlebih dahulu.",

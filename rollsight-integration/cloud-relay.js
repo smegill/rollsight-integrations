@@ -1,19 +1,19 @@
 /** One cancellable long-poll loop per session. A stopped generation cannot deliver or reschedule. */
 export class CloudRelay {
-    constructor({ fetcher = (...args) => fetch(...args), deliver, status = () => {}, storage = globalThis.sessionStorage } = {}) {
-        Object.assign(this, { fetcher, deliver, status, storage });
+    constructor({ fetcher = (...args) => fetch(...args), deliver, status = () => {}, storage = globalThis.sessionStorage, checkpoint = () => {} } = {}) {
+        Object.assign(this, { fetcher, deliver, status, storage, checkpoint });
     }
     stop() {
         this.controller?.abort();
         this.controller = null;
     }
-    async start({ base, bearer, scope, sinceTime }) {
+    async start({ base, bearer, scope, sinceTime, sinceSeq = 0, deliveryState = () => {} }) {
         this.stop();
         const controller = this.controller = new AbortController();
         const signal = controller.signal;
         const storageKey = `rollsight.cursor.v2.${scope}`;
-        let cursor = 0;
-        try { cursor = Number(this.storage?.getItem(storageKey)) || 0; } catch (_) {}
+        let cursor = sinceSeq;
+        try { cursor = Math.max(cursor, Number(this.storage?.getItem(storageKey)) || 0); } catch (_) {}
         const current = () => this.controller === controller && !signal.aborted;
         const loop = async () => {
             while (current()) {
@@ -41,13 +41,19 @@ export class CloudRelay {
                         if (!current()) return;
                         if (!Number.isSafeInteger(event?.seq) || event.seq <= cursor) continue;
                         const p = event.payload;
-                        // Historical events are acknowledged but never replayed into a newly joined session.
-                        if (p && Number.isFinite(p.timestamp) && p.timestamp >= sinceTime) {
-                            await this.deliver(p, `${scope}:${event.seq}`, current);
-                        }
-                        if (!current()) return;
-                        cursor = event.seq;
-                        try { this.storage?.setItem(storageKey, String(cursor)); } catch (_) {}
+                        // Resolver completion can lower this window's priority. Keep ownership
+                        // until its consumed cursor has reached the other windows.
+                        deliveryState(true);
+                        try {
+                            // Historical events are acknowledged but never replayed into a newly joined session.
+                            if (p && Number.isFinite(p.timestamp) && p.timestamp >= sinceTime) {
+                                await this.deliver(p, `${scope}:${event.seq}`, current);
+                            }
+                            if (!current()) return;
+                            cursor = event.seq;
+                            this.checkpoint(cursor);
+                            try { this.storage?.setItem(storageKey, String(cursor)); } catch (_) {}
+                        } finally { deliveryState(false); }
                     }
                     this.status('Connected');
                     ok = true;
@@ -69,7 +75,6 @@ export class CloudRelay {
                 await loop();
             });
         } else {
-            this.status('NoTabLock');
             await loop();
         }
     }

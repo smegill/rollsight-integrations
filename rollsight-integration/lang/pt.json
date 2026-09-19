@@ -21,7 +21,7 @@
   "ROLLSIGHT.CopyManually": "Selecione o código e copie manualmente.",
   "ROLLSIGHT.NotLinked": "O GM deve vincular este mundo antes de você atualizar seu código de jogador.",
   "ROLLSIGHT.CodeError": "O RollSight não conseguiu conectar. Verifique o vínculo do mundo e atualize seu código de jogador nas configurações do módulo.",
-  "ROLLSIGHT.AnotherTab": "Outra aba recebe os dados do RollSight para este jogador. Feche-a e atualize esta conexão.",
+  "ROLLSIGHT.AnotherTab": "Outra janela do Foundry está recebendo dados para este jogador. Feche essa janela para usar esta.",
   "ROLLSIGHT.NoTabLock": "Este navegador não pode coordenar abas. Use apenas uma aba do Foundry por jogador do RollSight.",
   "ROLLSIGHT.TimedOut": "O RollSight pausou esta rolagem após cinco minutos. Escolha Usar esta rolagem para continuar ou conclua manualmente no Foundry.",
   "ROLLSIGHT.InvalidDice": "Os dados não foram aceitos. Envie valores inteiros no intervalo de cada dado; combine primeiro os dados percentuais no aplicativo de desktop.",

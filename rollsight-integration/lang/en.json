@@ -21,7 +21,7 @@
   "ROLLSIGHT.CopyManually": "Select the code and copy it manually.",
   "ROLLSIGHT.NotLinked": "The GM must link this world before you can refresh your player code.",
   "ROLLSIGHT.CodeError": "RollSight could not connect. Check the world link and refresh your player code in Module Settings.",
-  "ROLLSIGHT.AnotherTab": "Another tab is receiving RollSight dice for this player. Close it, then refresh this connection.",
+  "ROLLSIGHT.AnotherTab": "Another Foundry window is receiving dice for this player. Close that window to use this one.",
   "ROLLSIGHT.NoTabLock": "This browser cannot coordinate tabs. Use only one Foundry tab per RollSight player.",
   "ROLLSIGHT.TimedOut": "RollSight paused this roll after five minutes. Choose Use this roll to resume, or complete it manually in Foundry.",
   "ROLLSIGHT.InvalidDice": "Dice were not accepted. Send whole-number values within each die’s range; combine percentile dice in the desktop app first.",
