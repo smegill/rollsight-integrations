@@ -1,151 +1,16 @@
-# Foundry VTT Module Setup Instructions
+# Foundry setup — development candidate
 
-## Quick Start
+This guide describes the native dice-fulfillment candidate. Check `docs/FOUNDRY_V14_AUDIT.md` for tested versions and release gates. The candidate has not been published as a new public module release.
 
-### 1. Install the Module
+1. Install the candidate `rollsight-integration` folder in Foundry's `Data/modules/` directory, restart Foundry, and enable **RollSight Real Dice Reader** in the test world.
+2. Sign in as the player whose dice you want to send. In Game Settings, open **RollSight Real Dice Reader**, leave receiving enabled, and copy your player code.
+3. In the revised RollSight desktop app, choose **Connect dice**, paste the player code, and choose **Connect**. Wait for **Foundry cloud connected**. This works with local Foundry and Forge; no extension or local bridge is required.
+4. In Foundry's core Dice Configuration, select **RollSight physical dice** for the die types you want to roll physically.
+5. Start a roll in Foundry, such as `/r 1d20 - 1`. Leave its roll-resolution window open. Roll a d20 in the camera tray and send the reading from RollSight. Foundry applies its own modifiers and completes the native roll.
+6. If several requests are waiting, choose **Use this roll** on the request to receive the next dice. Manual entry and cancellation remain available.
 
-**Option A: Manual Installation**
+Keep the Foundry world open under the same player. Cloud connected means the relay accepted the code; it is not confirmation of a particular delivery. If connection fails, copy a fresh player code and retry. A code pasted without pressing Connect does not start sending.
 
-1. Download the `rollsight-integration` folder
-2. Copy it to your Foundry VTT `Data/modules/` directory
-   - Windows: `%localappdata%/FoundryVTT/Data/modules/`
-   - macOS: `~/Library/Application Support/FoundryVTT/Data/modules/`
-   - Linux: `~/.local/share/FoundryVTT/Data/modules/`
-3. Restart Foundry VTT
+**More options** in RollSight holds replay/streaming settings and other destinations. Use **Disconnect** when finished. Existing rolls and training data are retained.
 
-**Option B: Module Manifest URL**
-
-1. In Foundry, go to **Setup** → **Add-on Modules** → **Install Module**
-2. Enter manifest URL: `https://your-repo-url/module.json`
-3. Click **Install**
-
-### 2. Enable the Module
-
-1. Open your world in Foundry VTT
-2. Click **Settings** (gear icon) → **Manage Modules**
-3. Check the box next to **RollSight Integration**
-4. Click **Update Modules**
-
-### 3. Configure RollSight
-
-**Play session (desktop app):** The local HTTP bridge (default port **8766**) starts only after you open the **Play session** dialog (**Session → Set up** or **Start Session** on the play panel). On the **New session** tab, set **Send rolls to:** **Foundry**, enable **Let Foundry talk to this app**, and tap **Start** — or open the **Saved session** tab, select a row, and tap **Continue** (or double-click) to rejoin. If rolls never reach Foundry, confirm a session is active. Technical details: **`docs/ROLLSIGHT_PLAY_SESSION.md`** in the RollSight repository.
-
-In RollSight's `camera_config.json`, add:
-
-```json
-{
-  "foundry_vtt": {
-    "enabled": true,
-    "auto_connect": true,
-    "url": "http://localhost:30000"
-  }
-}
-```
-
-**Note**: Replace `localhost:30000` with your Foundry server URL if different.
-
-### 4. Test Connection
-
-1. Start Foundry VTT
-2. Start RollSight
-3. Roll dice in RollSight
-4. Check Foundry chat - rolls should appear automatically
-
-## Configuration Options
-
-### Module Settings
-
-The module has these settings (accessible via Foundry's module settings):
-
-- **Auto-Connect**: Automatically connect when world loads
-- **Webhook URL**: URL for sending roll requests (default: `http://localhost:8765`)
-- **Show 3D Dice**: Enable/disable 3D dice animations
-- **Chat Format**: Choose how rolls appear in chat
-
-### RollSight Settings
-
-Configure in `camera_config.json`:
-
-```json
-{
-  "foundry_vtt": {
-    "enabled": true,
-    "auto_connect": true,
-    "url": "http://localhost:30000",
-    "api_key": "optional-api-key",
-    "user_id": "optional-user-id",
-    "webhook_port": 8765
-  }
-}
-```
-
-## Usage Examples
-
-### Basic Roll
-
-1. Roll dice in RollSight
-2. Roll appears in Foundry chat automatically
-3. 3D dice animate (if enabled)
-
-### Request Roll from Foundry
-
-Create a macro in Foundry:
-
-```javascript
-// Request 8d6 for Fireball
-game.rollsight.requestRoll("8d6", {
-  description: "Fireball damage",
-  rollType: "normal"
-});
-```
-
-RollSight will prompt the user to roll manually or digitally.
-
-### Correct a Roll
-
-1. Roll appears in Foundry
-2. Notice incorrect value
-3. Correct it in RollSight (click die or table)
-4. Foundry chat message updates automatically
-
-## Troubleshooting
-
-### Module Not Appearing
-
-- Check module is in correct directory
-- Verify `module.json` is valid JSON
-- Check Foundry console (F12) for errors
-- Restart Foundry VTT
-
-### Rolls Not Appearing
-
-- Verify module is enabled
-- Check RollSight is connected (status in RollSight)
-- Check Foundry console for errors
-- Verify socket.io connection
-
-### Roll Requests Not Working
-
-- Check webhook URL is correct
-- Verify RollSight webhook server is running
-- Test webhook: `curl http://localhost:8765`
-- Check Foundry console for errors
-
-### 3D Dice Not Animating
-
-- Install Dice3D module (if using)
-- Enable 3D dice in Foundry settings
-- Check Dice3D is compatible with your Foundry version
-
-## Development
-
-See `IMPLEMENTATION_GUIDE.md` for detailed implementation instructions.
-
-
-
-
-
-
-
-
-
+The module's bundled, localized `help.html` covers request selection, duplicate/stale delivery rejection, and supported dice. The old direct socket connector and global roll interception are retired.
