@@ -4,7 +4,7 @@ export const getRollClass = () => globalThis.foundry?.dice?.Roll
 
 export function registerFulfillmentMethod() {
     const methods = globalThis.CONFIG?.Dice?.fulfillment?.methods;
-    if (methods) methods.rollsight = { label: 'ROLLSIGHT.Method', icon: 'fas fa-dice', interactive: true };
+    if (methods) methods.rollsight = { label: 'ROLLSIGHT.Method', icon: '<i class="fas fa-dice"></i>', interactive: true };
 }
 
 export function shapeToDenomination(shape) {

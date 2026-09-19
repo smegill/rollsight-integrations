@@ -1,0 +1,1 @@
+{"id": "rollsight-regression-tests", "title": "RollSight Regression Tests (local only)", "version": "0.0.1", "compatibility": {"minimum": "14", "verified": "14"}, "esmodules": ["native-runner.js"], "relationships": {"requires": [{"id": "rollsight-integration", "type": "module"}]}}

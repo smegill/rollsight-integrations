@@ -25,7 +25,7 @@
         register('debugLogging', Boolean, false, 'client', 'Debug', null);
     });
     const mount = (app, html) => {
-        const root = html?.[0] ?? html ?? app.element;
+        const root = (html?.nodeType ? html : html?.[0]) ?? app.element;
         const field = root?.querySelector?.('input[name="rollsight-integration.cloudPlayerKey"]');
         if (!field || root.querySelector('.rollsight-code-actions')) return;
         field.readOnly = true;

@@ -13,14 +13,14 @@ try {
     ['2d20kl1', 20, [7, 17], 7], ['2d6', 6, [5, 5], 10]
   ]) {
     const roll = new RollClass(formula);
-    let fed = false;
+    let fed = false, activeResolver;
     hook = Hooks.on('renderRollResolver', resolver => {
       if (resolver.roll !== roll || fed) return;
-      fed = true;
+      fed = true; activeResolver = resolver;
       for (const value of values) {
         if (!resolver.registerResult('manual', `d${faces}`, value)) throw new Error(`Result rejected: ${formula}`);
       }
-      void resolver.submit();
+      resolver.element.requestSubmit(resolver.element.querySelector('button[type="submit"]'));
     });
     let timer;
     try {
@@ -29,7 +29,7 @@ try {
       const message = await roll.toMessage({}, {create:false, messageMode:'self'});
       if (!message.whisper?.includes(game.user.id)) throw new Error('Self visibility was lost');
       report.push(`PASS ${formula} = ${roll.total}; self visibility`);
-    } finally { clearTimeout(timer); Hooks.off('renderRollResolver', hook); hook = null; }
+    } finally { clearTimeout(timer); Hooks.off('renderRollResolver', hook); hook = null; if (activeResolver) await activeResolver.close(); }
   }
   const data = new RollClass('2d6 + 1d20').toJSON();
   report.push(`Serialization sample: ${JSON.stringify(data)}`);
@@ -46,5 +46,5 @@ finally {
   await game.settings.set('core', 'diceConfiguration', original);
   report.push('Original Dice Configuration restored.');
 }
-const content = document.createElement('pre'); content.textContent = report.join('\n');
+const content = document.createElement('pre'); content.textContent = report.join(String.fromCharCode(10));
 new foundry.applications.api.DialogV2({ window:{title:'RollSight v14 API test results'}, content:content.outerHTML, buttons:[{action:'close',label:'Close'}] }).render(true);

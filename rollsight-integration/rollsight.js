@@ -140,7 +140,7 @@ export class RollSightIntegration {
         return this.linkPromise;
     }
     renderPrompt(resolver, element) {
-        const root = element?.[0] ?? element ?? resolver.element;
+        const root = (element?.nodeType ? element : element?.[0]) ?? resolver.element;
         if (!root?.querySelector || root.querySelector('.rollsight-native-prompt')) return;
         const box = root.ownerDocument.createElement('section');
         box.className = 'rollsight-native-prompt';
@@ -161,7 +161,7 @@ export class RollSightIntegration {
             for (const el of document.querySelectorAll('.rollsight-request-status')) el.textContent = t('Disconnected');
         }
         for (const [resolver, request] of this.session?.requests ?? []) {
-            const root = resolver.element?.[0] ?? resolver.element;
+            const root = resolver.element?.nodeType ? resolver.element : resolver.element?.[0];
             const text = root?.querySelector?.('.rollsight-request-status');
             if (text) text.textContent = t(this.session.selected === resolver && !request.paused ? 'Waiting' : 'Paused', { formula: resolver.roll?.formula ?? '' });
         }
@@ -172,12 +172,21 @@ export class RollSightIntegration {
             if (epoch !== this.session.epoch || !this.session.accept(data)) return null;
             const pending = this.session.requests.get(this.session.selected);
             const proof = rollReplaySerializablePayload(data);
+            const previousProof = pending && this.proofs.get(pending.id);
+            const previousRequestId = pending?.resolver.roll?.options?.rollsightRequestId;
             if (pending?.resolver.roll?.options && proof) {
                 pending.resolver.roll.options.rollsightRequestId = pending.id;
                 this.proofs.set(pending.id, proof);
             }
             const result = this.session.fulfill(data);
-            if (!result.consumed && pending && proof) this.proofs.delete(pending.id);
+            if (!result.consumed && pending && proof) {
+                if (previousProof) this.proofs.set(pending.id, previousProof);
+                else this.proofs.delete(pending.id);
+                if (pending.resolver.roll?.options) {
+                    if (previousRequestId === undefined) delete pending.resolver.roll.options.rollsightRequestId;
+                    else pending.resolver.roll.options.rollsightRequestId = previousRequestId;
+                }
+            }
             if (result.consumed) {
                 const roll = result.request.resolver.roll;
                 if (roll?.options) {
@@ -192,7 +201,8 @@ export class RollSightIntegration {
                 const inputs = element?.querySelectorAll?.('label[data-method] > input:not(:disabled)');
                 if (inputs?.length && [...inputs].some(input => input.closest('label').dataset.method === 'manual')
                     && [...inputs].every(input => input.value !== '' && input.validity.valid)) {
-                    await result.request.resolver.submit();
+                    const submitter = element.querySelector('button[type="submit"]');
+                    if (submitter && !submitter.disabled) element.requestSubmit(submitter);
                 }
                 return roll;
             }
@@ -274,7 +284,7 @@ export class RollSightIntegration {
     async requestRoll() { notify('RequestLocal'); return null; }
     renderReplay(message, html) {
         if (message.isContentVisible === false) return;
-        const root = html?.[0] ?? html;
+        const root = html?.nodeType ? html : html?.[0];
         if (!root?.querySelector || root.querySelector('.rollsight-roll-replay-details')) return;
         const payload = message.flags?.[NS]?.rollReplayPayload;
         const fragment = buildRollReplayInjectHtml(payload);
