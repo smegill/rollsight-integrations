@@ -5,7 +5,7 @@
   "ROLLSIGHT.Extension": "ब्राउज़र एक्सटेंशन का उपयोग करें",
   "ROLLSIGHT.ExtensionHint": "RollSight एक्सटेंशन से स्थानीय डेस्कटॉप परिणाम प्राप्त करें। इस मोड में क्लाउड से परिणाम नहीं मिलेंगे।",
   "ROLLSIGHT.PlayerCode": "आपका RollSight खिलाड़ी कोड",
-  "ROLLSIGHT.PlayerCodeHint": "यह व्यक्तिगत कोड डेस्कटॉप ऐप में कॉपी करें। Foundry पासा कॉन्फ़िगरेशन में RollSight या मैन्युअल चुनें, फिर Foundry में रोल शुरू करें।",
+  "ROLLSIGHT.PlayerCodeHint": "Foundry में RollSight की सेटिंग खोलें और अपना खिलाड़ी कोड कॉपी करें। गेम सेटिंग → मुख्य → पासे में डिफ़ॉल्ट विधि को RollSight भौतिक पासे पर सेट करके सहेजें। हर प्रकार के पासे की अलग सेटिंग भी जाँचें। Foundry में रोल शुरू करें और भौतिक पासे फेंकने से पहले RollSight का संकेत आने दें।",
   "ROLLSIGHT.Manual": "मैन्युअल रोल के लिए पासे स्वीकार करें",
   "ROLLSIGHT.ManualHint": "मूल मैन्युअल संकेत भी भरें। Foundry अपने सामान्य नियंत्रण रखता है और संशोधकों की गणना करता है।",
   "ROLLSIGHT.Fallback": "कोई रोल लंबित न हो तो पासे पोस्ट करें",
@@ -38,5 +38,9 @@
   "ROLLSIGHT.Replay": "RollSight रीप्ले",
   "ROLLSIGHT.ReplayHint": "रीप्ले खोलें; पूरे आकार में देखने के लिए चित्र चुनें।",
   "ROLLSIGHT.ReplayLoading": "रीप्ले लोड हो रहा है…",
-  "ROLLSIGHT.ReplayUnavailable": "रीप्ले उपलब्ध नहीं है। दोबारा कोशिश करने के लिए लिंक खोलें।"
+  "ROLLSIGHT.ReplayUnavailable": "रीप्ले उपलब्ध नहीं है। दोबारा कोशिश करने के लिए लिंक खोलें।",
+  "ROLLSIGHT.RollRemaining": "बाकी पासे Foundry को फेंकने दें",
+  "ROLLSIGHT.DiceReady": "इस ब्राउज़र में सभी समर्थित पासों के लिए भौतिक पासे कॉन्फ़िगर हैं।",
+  "ROLLSIGHT.DiceSetup": "कुछ पासे अभी भी डिजिटल रोल का उपयोग कर रहे हैं। पासों की कॉन्फ़िगरेशन खोलकर RollSight भौतिक पासे को डिफ़ॉल्ट चुनें और हर पासे की अलग सेटिंग जाँचें।",
+  "ROLLSIGHT.DiceConfigure": "पासे कॉन्फ़िगर करें"
 }

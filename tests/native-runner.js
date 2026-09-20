@@ -1,9 +1,11 @@
+import { armRemoteSave, runRemoteSave } from './remote-save.js';
+import { runMatrix } from './midi-matrix.js';
 /** Test-only companion module. Uses installed Foundry and the candidate module, never shipped in module.json. */
 Hooks.once('ready', () => {
     new foundry.applications.api.DialogV2({
         window: { title: 'RollSight regression runner (test world only)' },
         content: '<p>Run synthetic dice through the installed RollSight module and real Foundry resolvers. No camera input. Dice settings are restored afterwards.</p>',
-        buttons: [{ action: 'run', label: 'Run native regressions', callback: run },
+        buttons: [{action:'armRemote',label:'Arm next remote synthetic save (player)',callback:armRemoteSave},{action:'remote',label:'Test remote player save (GM)',callback:runRemoteSave},{action:'entries',label:'Run module entry points and workflows',callback:()=>runMatrix({extendedOnly:true})}, {action:'matrix',label:'Run simulated Midi-QOL matrix',callback:runMatrix}, { action: 'run', label: 'Run native regressions', callback: run },
             { action: 'transport', label: 'Wait for cloud d20 = 7', callback: transport }]
     }).render(true);
 });
@@ -74,6 +76,14 @@ async function run() {
                 await resolver.close();open.delete(resolver);
             }
         });
+        await test('Let Foundry roll the rest preserves supplied dice',async()=>{
+            const item=await start('2d6');await send([{shape:'d6',value:5}]);
+            const button=item.resolver.element.querySelector('button[type="submit"]');
+            check(button.textContent.includes('Let Foundry roll the rest'),'Fallback button label is unclear');
+            button.click();await timeout(item.evaluation);
+            check(item.roll.dice[0].results[0].result===5,'Fallback replaced the physical result');
+            check(item.roll.total>=6 && item.roll.total<=11,'Fallback did not fill the remaining die');
+        });
         await test('native advantage modifiers', async () => {
             const item = await start('2d20kh1 + 4'); await send([{ shape: 'd20', value: 7 }, { shape: 'd20', value: 17 }]); await done(item, 21);
         });
@@ -100,6 +110,7 @@ async function run() {
         await test('invalid delivery does not partially fill', async () => {
             const item = await start('2d6'); await send([{shape:'d6',value:5},{shape:'d6',value:99}],crypto.randomUUID(),{roll_proof_url:'https://example.invalid/unused.gif'});
             check(item.roll.options.rollsightRequestId===undefined,'rejected proof tagged the roll');
+            check(item.roll.options.rollsightReplayPayloads===undefined,'rejected proof leaked serialized metadata');
             check([...item.resolver.element.querySelectorAll('input')].every(i=>i.value===''),'invalid dice changed form');
             await send([{faces:6,results:[2,3]}]); await done(item,5);
         });

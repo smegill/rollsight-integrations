@@ -60,7 +60,35 @@
             await game.rollsight?.connect();
             field.value = game.settings.get(ns, 'cloudPlayerKey');
         });
-        field.after(actions);
+        const setup = root.ownerDocument.createElement('p');
+        setup.className = 'rollsight-dice-setup';
+        setup.dir = actions.dir;
+        setup.setAttribute('role', 'status');
+        const updateSetup = () => {
+            const RollClass = globalThis.foundry?.dice?.Roll ?? globalThis.Roll;
+            const key = RollClass?.DICE_CONFIGURATION_SETTING ?? 'diceConfiguration';
+            const config = game.settings.get('core', key) ?? {};
+            const acceptManual = game.settings.get(ns, 'replaceManualDialog') && game.user.hasPermission('MANUAL_ROLLS');
+            const ready = ['d4', 'd6', 'd8', 'd10', 'd12', 'd20', 'd100'].every(die => {
+                const method = config[die] || config.default || CONFIG.Dice.fulfillment.defaultMethod;
+                return method === 'rollsight' || (method === 'manual' && acceptManual);
+            });
+            setup.textContent = text(ready ? 'DiceReady' : 'DiceSetup');
+        };
+        addButton('DiceConfigure', () => {
+            const RollClass = globalThis.foundry?.dice?.Roll ?? globalThis.Roll;
+            const key = RollClass?.DICE_CONFIGURATION_SETTING ?? 'diceConfiguration';
+            const menu = game.settings.menus.get(`core.${key}`);
+            if (menu?.type) new menu.type().render(true);
+        });
+        updateSetup();
+        const hook = Hooks.on('closeDiceConfig', updateSetup);
+        const closeHook = Hooks.on('closeSettingsConfig', closed => {
+            if (closed !== app) return;
+            Hooks.off('closeDiceConfig', hook);
+            Hooks.off('closeSettingsConfig', closeHook);
+        });
+        field.after(actions, setup);
     };
     Hooks.on('renderSettingsConfig', mount);
 })();

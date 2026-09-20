@@ -1,5 +1,7 @@
 # Dados físicos de RollSight
 
+En Foundry, abre los ajustes de RollSight y copia tu código de jugador. En Ajustes del juego → Principal → Dados, establece el método predeterminado en dados físicos de RollSight y guarda. Revisa las excepciones para cada dado. Inicia la tirada en Foundry y espera a que aparezca el aviso de RollSight antes de tirar los dados físicos.
+
 ## Vincular este mundo (GM)
 
 El GM debe vincular este mundo antes de que puedas actualizar tu código de jugador.

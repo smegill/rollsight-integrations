@@ -5,7 +5,7 @@
   "ROLLSIGHT.Extension": "Gunakan ekstensi browser",
   "ROLLSIGHT.ExtensionHint": "Terima hasil desktop lokal melalui ekstensi RollSight. Penerimaan cloud dinonaktifkan dalam mode ini.",
   "ROLLSIGHT.PlayerCode": "Kode pemain RollSight Anda",
-  "ROLLSIGHT.PlayerCodeHint": "Salin kode pribadi ini ke aplikasi desktop. Pilih RollSight atau Manual di konfigurasi dadu Foundry, lalu mulai lemparan di Foundry.",
+  "ROLLSIGHT.PlayerCodeHint": "Di Foundry, buka pengaturan RollSight dan salin kode pemain Anda. Di Pengaturan Game → Inti → Dadu, pilih dadu fisik RollSight sebagai metode bawaan lalu simpan. Periksa pengaturan khusus tiap jenis dadu. Mulai lemparan di Foundry dan tunggu petunjuk RollSight sebelum melempar dadu fisik.",
   "ROLLSIGHT.Manual": "Terima dadu untuk lemparan manual",
   "ROLLSIGHT.ManualHint": "Isi juga permintaan manual bawaan. Foundry mempertahankan kontrol normal dan menghitung pengubah.",
   "ROLLSIGHT.Fallback": "Kirim dadu saat tidak ada lemparan tertunda",
@@ -38,5 +38,9 @@
   "ROLLSIGHT.Replay": "Tayangan ulang RollSight",
   "ROLLSIGHT.ReplayHint": "Buka tayangan ulang; pilih gambar untuk melihat ukuran penuh.",
   "ROLLSIGHT.ReplayLoading": "Memuat tayangan ulang…",
-  "ROLLSIGHT.ReplayUnavailable": "Tayangan ulang tidak tersedia. Buka tautan untuk mencoba lagi."
+  "ROLLSIGHT.ReplayUnavailable": "Tayangan ulang tidak tersedia. Buka tautan untuk mencoba lagi.",
+  "ROLLSIGHT.RollRemaining": "Biarkan Foundry melempar dadu yang tersisa",
+  "ROLLSIGHT.DiceReady": "Dadu fisik telah dikonfigurasi untuk semua jenis dadu yang didukung di browser ini.",
+  "ROLLSIGHT.DiceSetup": "Beberapa dadu masih menggunakan lemparan digital. Buka konfigurasi dadu dan pilih dadu fisik RollSight sebagai metode bawaan; periksa pengaturan khusus tiap jenis dadu.",
+  "ROLLSIGHT.DiceConfigure": "Konfigurasi dadu"
 }

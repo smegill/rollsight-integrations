@@ -5,7 +5,7 @@
   "ROLLSIGHT.Extension": "استخدام إضافة المتصفح",
   "ROLLSIGHT.ExtensionHint": "استقبل نتائج سطح المكتب المحلية عبر إضافة RollSight. يُعطّل الاستقبال السحابي في هذا الوضع.",
   "ROLLSIGHT.PlayerCode": "رمز اللاعب الخاص بك في RollSight",
-  "ROLLSIGHT.PlayerCodeHint": "انسخ هذا الرمز الشخصي إلى تطبيق سطح المكتب. اختر RollSight أو الإدخال اليدوي في إعدادات نرد Foundry، ثم ابدأ رمية في Foundry.",
+  "ROLLSIGHT.PlayerCodeHint": "في Foundry، افتح إعدادات RollSight وانسخ رمز اللاعب. في إعدادات اللعبة ← الأساسي ← النرد، عيّن الطريقة الافتراضية إلى نرد RollSight الحقيقي واحفظ. تحقق من الإعدادات الخاصة بكل نوع من النرد. ابدأ الرمية في Foundry وانتظر ظهور مطالبة RollSight قبل رمي النرد الحقيقي.",
   "ROLLSIGHT.Manual": "قبول النرد للرميات اليدوية",
   "ROLLSIGHT.ManualHint": "يملأ أيضًا مطالبات الإدخال اليدوي الأصلية. يحتفظ Foundry بعناصر تحكمه المعتادة ويحسب المعدّلات.",
   "ROLLSIGHT.Fallback": "نشر النرد عند عدم وجود رمية معلقة",
@@ -38,5 +38,9 @@
   "ROLLSIGHT.Replay": "إعادة RollSight",
   "ROLLSIGHT.ReplayHint": "افتح الإعادة؛ حدد الصورة لعرضها بالحجم الكامل.",
   "ROLLSIGHT.ReplayLoading": "جارٍ تحميل الإعادة…",
-  "ROLLSIGHT.ReplayUnavailable": "الإعادة غير متاحة. افتح الرابط للمحاولة مجددًا."
+  "ROLLSIGHT.ReplayUnavailable": "الإعادة غير متاحة. افتح الرابط للمحاولة مجددًا.",
+  "ROLLSIGHT.RollRemaining": "دع Foundry يرمي النرد المتبقي",
+  "ROLLSIGHT.DiceReady": "تم إعداد النرد الحقيقي لكل أنواع النرد المدعومة في هذا المتصفح.",
+  "ROLLSIGHT.DiceSetup": "لا تزال بعض أنواع النرد تستخدم الرميات الرقمية. افتح إعدادات النرد واختر نرد RollSight الحقيقي كطريقة افتراضية، وتحقق من الإعدادات الخاصة بكل نوع.",
+  "ROLLSIGHT.DiceConfigure": "إعداد النرد"
 }

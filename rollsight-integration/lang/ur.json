@@ -5,7 +5,7 @@
   "ROLLSIGHT.Extension": "براؤزر ایکسٹینشن استعمال کریں",
   "ROLLSIGHT.ExtensionHint": "RollSight ایکسٹینشن کے ذریعے مقامی ڈیسک ٹاپ نتائج وصول کریں۔ اس موڈ میں کلاؤڈ وصولی بند رہتی ہے۔",
   "ROLLSIGHT.PlayerCode": "آپ کا RollSight کھلاڑی کوڈ",
-  "ROLLSIGHT.PlayerCodeHint": "یہ ذاتی کوڈ ڈیسک ٹاپ ایپ میں کاپی کریں۔ Foundry کی پاسا ترتیب میں RollSight یا دستی منتخب کریں، پھر Foundry میں رول شروع کریں۔",
+  "ROLLSIGHT.PlayerCodeHint": "Foundry میں RollSight کی ترتیبات کھولیں اور اپنا کھلاڑی کوڈ کاپی کریں۔ گیم کی ترتیبات ← بنیادی ← پاسے میں طے شدہ طریقہ RollSight کے حقیقی پاسے منتخب کر کے محفوظ کریں۔ ہر قسم کے پاسے کی الگ ترتیب بھی دیکھیں۔ Foundry میں رول شروع کریں اور حقیقی پاسے پھینکنے سے پہلے RollSight کا پیغام آنے کا انتظار کریں۔",
   "ROLLSIGHT.Manual": "دستی رول کے لیے پاسے قبول کریں",
   "ROLLSIGHT.ManualHint": "اصل دستی درخواستیں بھی پُر کریں۔ Foundry اپنے معمول کے کنٹرول رکھتا ہے اور ترمیم کاروں کا حساب کرتا ہے۔",
   "ROLLSIGHT.Fallback": "کوئی رول زیرِ انتظار نہ ہو تو پاسے پوسٹ کریں",
@@ -38,5 +38,9 @@
   "ROLLSIGHT.Replay": "RollSight ری پلے",
   "ROLLSIGHT.ReplayHint": "ری پلے کھولیں؛ مکمل سائز دیکھنے کے لیے تصویر منتخب کریں۔",
   "ROLLSIGHT.ReplayLoading": "ری پلے لوڈ ہو رہا ہے…",
-  "ROLLSIGHT.ReplayUnavailable": "ری پلے دستیاب نہیں ہے۔ دوبارہ کوشش کرنے کے لیے لنک کھولیں۔"
+  "ROLLSIGHT.ReplayUnavailable": "ری پلے دستیاب نہیں ہے۔ دوبارہ کوشش کرنے کے لیے لنک کھولیں۔",
+  "ROLLSIGHT.RollRemaining": "باقی پاسے Foundry کو پھینکنے دیں",
+  "ROLLSIGHT.DiceReady": "اس براؤزر میں تمام معاون پاسوں کے لیے حقیقی پاسے ترتیب دے دیے گئے ہیں۔",
+  "ROLLSIGHT.DiceSetup": "کچھ پاسے ابھی بھی ڈیجیٹل رول استعمال کر رہے ہیں۔ پاسوں کی ترتیبات کھولیں، RollSight کے حقیقی پاسے کو طے شدہ طریقہ منتخب کریں اور ہر پاسے کی الگ ترتیب دیکھیں۔",
+  "ROLLSIGHT.DiceConfigure": "پاسوں کی ترتیبات"
 }

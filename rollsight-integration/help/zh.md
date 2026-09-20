@@ -1,5 +1,7 @@
 # RollSight 实体骰子
 
+在 Foundry 中打开 RollSight 设置并复制你的玩家代码。在游戏设置 → 核心 → 骰子中，将默认方式设为 RollSight 实体骰子并保存。检查各类骰子的单独设置。在 Foundry 中发起掷骰，等待 RollSight 提示出现后再掷实体骰子。
+
 ## 关联此世界（GM）
 
 GM 必须先关联此世界，您才能刷新玩家代码。

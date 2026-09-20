@@ -5,7 +5,7 @@
   "ROLLSIGHT.Extension": "Usar la extensión del navegador",
   "ROLLSIGHT.ExtensionHint": "Recibe resultados locales mediante la extensión de RollSight. La recepción en la nube se desactiva en este modo.",
   "ROLLSIGHT.PlayerCode": "Tu código de jugador de RollSight",
-  "ROLLSIGHT.PlayerCodeHint": "Copia este código personal en la app de escritorio. Selecciona RollSight o Manual en la configuración de dados de Foundry y luego inicia una tirada en Foundry.",
+  "ROLLSIGHT.PlayerCodeHint": "En Foundry, abre los ajustes de RollSight y copia tu código de jugador. En Ajustes del juego → Principal → Dados, establece el método predeterminado en dados físicos de RollSight y guarda. Revisa las excepciones para cada dado. Inicia la tirada en Foundry y espera a que aparezca el aviso de RollSight antes de tirar los dados físicos.",
   "ROLLSIGHT.Manual": "Aceptar dados para tiradas manuales",
   "ROLLSIGHT.ManualHint": "También rellena las solicitudes manuales nativas. Foundry conserva sus controles y calcula los modificadores.",
   "ROLLSIGHT.Fallback": "Publicar dados si no hay tiradas pendientes",
@@ -38,5 +38,9 @@
   "ROLLSIGHT.Replay": "Repetición de RollSight",
   "ROLLSIGHT.ReplayHint": "Abre la repetición; selecciona la imagen para verla a tamaño completo.",
   "ROLLSIGHT.ReplayLoading": "Cargando repetición…",
-  "ROLLSIGHT.ReplayUnavailable": "Repetición no disponible. Abre el enlace para volver a intentarlo."
+  "ROLLSIGHT.ReplayUnavailable": "Repetición no disponible. Abre el enlace para volver a intentarlo.",
+  "ROLLSIGHT.RollRemaining": "Dejar que Foundry tire los dados restantes",
+  "ROLLSIGHT.DiceReady": "Los dados físicos están configurados para todos los dados compatibles en este navegador.",
+  "ROLLSIGHT.DiceSetup": "Algunos dados todavía usan tiradas digitales. Abre la configuración de dados y selecciona los dados físicos de RollSight como método predeterminado; revisa las excepciones para cada dado.",
+  "ROLLSIGHT.DiceConfigure": "Configurar dados"
 }

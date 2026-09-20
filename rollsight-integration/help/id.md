@@ -1,5 +1,7 @@
 # Dadu fisik RollSight
 
+Di Foundry, buka pengaturan RollSight dan salin kode pemain Anda. Di Pengaturan Game → Inti → Dadu, pilih dadu fisik RollSight sebagai metode bawaan lalu simpan. Periksa pengaturan khusus tiap jenis dadu. Mulai lemparan di Foundry dan tunggu petunjuk RollSight sebelum melempar dadu fisik.
+
 ## Hubungkan dunia ini (GM)
 
 GM harus menghubungkan dunia ini sebelum Anda dapat menyegarkan kode pemain.

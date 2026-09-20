@@ -5,6 +5,7 @@ import { CloudRelay } from './cloud-relay.js';
 import { ConsumerCoordinator, deliveryMessageId } from './consumer-coordinator.js';
 import { buildRollReplayInjectHtml, rollReplaySerializablePayload } from './roll-proof-html.js';
 import { bindReplayPreview } from './replay-preview.js';
+import { correlatedReplayPayloads, mergeReplayPayloads } from './replay-correlation.js';
 
 export const NS = 'rollsight-integration';
 export const t = (key, args = {}) => game.i18n.format(`ROLLSIGHT.${key}`, args);
@@ -47,16 +48,14 @@ export class RollSightIntegration {
             else if (data?.type === 'rollsight-test') void this.sendTestMessage();
         });
         Hooks.on('preCreateChatMessage', (document, data) => {
-            // Bind replay to this exact Roll's options, never the next similar formula/chat card.
-            const rolls = data.rolls ?? document._source?.rolls ?? [];
-            for (const roll of rolls) {
-                const proof = this.proofs.get(roll?.options?.rollsightRequestId);
-                if (proof) {
-                    document.updateSource({ [`flags.${NS}.rollReplayPayload`]: proof });
-                    this.proofs.delete(roll.options.rollsightRequestId);
-                    break;
-                }
-            }
+            const payloads = this.replayPayloads(document, data);
+            if (payloads.length) document.updateSource({ [`flags.${NS}.rollReplayPayloads`]: payloads });
+        });
+        // Midi-QOL adds attack and damage rolls to an existing item card.
+        Hooks.on('preUpdateChatMessage', (document, changes) => {
+            if (!Object.hasOwn(changes, 'rolls')) return;
+            const payloads = this.replayPayloads(document, changes);
+            if (payloads.length) changes[`flags.${NS}.rollReplayPayloads`] = payloads;
         });
         const renderReplay = (message, html) => this.renderReplay(message, html);
         Hooks.on('renderChatMessage', renderReplay);
@@ -159,9 +158,22 @@ export class RollSightIntegration {
     renderPrompt(resolver, element) {
         const root = (element?.nodeType ? element : element?.[0]) ?? resolver.element;
         if (!root?.querySelector || root.querySelector('.rollsight-native-prompt')) return;
+        // Keep Foundry's native submission handler: it preserves supplied values and
+        // generates only missing dice. Do not relabel the separate pause action.
+        const submit = root.querySelector('button[type="submit"]');
+        if (submit) {
+            const icon = submit.querySelector('i');
+            submit.replaceChildren(...(icon ? [icon] : []), root.ownerDocument.createTextNode(t('RollRemaining')));
+            submit.setAttribute('aria-label', t('RollRemaining'));
+        }
         const box = root.ownerDocument.createElement('section');
         box.className = 'rollsight-native-prompt';
         box.dir = ['ar', 'ur'].includes(game.i18n.lang) ? 'rtl' : 'ltr';
+        const logo = root.ownerDocument.createElement('img');
+        logo.className = 'rollsight-prompt-logo';
+        logo.src = 'modules/rollsight-integration/assets/rollsight-logo.png';
+        logo.alt = 'RollSight';
+        box.append(logo);
         const info = root.ownerDocument.createElement('p');
         info.className = 'rollsight-request-status';
         info.setAttribute('aria-live', 'polite');
@@ -192,9 +204,12 @@ export class RollSightIntegration {
             const proof = rollReplaySerializablePayload(data);
             const previousProof = pending && this.proofs.get(pending.id);
             const previousRequestId = pending?.resolver.roll?.options?.rollsightRequestId;
+            const previousPayloads = pending?.resolver.roll?.options?.rollsightReplayPayloads;
             if (pending?.resolver.roll?.options && proof) {
                 pending.resolver.roll.options.rollsightRequestId = pending.id;
-                this.proofs.set(pending.id, proof);
+                const payloads = mergeReplayPayloads(previousPayloads, previousProof, proof);
+                pending.resolver.roll.options.rollsightReplayPayloads = payloads;
+                this.proofs.set(pending.id, payloads);
             }
             const result = this.session.fulfill(data);
             if (!result.consumed && pending && proof) {
@@ -203,6 +218,8 @@ export class RollSightIntegration {
                 if (pending.resolver.roll?.options) {
                     if (previousRequestId === undefined) delete pending.resolver.roll.options.rollsightRequestId;
                     else pending.resolver.roll.options.rollsightRequestId = previousRequestId;
+                    if (previousPayloads === undefined) delete pending.resolver.roll.options.rollsightReplayPayloads;
+                    else pending.resolver.roll.options.rollsightReplayPayloads = previousPayloads;
                 }
             }
             if (result.consumed) {
@@ -210,7 +227,7 @@ export class RollSightIntegration {
                 if (roll?.options) {
                     roll.options.rollsightRequestId = result.request.id;
                     const proof = rollReplaySerializablePayload(data);
-                    if (proof) this.proofs.set(result.request.id, proof);
+                    if (proof) this.proofs.set(result.request.id, mergeReplayPayloads(this.proofs.get(result.request.id), proof));
                     while (this.proofs.size > 100) this.proofs.delete(this.proofs.keys().next().value);
                 }
                 // Foundry intentionally does not auto-submit Manual inputs. Submit only
@@ -315,21 +332,34 @@ export class RollSightIntegration {
     }
     async sendTestMessage() { return this.postChatTextFromBridge(t('TestMessage')); }
     async requestRoll() { notify('RequestLocal'); return null; }
+    replayPayloads(document, data) {
+        const flags = document.flags?.[NS] ?? {};
+        const existing = mergeReplayPayloads(flags.rollReplayPayloads ?? [], flags.rollReplayPayload);
+        return correlatedReplayPayloads(data.rolls ?? document.rolls ?? document._source?.rolls, this.proofs, existing);
+    }
     renderReplay(message, html) {
         if (message.isContentVisible === false) return;
         const root = html?.nodeType ? html : html?.[0];
-        if (!root?.querySelector || root.querySelector('.rollsight-roll-replay-details')) return;
-        const payload = message.flags?.[NS]?.rollReplayPayload;
-        const fragment = buildRollReplayInjectHtml(payload);
-        if (!fragment) return;
-        (root.querySelector('.message-content') ?? root).insertAdjacentHTML('beforeend', fragment);
-        const details = root.querySelector('.rollsight-roll-replay-details');
-        if (details) bindReplayPreview(details, {
-            autoExpand: this.setting('autoExpandRollReplay'),
-            intervalMs: Math.max(1, this.setting('rollReplayRefreshEverySeconds')) * 1000,
-            maxMs: Math.min(300, Math.max(1, this.setting('rollReplayRefreshMaxSeconds'))) * 1000,
-            unavailable: t('ReplayUnavailable'),
-        });
+        if (!root?.querySelector) return;
+        const flags = message.flags?.[NS] ?? {};
+        const payloads = mergeReplayPayloads(flags.rollReplayPayloads ?? [], flags.rollReplayPayload);
+        const shown = new Set([...root.querySelectorAll('.rollsight-roll-replay-details')].map(el => el.dataset.rollsightProofUrl));
+        for (const payload of payloads) {
+            const fragment = buildRollReplayInjectHtml(payload);
+            if (!fragment) continue;
+            const template = root.ownerDocument.createElement('template');
+            template.innerHTML = fragment;
+            const details = template.content.firstElementChild;
+            if (shown.has(details.dataset.rollsightProofUrl)) continue;
+            shown.add(details.dataset.rollsightProofUrl);
+            (root.querySelector('.message-content') ?? root).append(details);
+            bindReplayPreview(details, {
+                autoExpand: this.setting('autoExpandRollReplay'),
+                intervalMs: Math.max(1, this.setting('rollReplayRefreshEverySeconds')) * 1000,
+                maxMs: Math.min(300, Math.max(1, this.setting('rollReplayRefreshMaxSeconds'))) * 1000,
+                unavailable: t('ReplayUnavailable'),
+            });
+        }
     }
 }
 

@@ -1,5 +1,7 @@
 # Dés physiques RollSight
 
+Dans Foundry, ouvrez les paramètres de RollSight et copiez votre code de joueur. Dans Paramètres du jeu → Général → Dés, choisissez les dés physiques RollSight comme méthode par défaut et enregistrez. Vérifiez les réglages propres à chaque dé. Lancez le jet dans Foundry et attendez l’invite RollSight avant de lancer vos dés physiques.
+
 ## Lier ce monde (MJ)
 
 Le MJ doit lier ce monde avant que vous puissiez actualiser votre code joueur.

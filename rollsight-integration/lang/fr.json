@@ -5,7 +5,7 @@
   "ROLLSIGHT.Extension": "Utiliser l’extension du navigateur",
   "ROLLSIGHT.ExtensionHint": "Recevez les résultats locaux via l’extension RollSight. La réception cloud est désactivée dans ce mode.",
   "ROLLSIGHT.PlayerCode": "Votre code joueur RollSight",
-  "ROLLSIGHT.PlayerCodeHint": "Copiez ce code personnel dans l’application de bureau. Choisissez RollSight ou Manuel dans la configuration des dés de Foundry, puis lancez un jet dans Foundry.",
+  "ROLLSIGHT.PlayerCodeHint": "Dans Foundry, ouvrez les paramètres de RollSight et copiez votre code de joueur. Dans Paramètres du jeu → Général → Dés, choisissez les dés physiques RollSight comme méthode par défaut et enregistrez. Vérifiez les réglages propres à chaque dé. Lancez le jet dans Foundry et attendez l’invite RollSight avant de lancer vos dés physiques.",
   "ROLLSIGHT.Manual": "Accepter les dés pour les jets manuels",
   "ROLLSIGHT.ManualHint": "Remplit aussi les demandes manuelles natives. Foundry conserve ses commandes et calcule les modificateurs.",
   "ROLLSIGHT.Fallback": "Publier les dés si aucun jet n’attend",
@@ -38,5 +38,9 @@
   "ROLLSIGHT.Replay": "Ralenti RollSight",
   "ROLLSIGHT.ReplayHint": "Ouvrez le ralenti ; sélectionnez l’image pour l’afficher en taille réelle.",
   "ROLLSIGHT.ReplayLoading": "Chargement de la vidéo du lancer…",
-  "ROLLSIGHT.ReplayUnavailable": "Vidéo du lancer indisponible. Ouvrez le lien pour réessayer."
+  "ROLLSIGHT.ReplayUnavailable": "Vidéo du lancer indisponible. Ouvrez le lien pour réessayer.",
+  "ROLLSIGHT.RollRemaining": "Laisser Foundry lancer les dés restants",
+  "ROLLSIGHT.DiceReady": "Les dés physiques sont configurés pour tous les dés pris en charge dans ce navigateur.",
+  "ROLLSIGHT.DiceSetup": "Certains dés utilisent encore des jets numériques. Ouvrez la configuration des dés et choisissez les dés physiques RollSight par défaut ; vérifiez les réglages propres à chaque dé.",
+  "ROLLSIGHT.DiceConfigure": "Configurer les dés"
 }

@@ -1,5 +1,7 @@
 # RollSight physical dice
 
+In Foundry, open RollSight settings and copy your player code. In Game Settings → Core → Dice, set Default Method to RollSight physical dice and save. Check any per-die overrides. Start the roll in Foundry and wait for the RollSight prompt before rolling physical dice.
+
 ## Link this world (GM)
 
 The GM must link this world before you can refresh your player code.

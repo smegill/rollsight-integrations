@@ -5,7 +5,7 @@
   "ROLLSIGHT.Extension": "Use the browser extension",
   "ROLLSIGHT.ExtensionHint": "Receive local desktop results through the RollSight extension. Cloud reception is disabled in this mode.",
   "ROLLSIGHT.PlayerCode": "Your RollSight player code",
-  "ROLLSIGHT.PlayerCodeHint": "Copy this personal code into the desktop app. Select RollSight or Manual in Foundry Dice Configuration, then start a roll in Foundry.",
+  "ROLLSIGHT.PlayerCodeHint": "In Foundry, open RollSight settings and copy your player code. In Game Settings → Core → Dice, set Default Method to RollSight physical dice and save. Check any per-die overrides. Start the roll in Foundry and wait for the RollSight prompt before rolling physical dice.",
   "ROLLSIGHT.Manual": "Accept dice for Manual rolls",
   "ROLLSIGHT.ManualHint": "Also fill native Manual prompts. Foundry keeps its normal controls and evaluates modifiers.",
   "ROLLSIGHT.Fallback": "Post dice when no roll is waiting",
@@ -38,5 +38,9 @@
   "ROLLSIGHT.Replay": "RollSight replay",
   "ROLLSIGHT.ReplayHint": "Open the replay; select the image to view it full size.",
   "ROLLSIGHT.ReplayLoading": "Loading replay…",
-  "ROLLSIGHT.ReplayUnavailable": "Replay unavailable. Open the link to try again."
+  "ROLLSIGHT.ReplayUnavailable": "Replay unavailable. Open the link to try again.",
+  "ROLLSIGHT.RollRemaining": "Let Foundry roll the rest",
+  "ROLLSIGHT.DiceReady": "Physical dice configured for every supported die in this browser.",
+  "ROLLSIGHT.DiceSetup": "Some dice still use digital rolls. Open Dice Configuration and select RollSight physical dice as the default; check per-die overrides.",
+  "ROLLSIGHT.DiceConfigure": "Configure dice"
 }
