@@ -29,6 +29,24 @@ test('grouped dice expand fully; malformed deliveries never partially apply', ()
     assert.deepEqual(rollDataToFulfillmentPairs({ dice: [{ shape: 'd20', value: 3 }, { shape: 'd10p', value: 90 }] }), []);
     assert.deepEqual(rollDataToFulfillmentPairs({ formula: '1d20', total: 7 }), []);
 });
+test('percentile components compose only for a pending d100 and retain ordinary d10s otherwise', () => {
+    const percentile = { dice: [{ shape: 'd10p', value: 50 }, { shape: 'd10', value: 7 }] };
+    assert.deepEqual(rollDataToFulfillmentPairs(percentile), [{ denomination: 'd10', value: 7 }]);
+    assert.deepEqual(rollDataToFulfillmentPairs(percentile, { composePercentile: true }), [{ denomination: 'd100', value: 57 }]);
+    assert.deepEqual(rollDataToFulfillmentPairs({ dice: [{ shape: 'd10p', value: 0 }, { shape: 'd10', value: 10 }] }, { composePercentile: true }), [{ denomination: 'd100', value: 100 }]);
+});
+test('a selected d100 resolver receives a percentile pair, while d10 receives its ordinary die', () => {
+    const pending = (faces, denomination = `d${faces}`) => {
+        const values = [];
+        return { values, roll: { options: {} }, fulfillable: new Map([['term', { method: 'manual', term: { faces, denomination } }]]),
+            registerResult(method, denom, value) { if (method !== 'manual' || denom !== denomination || values.length) return false; values.push(value); return true; } };
+    };
+    const data = { roll_id: 'percentile', timestamp: 100000, dice: [{ shape: 'd10p', value: 30 }, { shape: 'd10', value: 4 }] };
+    const percentile = new RollSession({ now: () => 100000 }); percentile.join('player'); const d100 = pending(100); percentile.track(d100);
+    assert.equal(percentile.fulfill(data).consumed, true); assert.deepEqual(d100.values, [34]);
+    const ordinary = new RollSession({ now: () => 100000 }); ordinary.join('player'); const d10 = pending(10); ordinary.track(d10);
+    assert.equal(ordinary.fulfill({ ...data, roll_id: 'ordinary' }).consumed, true); assert.deepEqual(d10.values, [4]);
+});
 test('identical physical values with distinct IDs both fulfill; redelivery does not', () => {
     const { session, resolver, data } = fixture(); const r = resolver(2); session.track(r);
     assert.equal(session.accept(data()), true); assert.equal(session.fulfill(data()).consumed, true);
