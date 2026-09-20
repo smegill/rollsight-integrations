@@ -108,3 +108,10 @@ test('replay links reject executable schemes and embedded credentials', () => {
     for (const url of ['javascript:alert(1)', 'data:text/html,x', 'http://example.com/a', 'https://user:secret@example.com/a']) assert.equal(normalizeRollProofUrl(url), '');
     assert.equal(normalizeRollProofUrl('https://www.rollsight.com/rp/test.gif'), 'https://www.rollsight.com/rp/test.gif');
 });
+
+
+test('a percentile pair without a resolver is allowed through to direct chat', () => {
+    const {session,data} = fixture();
+    assert.deepEqual(session.fulfill(data('percentile',0,{dice:[{shape:'d10p',value:0},{shape:'d10',value:10}]})),
+        {blocked:false,consumed:false});
+});

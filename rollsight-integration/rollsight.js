@@ -262,7 +262,7 @@ export class RollSightIntegration {
         else if (envelope.type === 'chat_text' && this.session.accept(meta)) await this.postChatTextFromBridge(envelope.content);
     }
     createFoundryRoll(data) {
-        const pairs = rollDataToFulfillmentPairs(data);
+        const pairs = rollDataToFulfillmentPairs(data, { composePercentile: true });
         if (!pairs.length) return null;
         // Only plain physical dice in unsolicited chat. System formulas/modifiers belong to native resolvers.
         const Roll = getRollClass();

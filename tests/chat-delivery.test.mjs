@@ -24,3 +24,23 @@ test('concurrent chat deliveries use one server document ID and preserve visibil
     await RollSightIntegration.prototype.postRoll.call(integration, roll, {roll_id:'another-physical-roll'});
     assert.equal(messages.size, 2);
 });
+
+
+test('percentile pair reaches direct chat as an evaluated d100, including 00 plus 10', () => {
+    const oldRoll = globalThis.Roll;
+    globalThis.Roll = class {
+        constructor(formula) { this.formula = formula; }
+        toJSON() { return {formula: this.formula, terms: [{faces: 100}]}; }
+        static fromData(data) { return data; }
+    };
+    try {
+        for (const [tens, ones, expected] of [[30,4,34],[0,10,100],[90,10,90]]) {
+            const data = {dice: [{shape:'d10p',value:tens},{shape:'d10',value:ones}]};
+            const roll = RollSightIntegration.prototype.createFoundryRoll.call({},data);
+            assert.equal(roll.formula,'1d100');
+            assert.equal(roll.total,expected);
+            assert.deepEqual(roll.terms[0].results,[{result:expected,active:true}]);
+            assert.equal(roll.evaluated,true);
+        }
+    } finally { globalThis.Roll = oldRoll; }
+});
