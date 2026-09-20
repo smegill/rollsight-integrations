@@ -36,5 +36,7 @@
   "ROLLSIGHT.TestMessage": "RollSight সংযোগ পরীক্ষা।",
   "ROLLSIGHT.RequestLocal": "Foundry-তে রোল শুরু করুন, তারপর ডেস্কটপ অ্যাপ থেকে বাস্তব পাশা পাঠান। দূরবর্তী ডেস্কটপ রোল অনুরোধ সমর্থিত নয়।",
   "ROLLSIGHT.Replay": "RollSight রিপ্লে",
-  "ROLLSIGHT.ReplayHint": "রিপ্লে খুলুন; পূর্ণ আকারে দেখতে ছবিটি বেছে নিন।"
+  "ROLLSIGHT.ReplayHint": "রিপ্লে খুলুন; পূর্ণ আকারে দেখতে ছবিটি বেছে নিন।",
+  "ROLLSIGHT.ReplayLoading": "রিপ্লে লোড হচ্ছে…",
+  "ROLLSIGHT.ReplayUnavailable": "রিপ্লে পাওয়া যাচ্ছে না। আবার চেষ্টা করতে লিঙ্কটি খুলুন।"
 }

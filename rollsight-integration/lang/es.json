@@ -36,5 +36,7 @@
   "ROLLSIGHT.TestMessage": "Prueba de conexión de RollSight.",
   "ROLLSIGHT.RequestLocal": "Inicia la tirada en Foundry y envía dados físicos desde la app de escritorio. No se admiten solicitudes remotas de tirada al escritorio.",
   "ROLLSIGHT.Replay": "Repetición de RollSight",
-  "ROLLSIGHT.ReplayHint": "Abre la repetición; selecciona la imagen para verla a tamaño completo."
+  "ROLLSIGHT.ReplayHint": "Abre la repetición; selecciona la imagen para verla a tamaño completo.",
+  "ROLLSIGHT.ReplayLoading": "Cargando repetición…",
+  "ROLLSIGHT.ReplayUnavailable": "Repetición no disponible. Abre el enlace para volver a intentarlo."
 }

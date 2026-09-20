@@ -36,5 +36,7 @@
   "ROLLSIGHT.TestMessage": "RollSight 连接测试。",
   "ROLLSIGHT.RequestLocal": "在 Foundry 中发起掷骰，然后从桌面应用发送实体骰子。不支持远程桌面掷骰请求。",
   "ROLLSIGHT.Replay": "RollSight 回放",
-  "ROLLSIGHT.ReplayHint": "打开回放；选择图像以查看原始大小。"
+  "ROLLSIGHT.ReplayHint": "打开回放；选择图像以查看原始大小。",
+  "ROLLSIGHT.ReplayLoading": "正在加载回放…",
+  "ROLLSIGHT.ReplayUnavailable": "回放暂不可用。请打开链接重试。"
 }

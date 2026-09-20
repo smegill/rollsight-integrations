@@ -36,5 +36,7 @@
   "ROLLSIGHT.TestMessage": "اختبار اتصال RollSight.",
   "ROLLSIGHT.RequestLocal": "ابدأ الرمية في Foundry، ثم أرسل النرد الحقيقي من تطبيق سطح المكتب. طلبات الرمي عن بُعد إلى سطح المكتب غير مدعومة.",
   "ROLLSIGHT.Replay": "إعادة RollSight",
-  "ROLLSIGHT.ReplayHint": "افتح الإعادة؛ حدد الصورة لعرضها بالحجم الكامل."
+  "ROLLSIGHT.ReplayHint": "افتح الإعادة؛ حدد الصورة لعرضها بالحجم الكامل.",
+  "ROLLSIGHT.ReplayLoading": "جارٍ تحميل الإعادة…",
+  "ROLLSIGHT.ReplayUnavailable": "الإعادة غير متاحة. افتح الرابط للمحاولة مجددًا."
 }

@@ -36,5 +36,7 @@
   "ROLLSIGHT.TestMessage": "Test de connexion RollSight.",
   "ROLLSIGHT.RequestLocal": "Lancez votre jet dans Foundry, puis envoyez les dés physiques depuis l’application de bureau. Les demandes distantes de jet vers le bureau ne sont pas prises en charge.",
   "ROLLSIGHT.Replay": "Ralenti RollSight",
-  "ROLLSIGHT.ReplayHint": "Ouvrez le ralenti ; sélectionnez l’image pour l’afficher en taille réelle."
+  "ROLLSIGHT.ReplayHint": "Ouvrez le ralenti ; sélectionnez l’image pour l’afficher en taille réelle.",
+  "ROLLSIGHT.ReplayLoading": "Chargement de la vidéo du lancer…",
+  "ROLLSIGHT.ReplayUnavailable": "Vidéo du lancer indisponible. Ouvrez le lien pour réessayer."
 }

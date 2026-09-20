@@ -36,5 +36,7 @@
   "ROLLSIGHT.TestMessage": "RollSight کنکشن ٹیسٹ۔",
   "ROLLSIGHT.RequestLocal": "Foundry میں رول شروع کریں، پھر ڈیسک ٹاپ ایپ سے حقیقی پاسے بھیجیں۔ ریموٹ ڈیسک ٹاپ رول درخواستیں معاونت یافتہ نہیں ہیں۔",
   "ROLLSIGHT.Replay": "RollSight ری پلے",
-  "ROLLSIGHT.ReplayHint": "ری پلے کھولیں؛ مکمل سائز دیکھنے کے لیے تصویر منتخب کریں۔"
+  "ROLLSIGHT.ReplayHint": "ری پلے کھولیں؛ مکمل سائز دیکھنے کے لیے تصویر منتخب کریں۔",
+  "ROLLSIGHT.ReplayLoading": "ری پلے لوڈ ہو رہا ہے…",
+  "ROLLSIGHT.ReplayUnavailable": "ری پلے دستیاب نہیں ہے۔ دوبارہ کوشش کرنے کے لیے لنک کھولیں۔"
 }

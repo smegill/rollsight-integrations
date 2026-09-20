@@ -36,5 +36,7 @@
   "ROLLSIGHT.TestMessage": "Teste de conexão do RollSight.",
   "ROLLSIGHT.RequestLocal": "Inicie sua rolagem no Foundry e envie dados físicos pelo aplicativo de desktop. Solicitações remotas de rolagem ao desktop não são compatíveis.",
   "ROLLSIGHT.Replay": "Replay do RollSight",
-  "ROLLSIGHT.ReplayHint": "Abra o replay; selecione a imagem para ver em tamanho completo."
+  "ROLLSIGHT.ReplayHint": "Abra o replay; selecione a imagem para ver em tamanho completo.",
+  "ROLLSIGHT.ReplayLoading": "Carregando a repetição…",
+  "ROLLSIGHT.ReplayUnavailable": "Repetição indisponível. Abra o link para tentar novamente."
 }

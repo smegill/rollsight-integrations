@@ -36,5 +36,7 @@
   "ROLLSIGHT.TestMessage": "RollSight connection test.",
   "ROLLSIGHT.RequestLocal": "Start your roll in Foundry, then send physical dice from the desktop app. Remote desktop roll requests are not supported.",
   "ROLLSIGHT.Replay": "RollSight replay",
-  "ROLLSIGHT.ReplayHint": "Open the replay; select the image to view it full size."
+  "ROLLSIGHT.ReplayHint": "Open the replay; select the image to view it full size.",
+  "ROLLSIGHT.ReplayLoading": "Loading replay…",
+  "ROLLSIGHT.ReplayUnavailable": "Replay unavailable. Open the link to try again."
 }

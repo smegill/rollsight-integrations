@@ -62,7 +62,8 @@ export function buildRollReplayInjectHtml(rollData) {
   <div class="rollsight-roll-replay-panel">
     <figure class="rollsight-roll-proof-figure">
       <a class="rollsight-roll-replay-preview-link" href="${href}" target="_blank" rel="noopener noreferrer" title="${escapeAttr(localize("ReplayHint"))}">
-        <img src="${href}" alt="" class="rollsight-roll-proof-gif rollsight-roll-replay-gif" width="480" loading="lazy" decoding="async" referrerpolicy="no-referrer" role="presentation" />
+        <span class="rollsight-replay-loading" role="status" dir="auto">${escapeAttr(localize("ReplayLoading"))}</span>
+        <img alt="" class="rollsight-roll-proof-gif rollsight-roll-replay-gif" width="480" hidden decoding="async" referrerpolicy="no-referrer" role="presentation" />
       </a>
     </figure>
   </div>

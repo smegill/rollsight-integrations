@@ -144,6 +144,17 @@
   opacity: 0.92;
 }
 
+.chat-message .rollsight-replay-loading {
+  display: inline-block;
+  line-height: 1.4;
+  padding-block: 0.25em;
+  overflow-wrap: anywhere;
+}
+
+.chat-message .rollsight-roll-replay-preview-link [hidden] {
+  display: none;
+}
+
 .chat-message .rollsight-roll-proof-figure {
   margin: 0;
   text-align: center;

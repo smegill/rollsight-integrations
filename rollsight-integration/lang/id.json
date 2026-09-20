@@ -36,5 +36,7 @@
   "ROLLSIGHT.TestMessage": "Uji koneksi RollSight.",
   "ROLLSIGHT.RequestLocal": "Mulai lemparan di Foundry, lalu kirim dadu fisik dari aplikasi desktop. Permintaan lemparan desktop jarak jauh tidak didukung.",
   "ROLLSIGHT.Replay": "Tayangan ulang RollSight",
-  "ROLLSIGHT.ReplayHint": "Buka tayangan ulang; pilih gambar untuk melihat ukuran penuh."
+  "ROLLSIGHT.ReplayHint": "Buka tayangan ulang; pilih gambar untuk melihat ukuran penuh.",
+  "ROLLSIGHT.ReplayLoading": "Memuat tayangan ulang…",
+  "ROLLSIGHT.ReplayUnavailable": "Tayangan ulang tidak tersedia. Buka tautan untuk mencoba lagi."
 }

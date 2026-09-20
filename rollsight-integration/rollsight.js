@@ -4,6 +4,7 @@ import { RollSession } from './roll-session.js';
 import { CloudRelay } from './cloud-relay.js';
 import { ConsumerCoordinator, deliveryMessageId } from './consumer-coordinator.js';
 import { buildRollReplayInjectHtml, rollReplaySerializablePayload } from './roll-proof-html.js';
+import { bindReplayPreview } from './replay-preview.js';
 
 export const NS = 'rollsight-integration';
 export const t = (key, args = {}) => game.i18n.format(`ROLLSIGHT.${key}`, args);
@@ -323,22 +324,12 @@ export class RollSightIntegration {
         if (!fragment) return;
         (root.querySelector('.message-content') ?? root).insertAdjacentHTML('beforeend', fragment);
         const details = root.querySelector('.rollsight-roll-replay-details');
-        const img = details?.querySelector('img');
-        if (!img) return;
-        let timer, started;
-        const stop = () => { clearInterval(timer); timer = null; };
-        details.addEventListener('toggle', () => {
-            stop();
-            if (!details.open) return;
-            started = Date.now();
-            timer = setInterval(() => {
-                if (!details.isConnected || !details.open || img.naturalWidth || Date.now() - started > Math.min(300, Math.max(1, this.setting('rollReplayRefreshMaxSeconds'))) * 1000) return stop();
-                const url = new URL(details.dataset.rollsightProofUrl);
-                url.searchParams.set('rs', String(Date.now())); img.src = url.href;
-            }, Math.max(1, this.setting('rollReplayRefreshEverySeconds')) * 1000);
+        if (details) bindReplayPreview(details, {
+            autoExpand: this.setting('autoExpandRollReplay'),
+            intervalMs: Math.max(1, this.setting('rollReplayRefreshEverySeconds')) * 1000,
+            maxMs: Math.min(300, Math.max(1, this.setting('rollReplayRefreshMaxSeconds'))) * 1000,
+            unavailable: t('ReplayUnavailable'),
         });
-        img.addEventListener('load', stop);
-        details.open = this.setting('autoExpandRollReplay');
     }
 }
 
