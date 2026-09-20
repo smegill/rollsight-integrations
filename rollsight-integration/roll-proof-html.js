@@ -17,7 +17,10 @@ export function normalizeRollProofUrl(url) {
     if (m && /supabase\.co/i.test(s)) {
         return `${_BRANDED_RP_BASE}/${m[1]}`;
     }
-    return s;
+    try {
+        const url = new URL(s);
+        return url.protocol === "https:" && !url.username && !url.password ? url.href : "";
+    } catch (_) { return ""; }
 }
 
 /**
@@ -43,21 +46,24 @@ export function rollReplaySerializablePayload(rollData) {
 export function buildRollReplayInjectHtml(rollData) {
     if (!rollData?.roll_proof_url) return "";
     const url = normalizeRollProofUrl(rollData.roll_proof_url);
+    if (!url) return "";
+    const localize = key => globalThis.game?.i18n?.localize(`ROLLSIGHT.${key}`) ?? key;
     const escapeAttr = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
     const href = escapeAttr(url);
     return `
 <details class="rollsight-roll-replay-details" data-rollsight-proof-url="${href}">
-  <summary class="rollsight-roll-replay-summary" title="Expand for RollSight replay; click the image for full size in your browser">
+  <summary class="rollsight-roll-replay-summary" title="${escapeAttr(localize("ReplayHint"))}">
     <span class="rollsight-roll-replay-summary-row">
       <span class="rollsight-roll-proof-icon" aria-hidden="true">&#127922;</span>
-      <span class="rollsight-roll-proof-label">RollSight Replay</span>
+      <span class="rollsight-roll-proof-label">${escapeAttr(localize("Replay"))}</span>
       <span class="rollsight-roll-proof-chevron" aria-hidden="true"></span>
     </span>
   </summary>
   <div class="rollsight-roll-replay-panel">
     <figure class="rollsight-roll-proof-figure">
-      <a class="rollsight-roll-replay-preview-link" href="${href}" target="_blank" rel="noopener noreferrer" title="Open full-size RollSight replay">
-        <img src="${href}" alt="" class="rollsight-roll-proof-gif rollsight-roll-replay-gif" width="480" loading="lazy" decoding="async" referrerpolicy="no-referrer" role="presentation" />
+      <a class="rollsight-roll-replay-preview-link" href="${href}" target="_blank" rel="noopener noreferrer" title="${escapeAttr(localize("ReplayHint"))}">
+        <span class="rollsight-replay-loading" role="status" dir="auto">${escapeAttr(localize("ReplayLoading"))}</span>
+        <img alt="" class="rollsight-roll-proof-gif rollsight-roll-replay-gif" width="480" hidden decoding="async" referrerpolicy="no-referrer" role="presentation" />
       </a>
     </figure>
   </div>

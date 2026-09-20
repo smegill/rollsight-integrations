@@ -1,90 +1,39 @@
-/**
- * Fulfillment Provider for RollSight Integration
- *
- * We do not register RollSight as a CONFIG.Dice.fulfillment method.
- * Users set Dice Configuration to Manual for dice they use with RollSight;
- * we replace the manual dialog with a RollSight prompt and feed physical dice
- * via Roll.registerResult("manual", ...) when we receive them.
- */
+/** Public dice fulfillment contract shared by Foundry 12–14. */
+export const getRollClass = () => globalThis.foundry?.dice?.Roll
+    ?? globalThis.foundry?.dice?.rolls?.Roll ?? globalThis.Roll;
 
-const METHOD_ID = "rollsight";
-
-/**
- * No-op: we no longer register RollSight as a dice fulfillment method.
- * Only Manual is used; the module feeds rolls into the Manual resolver.
- */
 export function registerFulfillmentMethod() {
-  // Intentionally do not add CONFIG.Dice.fulfillment.methods.rollsight.
-  // Users configure dice as Manual; we inject RollSight results into that resolver.
+    const methods = globalThis.CONFIG?.Dice?.fulfillment?.methods;
+    if (methods) methods.rollsight = { label: 'ROLLSIGHT.Method', icon: '<i class="fas fa-dice"></i>', interactive: true };
 }
 
-/**
- * Map RollSight die shape to Foundry denomination string.
- * Handles d10p (percentile tens) as "d10" for fulfillment;
- * d100 is typically built from d10p + d10 in RollResolver.
- */
 export function shapeToDenomination(shape) {
-  if (!shape || typeof shape !== "string") return null;
-  const s = shape.toLowerCase();
-  if (["d4", "d6", "d8", "d10", "d12", "d20", "d100"].includes(s)) return s;
-  if (s === "d10p") return "d10"; // percentile tens
-  const match = s.match(/^d(\d+)(p)?$/);
-  return match ? `d${match[1]}` : null;
+    const s = String(shape ?? '').toLowerCase();
+    return /^d(?:4|6|8|10|12|20|100)$/.test(s) ? s : null;
 }
 
-/**
- * Build ordered list of { denomination, value } from RollSight roll payload.
- * Preserves order so we can feed RollResolver one result per fulfillable term.
- */
-export function rollDataToFulfillmentPairs(rollData) {
-  const pairs = [];
-  const dice = rollData?.dice;
-  if (!Array.isArray(dice)) {
-    if (
-      rollData?.total !== undefined &&
-      (rollData?.formula === "1d20" || rollData?.formula === "d20")
-    ) {
-      pairs.push({ denomination: "d20", value: Number(rollData.total) });
+/** Reject the entire delivery if any die is invalid. Never infer a die from a total. */
+export function rollDataToFulfillmentPairs(data) {
+    if (!Array.isArray(data?.dice) || !data.dice.length || data.dice.length > 1000) return [];
+    const pairs = [];
+    for (const die of data.dice) {
+        if (!die || typeof die !== 'object') return [];
+        const denomination = shapeToDenomination(die.shape ?? `d${die.faces}`);
+        if (!denomination) return []; // d10p needs explicit percentile composition in the desktop.
+        const values = die.value !== undefined ? [die.value] : die.results;
+        if (!Array.isArray(values) || !values.length) return [];
+        for (const raw of values) {
+            const value = typeof raw === 'object' ? raw?.result : raw;
+            if (!Number.isInteger(value) || value < 1 || value > Number(denomination.slice(1))) return [];
+            pairs.push({ denomination, value });
+            if (pairs.length > 1000) return [];
+        }
     }
     return pairs;
-  }
-  for (const d of dice) {
-    const shape = d.shape || (d.faces ? `d${d.faces}` : null);
-    const denom = shapeToDenomination(shape);
-    const value =
-      d.value !== undefined
-        ? Number(d.value)
-        : d.results?.[0] != null
-          ? Number(d.results[0])
-          : NaN;
-    if (denom && !Number.isNaN(value)) pairs.push({ denomination: denom, value });
-  }
-  return pairs;
 }
 
-/**
- * Try to consume roll data with the active RollResolver via Roll.registerResult.
- * Uses "manual" only (RollSight is not a config option; users set Manual and we feed into it).
- */
-export function tryFulfillActiveResolver(rollData) {
-  const Roll =
-    typeof foundry !== "undefined" && foundry.dice?.rolls?.Roll
-      ? foundry.dice.rolls.Roll
-      : globalThis.Roll;
-  if (!Roll?.registerResult) return false;
-  const pairs = rollDataToFulfillmentPairs(rollData);
-  let consumed = false;
-  const methodsToTry = ["manual"];
-  for (const { denomination, value } of pairs) {
-    for (const method of methodsToTry) {
-      try {
-        const result = Roll.registerResult(method, denomination, value);
-        if (result === true) {
-          consumed = true;
-          break;
-        }
-      } catch (_) {}
-    }
-  }
-  return consumed;
+export function resolverMethods(resolver, acceptManual = true) {
+    if (!(resolver?.fulfillable instanceof Map)) return new Set();
+    return new Set([...resolver.fulfillable.values()].map(d => d.method)
+        .filter(m => m === 'rollsight' || (acceptManual && m === 'manual')));
 }

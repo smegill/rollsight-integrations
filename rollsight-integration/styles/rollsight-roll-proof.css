@@ -144,6 +144,17 @@
   opacity: 0.92;
 }
 
+.chat-message .rollsight-replay-loading {
+  display: inline-block;
+  line-height: 1.4;
+  padding-block: 0.25em;
+  overflow-wrap: anywhere;
+}
+
+.chat-message .rollsight-roll-replay-preview-link [hidden] {
+  display: none;
+}
+
 .chat-message .rollsight-roll-proof-figure {
   margin: 0;
   text-align: center;
@@ -294,3 +305,11 @@ button.rollsight-code-copy,
 button.rollsight-code-refresh {
   min-width: 2rem;
 }
+
+.rollsight-native-prompt { padding: 0.6rem; border: 1px solid var(--color-border-light-primary, #888); margin-block-end: 0.7rem; }
+.rollsight-native-prompt p { overflow-wrap: anywhere; margin-block: 0 0.5rem; }
+.rollsight-native-prompt button, .rollsight-code-actions button { white-space: normal; height: auto; min-height: 2rem; flex: 1 1 10rem; }
+.rollsight-code-actions { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-block-start: 0.4rem; width: 100%; }
+
+.rollsight-prompt-logo { display: block; width: 9rem; max-width: 100%; height: auto; max-height: 3.5rem; object-fit: contain; margin-block-end: 0.6rem; border: 0; }
+.roll-resolver:has(.rollsight-native-prompt) .form-footer button { white-space: normal; height: auto; min-height: 2rem; overflow-wrap: anywhere; }
