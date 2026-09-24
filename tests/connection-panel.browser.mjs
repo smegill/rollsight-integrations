@@ -24,12 +24,13 @@ try {
  await page.goto(`http://127.0.0.1:${server.address().port}/`);
  await page.getByRole('button',{name:'Connect RollSight'}).click();
  assert.equal(await page.locator('#rollsight-connect-code').inputValue(),'TESTCODE');
+ assert.equal(await page.getByRole('button',{name:'Reconnect to RollSight',exact:true}).isVisible(),false);
  await page.getByRole('button',{name:'Copy code',exact:true}).click();
  await page.waitForFunction(()=>messages.length>0);
  await page.evaluate(()=>{game.rollsight.currentPlayerCode='';game.rollsight.status='CodeError';Hooks.callAll('rollsightConnectionChanged')});
  assert.equal(await page.locator('#rollsight-connect-code').inputValue(),'');
  assert.equal(await page.getByRole('button',{name:'Copy code',exact:true}).isEnabled(),false);
- await page.getByRole('button',{name:'Try connecting again'}).click();
+ await page.getByRole('button',{name:'Reconnect to RollSight'}).click();
  assert.equal(await page.locator('#rollsight-connect-code').inputValue(),'FRESHKEY');
  assert.equal(await page.getByRole('button',{name:'Set up this world'}).isVisible(),false);
  await page.screenshot({path:'/tmp/rollsight-connection-panel.png'});

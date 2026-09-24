@@ -36,9 +36,9 @@ Post plain physical dice using your current chat visibility. Start initiative, a
 
 Open the replay; select the image to view it full size.
 
-## Try connecting again
+## Reconnect to RollSight
 
-RollSight could not connect. Open Connect RollSight in the Settings sidebar and choose Try connecting again.
+RollSight could not connect. Open Connect RollSight in the Settings sidebar and choose Reconnect to RollSight.
 
 Another tab is receiving RollSight dice for this player. Close it, then refresh this connection.
 

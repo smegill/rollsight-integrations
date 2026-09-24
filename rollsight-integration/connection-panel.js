@@ -44,7 +44,7 @@ export function openConnectionPanel() {
         const state=integration?.status || 'Disconnected';
         const key=!active?'ConnectStopped':extension?'ConnectExtension':!linked?'NotLinked':state==='Connected'?'ConnectReady':state==='Connecting'?'ConnectChecking':state==='Reconnecting'?'ConnectRetrying':state;
         status.textContent=text(key);
-        retry.hidden=!active || extension || !linked;
+        retry.hidden=!active || extension || !linked || ['Connected','Connecting','AnotherTab'].includes(state);
         retry.disabled=busy || state==='Connecting';
         link.hidden=!game.user.isGM || linked || extension || !active;
         link.disabled=busy;
