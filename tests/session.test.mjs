@@ -115,3 +115,34 @@ test('a percentile pair without a resolver is allowed through to direct chat', (
     assert.deepEqual(session.fulfill(data('percentile',0,{dice:[{shape:'d10p',value:0},{shape:'d10',value:10}]})),
         {blocked:false,consumed:false});
 });
+
+test('percentile composition covers every possible value and preserves leftover dice', () => {
+    for (let tens=0; tens<=90; tens+=10) for (let ones=1; ones<=10; ones++) {
+        const result = rollDataToFulfillmentPairs({dice:[{shape:'d10p',value:tens},{shape:'d10',value:ones}]}, {composePercentile:true});
+        assert.deepEqual(result,[{denomination:'d100',value:(tens + ones % 10) || 100}]);
+    }
+    const result = rollDataToFulfillmentPairs({dice:[{shape:'d10p',results:[20,80]},{shape:'d10',results:[3,10,7]},{shape:'d6',value:5}]}, {composePercentile:true});
+    assert.deepEqual(result,[{denomination:'d6',value:5},{denomination:'d100',value:23},{denomination:'d100',value:80},{denomination:'d10',value:7}]);
+});
+
+test('invalid or oversized percentile deliveries never partially apply', () => {
+    for (const value of [-10,100,15,1.5,'30',NaN]) {
+        assert.deepEqual(rollDataToFulfillmentPairs({dice:[{shape:'d6',value:2},{shape:'d10p',value},{shape:'d10',value:4}]},{composePercentile:true}),[]);
+    }
+    assert.deepEqual(rollDataToFulfillmentPairs({dice:[{shape:'d10p',results:[20,30]},{shape:'d10',value:1}]},{composePercentile:true}),[]);
+    assert.deepEqual(rollDataToFulfillmentPairs({dice:[{shape:'d10p',results:Array(1001).fill(10)},{shape:'d10',results:Array(1001).fill(1)}]},{composePercentile:true}),[]);
+});
+
+test('excess percentile results cannot spill into another request or chat', () => {
+    const {session} = fixture();
+    const values=[];
+    const resolver={roll:{options:{}},fulfillable:new Map([['term',{method:'manual',term:{faces:100}}]]),
+        registerResult(method,denomination,value) { if(method!=='manual'||denomination!=='d100'||values.length) return false; values.push(value); return true; }};
+    session.track(resolver);
+    const data={dice:[{shape:'d10p',results:[30,70]},{shape:'d10',results:[4,2]}]};
+    assert.equal(session.fulfill(data).consumed,true);
+    assert.deepEqual(values,[34]);
+    const exhausted=session.fulfill(data);
+    assert.equal(exhausted.blocked,true); assert.equal(exhausted.consumed,false);
+    assert.deepEqual(values,[34]);
+});

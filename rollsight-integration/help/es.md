@@ -42,6 +42,6 @@ RollSight no pudo conectarse. Comprueba el vínculo del mundo y actualiza tu có
 
 Otra pestaña recibe los dados de RollSight para este jugador. Ciérrala y actualiza esta conexión.
 
-No se aceptaron los dados. Envía valores enteros dentro del rango de cada dado; combina primero los dados percentiles en la app de escritorio.
+No se aceptaron los dados. Envía valores enteros dentro del rango de cada dado.
 
 RollSight no pudo aplicar este envío. Revisa la tirada pendiente antes de volver a enviar.

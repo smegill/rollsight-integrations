@@ -32,63 +32,16 @@
         field.dir = 'ltr';
         field.autocomplete = 'off';
         field.spellcheck = false;
+        // One connection flow is shared with the prominent sidebar shortcut.
         const actions = root.ownerDocument.createElement('div');
         actions.className = 'rollsight-code-actions';
-        actions.dir = ['ar', 'ur'].includes(game.i18n.lang) ? 'rtl' : 'ltr';
-        const addButton = (label, action) => {
-            const button = root.ownerDocument.createElement('button');
-            button.type = 'button'; button.textContent = text(label);
-            button.addEventListener('click', async () => {
-                button.disabled = true;
-                try { await action(); }
-                catch (error) { console.error('RollSight | Settings action failed', error); ui.notifications.error(text('CodeError')); }
-                finally { button.disabled = false; }
-            });
-            actions.append(button);
-        };
-        addButton('Copy', async () => {
-            if (!field.value) return ui.notifications.warn(text('NotLinked'));
-            try { await navigator.clipboard.writeText(field.value); ui.notifications.info(text('Copied')); }
-            catch (_) { field.focus(); field.select(); ui.notifications.warn(text('CopyManually')); }
-        });
-        addButton('Refresh', async () => {
-            await game.rollsight?.connect();
-            field.value = game.settings.get(ns, 'cloudPlayerKey');
-        });
-        if (game.user.isGM) addButton('LinkWorld', async () => {
-            await game.rollsight?._autoProvisionRollSightCloudRelay();
-            await game.rollsight?.connect();
-            field.value = game.settings.get(ns, 'cloudPlayerKey');
-        });
-        const setup = root.ownerDocument.createElement('p');
-        setup.className = 'rollsight-dice-setup';
-        setup.dir = actions.dir;
-        setup.setAttribute('role', 'status');
-        const updateSetup = () => {
-            const RollClass = globalThis.foundry?.dice?.Roll ?? globalThis.Roll;
-            const key = RollClass?.DICE_CONFIGURATION_SETTING ?? 'diceConfiguration';
-            const config = game.settings.get('core', key) ?? {};
-            const acceptManual = game.settings.get(ns, 'replaceManualDialog') && game.user.hasPermission('MANUAL_ROLLS');
-            const ready = ['d4', 'd6', 'd8', 'd10', 'd12', 'd20', 'd100'].every(die => {
-                const method = config[die] || config.default || CONFIG.Dice.fulfillment.defaultMethod;
-                return method === 'rollsight' || (method === 'manual' && acceptManual);
-            });
-            setup.textContent = text(ready ? 'DiceReady' : 'DiceSetup');
-        };
-        addButton('DiceConfigure', () => {
-            const RollClass = globalThis.foundry?.dice?.Roll ?? globalThis.Roll;
-            const key = RollClass?.DICE_CONFIGURATION_SETTING ?? 'diceConfiguration';
-            const menu = game.settings.menus.get(`core.${key}`);
-            if (menu?.type) new menu.type().render(true);
-        });
-        updateSetup();
-        const hook = Hooks.on('closeDiceConfig', updateSetup);
-        const closeHook = Hooks.on('closeSettingsConfig', closed => {
-            if (closed !== app) return;
-            Hooks.off('closeDiceConfig', hook);
-            Hooks.off('closeSettingsConfig', closeHook);
-        });
-        field.after(actions, setup);
+        const button = root.ownerDocument.createElement('button');
+        button.type = 'button'; button.textContent = text('ConnectTitle');
+        button.addEventListener('click', () => game.rollsight?.openConnection());
+        actions.append(button);
+        field.hidden = true;
+        field.after(actions);
+
     };
     Hooks.on('renderSettingsConfig', mount);
 })();

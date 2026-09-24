@@ -42,6 +42,6 @@ RollSight n’a pas pu se connecter. Vérifiez le lien du monde et actualisez vo
 
 Un autre onglet reçoit les dés RollSight pour ce joueur. Fermez-le, puis actualisez cette connexion.
 
-Les dés ont été refusés. Envoyez des entiers dans la plage de chaque dé ; combinez d’abord les dés de pourcentage dans l’application de bureau.
+Les dés ont été refusés. Envoyez des entiers dans la plage de chaque dé.
 
 RollSight n’a pas pu appliquer cet envoi. Vérifiez le jet en attente avant de renvoyer.

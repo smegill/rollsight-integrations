@@ -24,7 +24,7 @@
   "ROLLSIGHT.AnotherTab": "Outra janela do Foundry está recebendo dados para este jogador. Feche essa janela para usar esta.",
   "ROLLSIGHT.NoTabLock": "Este navegador não pode coordenar abas. Use apenas uma aba do Foundry por jogador do RollSight.",
   "ROLLSIGHT.TimedOut": "O RollSight pausou esta rolagem após cinco minutos. Escolha Usar esta rolagem para continuar ou conclua manualmente no Foundry.",
-  "ROLLSIGHT.InvalidDice": "Os dados não foram aceitos. Envie valores inteiros no intervalo de cada dado; combine primeiro os dados percentuais no aplicativo de desktop.",
+  "ROLLSIGHT.InvalidDice": "Os dados não foram aceitos. Envie valores inteiros no intervalo de cada dado.",
   "ROLLSIGHT.ChooseRoll": "Escolha Usar esta rolagem na solicitação do Foundry que deve receber seus dados.",
   "ROLLSIGHT.UseThisRoll": "Usar esta rolagem",
   "ROLLSIGHT.StopReceiving": "Parar de receber dados",

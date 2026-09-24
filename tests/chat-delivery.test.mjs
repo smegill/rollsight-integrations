@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-globalThis.Hooks = { once() {} };
+globalThis.Hooks = { once() {}, on() {} };
 const { RollSightIntegration } = await import('../rollsight-integration/rollsight.js');
 
 test('concurrent chat deliveries use one server document ID and preserve visibility options', async () => {

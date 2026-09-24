@@ -24,7 +24,7 @@
   "ROLLSIGHT.AnotherTab": "Otra ventana de Foundry está recibiendo dados para este jugador. Cierra esa ventana para usar esta.",
   "ROLLSIGHT.NoTabLock": "Este navegador no puede coordinar pestañas. Usa una sola pestaña de Foundry por jugador de RollSight.",
   "ROLLSIGHT.TimedOut": "RollSight pausó esta tirada tras cinco minutos. Elige Usar esta tirada para continuar o complétala manualmente en Foundry.",
-  "ROLLSIGHT.InvalidDice": "No se aceptaron los dados. Envía valores enteros dentro del rango de cada dado; combina primero los dados percentiles en la app de escritorio.",
+  "ROLLSIGHT.InvalidDice": "No se aceptaron los dados. Envía valores enteros dentro del rango de cada dado.",
   "ROLLSIGHT.ChooseRoll": "Elige Usar esta tirada en la solicitud de Foundry que deba recibir tus dados.",
   "ROLLSIGHT.UseThisRoll": "Usar esta tirada",
   "ROLLSIGHT.StopReceiving": "Dejar de recibir dados",

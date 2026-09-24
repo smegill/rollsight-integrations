@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { createHash, webcrypto } from 'node:crypto';
 import { sha256, randomConsumerId } from '../rollsight-integration/browser-crypto.js';
 import { deliveryMessageId } from '../rollsight-integration/consumer-coordinator.js';
-globalThis.Hooks = { once() {} };
+globalThis.Hooks = { once() {}, on() {} };
 const { RollSightIntegration } = await import('../rollsight-integration/rollsight.js');
 
 function httpCrypto(t) {

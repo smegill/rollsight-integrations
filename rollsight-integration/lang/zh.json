@@ -24,7 +24,7 @@
   "ROLLSIGHT.AnotherTab": "另一个 Foundry 窗口正在为此玩家接收骰子结果。关闭该窗口以使用此窗口。",
   "ROLLSIGHT.NoTabLock": "此浏览器无法协调标签页。每位 RollSight 玩家请只使用一个 Foundry 标签页。",
   "ROLLSIGHT.TimedOut": "RollSight 在五分钟后暂停了此掷骰。选择“使用此掷骰”以恢复，或在 Foundry 中手动完成。",
-  "ROLLSIGHT.InvalidDice": "骰子未被接受。请发送各骰子范围内的整数值；百分骰请先在桌面应用中合并。",
+  "ROLLSIGHT.InvalidDice": "骰子未被接受。请发送各骰子范围内的整数值。",
   "ROLLSIGHT.ChooseRoll": "请在应接收骰子的 Foundry 提示中选择“使用此掷骰”。",
   "ROLLSIGHT.UseThisRoll": "使用此掷骰",
   "ROLLSIGHT.StopReceiving": "停止接收骰子",

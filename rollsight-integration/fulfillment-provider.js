@@ -16,6 +16,7 @@ export function shapeToDenomination(shape) {
 export function rollDataToFulfillmentPairs(data, { composePercentile = false } = {}) {
     if (!Array.isArray(data?.dice) || !data.dice.length || data.dice.length > 1000) return [];
     const pairs = [], percentileTens = [], tens = [];
+    let valueCount = 0;
     for (const die of data.dice) {
         if (!die || typeof die !== 'object') return [];
         const shape = String(die.shape ?? `d${die.faces}`).toLowerCase();
@@ -24,6 +25,7 @@ export function rollDataToFulfillmentPairs(data, { composePercentile = false } =
         const values = die.value !== undefined ? [die.value] : die.results;
         if (!Array.isArray(values) || !values.length) return [];
         for (const raw of values) {
+            if (++valueCount > 1000) return [];
             const value = typeof raw === 'object' ? raw?.result : raw;
             if (shape === 'd10p') {
                 if (!Number.isInteger(value) || value < 0 || value > 90 || value % 10) return [];
