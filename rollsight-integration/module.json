@@ -2,7 +2,7 @@
   "id": "rollsight-integration",
   "title": "RollSight Real Dice Reader",
   "description": "Integrate physical dice rolls from RollSight into Foundry VTT using Dice Fulfillment for in-context rolls.",
-  "version": "1.1.83",
+  "version": "1.1.84",
   "compatibility": {
     "minimum": "12",
     "verified": "14"
@@ -25,7 +25,7 @@
   "readme": "README.md",
   "url": "https://github.com/smegill/rollsight-integrations",
   "manifest": "https://raw.githubusercontent.com/smegill/rollsight-integrations/main/rollsight-integration/module.json",
-  "download": "https://github.com/smegill/rollsight-integrations/releases/download/v1.1.83/rollsight-integration.zip",
+  "download": "https://github.com/smegill/rollsight-integrations/releases/download/v1.1.84/rollsight-integration.zip",
   "languages": [
     {
       "lang": "en",

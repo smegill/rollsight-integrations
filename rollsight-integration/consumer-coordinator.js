@@ -1,6 +1,8 @@
+import { sha256, randomConsumerId } from './browser-crypto.js';
+
 /** Coordinate a player's receivers through Foundry, across browsers and the desktop client. */
 export class ConsumerCoordinator {
-    constructor({ socket, scope, changed, id = crypto.randomUUID(), now = Date.now, autoTick = true }) {
+    constructor({ socket, scope, changed, id = randomConsumerId(), now = Date.now, autoTick = true }) {
         Object.assign(this, { socket, scope, changed, id, now, autoTick });
         this.peers = new Map();
         this.priority = 0;
@@ -87,7 +89,7 @@ export class ConsumerCoordinator {
 /** Server-enforced identity is the final safeguard against concurrent chat creation. */
 export async function deliveryMessageId(worldId, userId, deliveryId) {
     if (!deliveryId) throw new Error('Missing physical delivery identity');
-    const hash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(JSON.stringify([worldId, userId, deliveryId])));
+    const hash = await sha256(JSON.stringify([worldId, userId, deliveryId]));
     const alphabet = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
     return [...new Uint8Array(hash).slice(0, 16)].map(byte => alphabet[byte % alphabet.length]).join('');
 }

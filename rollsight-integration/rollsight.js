@@ -1,3 +1,4 @@
+import { sha256 } from './browser-crypto.js';
 /** RollSight client integration. Foundry owns roll evaluation, permissions and visibility. */
 import { getRollClass, registerFulfillmentMethod, rollDataToFulfillmentPairs } from './fulfillment-provider.js';
 import { RollSession } from './roll-session.js';
@@ -111,7 +112,7 @@ export class RollSightIntegration {
         }
     }
     async scopeHash(parts) {
-        const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(JSON.stringify(parts)));
+        const digest = await sha256(JSON.stringify(parts));
         return [...new Uint8Array(digest)].map(b => b.toString(16).padStart(2, '0')).join('');
     }
     async _autoProvisionPlayerCodeOnly() {
