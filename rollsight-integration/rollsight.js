@@ -42,8 +42,8 @@ export class RollSightIntegration {
             this.refreshPrompts();
         });
         Hooks.on('closeRollResolver', resolver => this.session.remove(resolver));
-        Hooks.on('closeGame', () => this.disconnect());
-        window.addEventListener('pagehide', () => this.disconnect());
+        Hooks.on('closeGame', () => { this._stopAutoWorldLink(); this.disconnect(); });
+        window.addEventListener('pagehide', () => { this._stopAutoWorldLink(); this.disconnect(); });
         window.addEventListener('message', event => {
             if (event.source !== window || event.origin !== window.location.origin || !this.setting('desktopBridgePoll')) return;
             const data = event.data;
@@ -65,6 +65,7 @@ export class RollSightIntegration {
         const renderReplay = (message, html) => this.renderReplay(message, html);
         Hooks.on('renderChatMessage', renderReplay);
         Hooks.on('renderChatMessageHTML', renderReplay);
+        this._startAutoWorldLink();
         void this.connect();
     }
     disconnect() {
@@ -147,9 +148,9 @@ export class RollSightIntegration {
         } finally { clearTimeout(timeout); }
     }
     async _autoProvisionRollSightCloudRelay() {
-        // Explicit GM action; settings rendering never creates cloud rooms.
+        // Also used by the elected GM at world readiness. Never create from settings rendering.
         if (!game.user.isGM) return;
-        if (this.setting('cloudRoomKey')) return this.connect();
+        if (this.setting('cloudRoomKey')) return;
         if (this.linkPromise) return this.linkPromise;
         this.linkPromise = (async () => {
             const res = await fetch(`${this.apiBase}/rollsight-room/create`, {
@@ -162,6 +163,27 @@ export class RollSightIntegration {
             if (game.user.isGM && !this.setting('cloudRoomKey')) await game.settings.set(NS, 'cloudRoomKey', room);
         })().finally(() => { this.linkPromise = null; });
         return this.linkPromise;
+    }
+    _startAutoWorldLink() {
+        if (!game.user?.isGM || this.setting('desktopBridgePoll') || this.setting('cloudRoomKey') || !game.socket) return;
+        // All GM clients see the same active-user list; only the first active GM participates.
+        const activeGMs = game.users?.filter?.(user => user.active && user.isGM) ?? [game.user];
+        const firstGM = [...activeGMs].sort((a, b) => String(a.id).localeCompare(String(b.id)))[0];
+        if (firstGM?.id !== game.user.id) return;
+        this.worldLinkCoordinator = new ConsumerCoordinator({
+            socket: game.socket, scope: `world-link:${game.world?.id}`, changed: leader => {
+                if (!leader || this.worldLinkAttempted || this.setting('cloudRoomKey') || this.setting('desktopBridgePoll')) return;
+                this.worldLinkAttempted = true;
+                void this._autoProvisionRollSightCloudRelay().catch(() => {
+                    if (!this.setting('cloudRoomKey')) this.setStatus('CodeError');
+                });
+            }
+        });
+        this.worldLinkCoordinator.start();
+    }
+    _stopAutoWorldLink() {
+        this.worldLinkCoordinator?.stop();
+        this.worldLinkCoordinator = null;
     }
     renderPrompt(resolver, element) {
         const root = (element?.nodeType ? element : element?.[0]) ?? resolver.element;
