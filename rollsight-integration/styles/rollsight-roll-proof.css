@@ -334,3 +334,15 @@ dialog.rollsight-connection-panel {
 
 .rollsight-connection-panel button:disabled { opacity: .55; cursor: wait; }
 .rollsight-connection-panel button:focus-visible { outline: 2px solid #91c8ff; outline-offset: 2px; }
+
+/* Make the requested dice the primary content of the native roll prompt. */
+.rollsight-native-prompt .rollsight-request-formula {
+    font-size: clamp(2rem, 6vw, 3rem);
+    font-weight: 800;
+    line-height: 1.2;
+    text-align: center;
+    overflow-wrap: anywhere;
+    margin-block: 0.6rem;
+    font-variant-numeric: tabular-nums;
+}
+.rollsight-native-prompt .rollsight-request-status { text-align: center; font-weight: 400; }

@@ -42,5 +42,18 @@
   "ROLLSIGHT.RollRemaining": "बाकी पासे Foundry को फेंकने दें",
   "ROLLSIGHT.DiceReady": "इस ब्राउज़र में सभी समर्थित पासों के लिए भौतिक पासे कॉन्फ़िगर हैं।",
   "ROLLSIGHT.DiceSetup": "कुछ पासे अभी भी डिजिटल रोल का उपयोग कर रहे हैं। पासों की कॉन्फ़िगरेशन खोलकर RollSight भौतिक पासे को डिफ़ॉल्ट चुनें और हर पासे की अलग सेटिंग जाँचें।",
-  "ROLLSIGHT.DiceConfigure": "पासे कॉन्फ़िगर करें"
+  "ROLLSIGHT.DiceConfigure": "पासे कॉन्फ़िगर करें",
+  "ROLLSIGHT.WaitingTurn": "नया रोल पूरा होने के बाद RollSight यहाँ पासे प्राप्त करेगा।",
+  "ROLLSIGHT.ReadyToRoll": "आपके पासों के लिए तैयार है। पासे फेंकें और RollSight से भेजें।",
+  "ROLLSIGHT.ConnectTitle": "RollSight से कनेक्ट करें",
+  "ROLLSIGHT.Close": "पूर्ण",
+  "ROLLSIGHT.ConnectIntro": "RollSight ऐप से इस Foundry दुनिया में पासे भेजने के लिए अपना खिलाड़ी कोड इस्तेमाल करें।",
+  "ROLLSIGHT.ConnectPaste": "यह कोड कॉपी करें। RollSight ऐप में सत्र शुरू करें → Foundry चुनें और इसे खिलाड़ी कोड वाले फ़ील्ड में पेस्ट करें।",
+  "ROLLSIGHT.ConnectDiceTitle": "भौतिक पासे चुनें",
+  "ROLLSIGHT.ConnectDiceHelp": "पासा कॉन्फ़िगरेशन खोलें और RollSight भौतिक पासों को डिफ़ॉल्ट चुनें। फिर अपने पासे फेंकने से पहले Foundry में रोल शुरू करें।",
+  "ROLLSIGHT.ConnectReady": "आपके पासे प्राप्त करने के लिए तैयार है।",
+  "ROLLSIGHT.ConnectChecking": "आपके कनेक्शन की जाँच हो रही है…",
+  "ROLLSIGHT.ConnectRetrying": "कनेक्शन बाधित हुआ। फिर कोशिश हो रही है…",
+  "ROLLSIGHT.ConnectStopped": "पासे प्राप्त करना बंद है। कनेक्ट करने के लिए गेम सेटिंग में RollSight पासे प्राप्त करें चालू करें।",
+  "ROLLSIGHT.ConnectExtension": "यह ब्राउज़र RollSight एक्सटेंशन इस्तेमाल करता है। खिलाड़ी कोड से कनेक्ट करने के लिए गेम सेटिंग में ब्राउज़र एक्सटेंशन का उपयोग करें बंद करें।"
 }

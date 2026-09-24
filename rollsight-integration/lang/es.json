@@ -42,5 +42,18 @@
   "ROLLSIGHT.RollRemaining": "Dejar que Foundry tire los dados restantes",
   "ROLLSIGHT.DiceReady": "Los dados físicos están configurados para todos los dados compatibles en este navegador.",
   "ROLLSIGHT.DiceSetup": "Algunos dados todavía usan tiradas digitales. Abre la configuración de dados y selecciona los dados físicos de RollSight como método predeterminado; revisa las excepciones para cada dado.",
-  "ROLLSIGHT.DiceConfigure": "Configurar dados"
+  "ROLLSIGHT.DiceConfigure": "Configurar dados",
+  "ROLLSIGHT.WaitingTurn": "RollSight recibirá los dados aquí cuando termine la tirada más reciente.",
+  "ROLLSIGHT.ReadyToRoll": "Listo para tus dados. Tira y envía desde RollSight.",
+  "ROLLSIGHT.ConnectTitle": "Conectar RollSight",
+  "ROLLSIGHT.Close": "Listo",
+  "ROLLSIGHT.ConnectIntro": "Usa tu propio código de jugador para enviar dados desde RollSight a este mundo de Foundry.",
+  "ROLLSIGHT.ConnectPaste": "Copia este código. En RollSight, elige Iniciar sesión → Foundry y pégalo en el campo del código de jugador.",
+  "ROLLSIGHT.ConnectDiceTitle": "Elegir dados físicos",
+  "ROLLSIGHT.ConnectDiceHelp": "Abre Configuración de dados y elige los dados físicos de RollSight como opción predeterminada. Después inicia una tirada en Foundry antes de lanzar tus dados.",
+  "ROLLSIGHT.ConnectReady": "Listo para recibir tus dados.",
+  "ROLLSIGHT.ConnectChecking": "Comprobando la conexión…",
+  "ROLLSIGHT.ConnectRetrying": "Conexión interrumpida. Reintentando…",
+  "ROLLSIGHT.ConnectStopped": "La recepción de dados está desactivada. Activa Recibir dados de RollSight en Configuración del juego para conectar.",
+  "ROLLSIGHT.ConnectExtension": "Este navegador usa la extensión de RollSight. Desactiva Usar la extensión del navegador en Configuración del juego para conectar con un código de jugador."
 }

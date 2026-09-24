@@ -1,3 +1,11 @@
+## v1.1.87 - 2026-09-24
+
+New roll requests automatically receive physical dice, including damage rolls following an attack. The extra “Use this roll” and “Stop receiving dice” buttons have been removed.
+
+The RollSight prompt prominently shows only the physical dice still needed, without the modifiers Foundry applies. When several prompts are open, the newest receives dice first; earlier prompts resume when it closes. Extra dice from a single throw never spill into another request.
+
+Update the module in Foundry Setup, then reload the world and player browser tabs. No desktop update is required.
+
 ## v1.1.82 - 2026-09-05
 
 - **Cloud room:** Long-poll `/events` (hold empty queues ~20s, reconnect immediately) instead of 500ms short-poll. Cuts idle Vercel/Supabase volume ~40×; rolls still return as soon as they are published.

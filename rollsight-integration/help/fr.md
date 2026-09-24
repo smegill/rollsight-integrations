@@ -14,9 +14,7 @@ Lancez votre jet dans Foundry, puis envoyez les dés physiques depuis l’applic
 
 Remplit aussi les demandes manuelles natives. Foundry conserve ses commandes et calcule les modificateurs.
 
-Choisissez Utiliser ce jet sur la demande Foundry qui doit recevoir vos dés.
-
-RollSight a suspendu ce jet après cinq minutes. Choisissez Utiliser ce jet pour reprendre, ou complétez-le manuellement dans Foundry.
+Les nouvelles demandes reçoivent automatiquement les dés. Si plusieurs sont ouvertes, la plus récente est prioritaire ; les précédentes reprennent à sa fermeture.
 
 ## Recevoir les dés RollSight
 

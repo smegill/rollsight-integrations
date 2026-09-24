@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { RollSession } from '../rollsight-integration/roll-session.js';
-import { rollDataToFulfillmentPairs, getRollClass } from '../rollsight-integration/fulfillment-provider.js';
+import { rollDataToFulfillmentPairs, getRollClass, requestedPhysicalDice } from '../rollsight-integration/fulfillment-provider.js';
 import { normalizeRollProofUrl } from '../rollsight-integration/roll-proof-html.js';
 
 function fixture() {
@@ -54,14 +54,30 @@ test('identical physical values with distinct IDs both fulfill; redelivery does 
     assert.equal(session.accept(data('b')), true); session.fulfill(data('b'));
     assert.deepEqual(r.values, [7, 7]);
 });
-test('rerender is idempotent; concurrent identical formulas need explicit selection', () => {
-    const { session, resolver, data } = fixture(); const a = resolver(), b = resolver();
+test('new prompts activate automatically and rerenders do not steal selection', () => {
+    const { session, resolver, data, advance } = fixture(); const a = resolver(), b = resolver();
     const first = session.track(a); assert.equal(session.track(a), first);
-    session.track(b); assert.equal(session.selected, null);
-    assert.equal(session.fulfill(data()).consumed, false);
-    session.select(b); session.fulfill(data());
+    advance(10); session.track(b); session.track(a);
+    assert.equal(session.selected, b);
+    session.fulfill(data());
     assert.deepEqual(a.values, []); assert.deepEqual(b.values, [7]);
-    session.remove(b); assert.equal(session.selected, null);
+    const old = data(); advance(10); session.remove(b);
+    assert.equal(session.selected, a);
+    assert.equal(session.fulfill(old).consumed, false);
+    assert.equal(session.fulfill(data('next')).consumed, true);
+});
+test('a follow-up opened during fulfillment never receives surplus dice from the same throw', () => {
+    const { session, resolver, data } = fixture(); const a = resolver(), b = resolver();
+    const register = a.registerResult.bind(a);
+    a.registerResult = (...args) => {
+        const consumed = register(...args);
+        if (consumed) { session.track(b); session.remove(a); }
+        return consumed;
+    };
+    session.track(a);
+    session.fulfill(data('attack', 7, {dice: [{faces:20,results:[7,9]}]}));
+    assert.equal(session.selected,b); assert.deepEqual(b.values,[]);
+    assert.equal(session.fulfill(data('damage')).consumed,true);
 });
 test('closing a request never sends its correlated result to another resolver or chat', () => {
     const { session, resolver, data } = fixture(); const a = resolver(), b = resolver();
@@ -69,11 +85,11 @@ test('closing a request never sends its correlated result to another resolver or
     assert.deepEqual(session.fulfill(data('a', 7, { request_id: request.id })), { blocked: true, consumed: false });
     assert.deepEqual(b.values, []);
 });
-test('timeouts pause reception without closing or digitally completing the Foundry roll', () => {
+test('open requests keep listening without an inactivity pause', () => {
     const { session, resolver, data, advance, notifications } = fixture(); const r = resolver(); session.track(r);
-    advance(300001); session.expire(); assert.deepEqual(notifications, ['TimedOut']);
-    session.fulfill(data()); assert.deepEqual(r.values, []);
-    session.select(r); session.fulfill(data('b')); assert.deepEqual(r.values, [7]);
+    advance(300001);
+    assert.equal(session.fulfill(data()).consumed,true);
+    assert.deepEqual(r.values,[7]); assert.deepEqual(notifications,[]);
 });
 test('leave, rejoin and recipient boundaries reject old or foreign results', () => {
     const { session, data, advance } = fixture();
@@ -145,4 +161,21 @@ test('excess percentile results cannot spill into another request or chat', () =
     const exhausted=session.fulfill(data);
     assert.equal(exhausted.blocked,true); assert.equal(exhausted.consumed,false);
     assert.deepEqual(values,[34]);
+});
+
+test('physical dice instruction omits modifiers, arithmetic, and digital dice', () => {
+    const r = { roll: {formula:'2d6kh1 + 1d12 + 6 + 1d4'}, fulfillable:new Map([
+        ['a',{method:'rollsight',term:{number:2,faces:6,results:[]}}],
+        ['b',{method:'manual',term:{number:1,faces:12,results:[]}}],
+        ['c',{method:'digital',term:{number:1,faces:4,results:[]}}]
+    ])};
+    assert.equal(requestedPhysicalDice(r),'2d6 + 1d12');
+    assert.equal(requestedPhysicalDice(r,false),'2d6');
+    r.fulfillable.get('a').term.results.push({result:4});
+    assert.equal(requestedPhysicalDice(r),'1d6 + 1d12');
+});
+test('rendered physical instruction counts only empty enabled input slots', () => {
+    const input = (value, disabled, denomination, method='manual') => ({value,disabled,closest:()=>({dataset:{denomination,method}})});
+    const r = { element:{nodeType:1,querySelectorAll:()=>[input('4',false,'d6'),input('',true,'d6'),input('',false,'d12'),input('',false,'d12'),input('',false,'d20','digital')]}};
+    assert.equal(requestedPhysicalDice(r),'2d12');
 });

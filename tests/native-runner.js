@@ -102,10 +102,10 @@ async function run() {
         });
         await test('simultaneous same-formula prompts stay independent', async () => {
             const a = await start('1d20'); const b = await start('1d20');
-            check(module.session.selected === null,'ambiguous prompt auto-selected');
-            module.session.select(b.resolver); await send([{shape:'d20',value:19}]); await done(b,19);
-            check(module.session.selected === null,'completion selected another prompt');
-            module.session.select(a.resolver); await send([{shape:'d20',value:4}]); await done(a,4);
+            check(module.session.selected === b.resolver,'newest prompt not automatically selected');
+            await send([{shape:'d20',value:19}]); await done(b,19);
+            check(module.session.selected === a.resolver,'earlier prompt did not resume');
+            await send([{shape:'d20',value:4}]); await done(a,4);
         });
         await test('invalid delivery does not partially fill', async () => {
             const item = await start('2d6'); await send([{shape:'d6',value:5},{shape:'d6',value:99}],crypto.randomUUID(),{roll_proof_url:'https://example.invalid/unused.gif'});
@@ -114,11 +114,8 @@ async function run() {
             check([...item.resolver.element.querySelectorAll('input')].every(i=>i.value===''),'invalid dice changed form');
             await send([{faces:6,results:[2,3]}]); await done(item,5);
         });
-        await test('pause, stale request and resume', async () => {
-            const item = await start('1d20'); module.session.pause(item.resolver);
-            await send([{shape:'d20',value:20}]);
-            check(item.resolver.element.querySelector('input').value==='','paused prompt accepted dice');
-            module.session.select(item.resolver);
+        await test('automatic reception rejects stale request IDs', async () => {
+            const item = await start('1d20');
             await send([{shape:'d20',value:20}],crypto.randomUUID(),{request_id:'abandoned'});
             check(item.resolver.element.querySelector('input').value==='','stale request accepted');
             await send([{shape:'d20',value:3}]); await done(item,3);

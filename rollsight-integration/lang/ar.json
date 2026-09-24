@@ -42,5 +42,18 @@
   "ROLLSIGHT.RollRemaining": "دع Foundry يرمي النرد المتبقي",
   "ROLLSIGHT.DiceReady": "تم إعداد النرد الحقيقي لكل أنواع النرد المدعومة في هذا المتصفح.",
   "ROLLSIGHT.DiceSetup": "لا تزال بعض أنواع النرد تستخدم الرميات الرقمية. افتح إعدادات النرد واختر نرد RollSight الحقيقي كطريقة افتراضية، وتحقق من الإعدادات الخاصة بكل نوع.",
-  "ROLLSIGHT.DiceConfigure": "إعداد النرد"
+  "ROLLSIGHT.DiceConfigure": "إعداد النرد",
+  "ROLLSIGHT.WaitingTurn": "سيستقبل RollSight النرد هنا بعد انتهاء الرمية الأحدث.",
+  "ROLLSIGHT.ReadyToRoll": "جاهز لاستقبال نردك. ارمِ النرد وأرسله من RollSight.",
+  "ROLLSIGHT.ConnectTitle": "توصيل RollSight",
+  "ROLLSIGHT.Close": "تم",
+  "ROLLSIGHT.ConnectIntro": "استخدم رمز اللاعب الخاص بك لإرسال النرد من تطبيق RollSight إلى عالم Foundry هذا.",
+  "ROLLSIGHT.ConnectPaste": "انسخ هذا الرمز. في تطبيق RollSight، اختر بدء جلسة → Foundry والصقه في حقل رمز اللاعب.",
+  "ROLLSIGHT.ConnectDiceTitle": "اختيار النرد الفعلي",
+  "ROLLSIGHT.ConnectDiceHelp": "افتح إعداد النرد واختر نرد RollSight الفعلي كخيار افتراضي. ثم ابدأ رمية في Foundry قبل رمي نردك.",
+  "ROLLSIGHT.ConnectReady": "جاهز لاستقبال نردك.",
+  "ROLLSIGHT.ConnectChecking": "جارٍ التحقق من الاتصال…",
+  "ROLLSIGHT.ConnectRetrying": "انقطع الاتصال. جارٍ إعادة المحاولة…",
+  "ROLLSIGHT.ConnectStopped": "استقبال النرد متوقف. فعّل استقبال نرد RollSight في إعدادات اللعبة للاتصال.",
+  "ROLLSIGHT.ConnectExtension": "يستخدم هذا المتصفح إضافة RollSight. عطّل استخدام إضافة المتصفح في إعدادات اللعبة للاتصال برمز لاعب."
 }

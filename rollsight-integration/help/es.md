@@ -14,9 +14,7 @@ Inicia la tirada en Foundry y envía dados físicos desde la app de escritorio. 
 
 También rellena las solicitudes manuales nativas. Foundry conserva sus controles y calcula los modificadores.
 
-Elige Usar esta tirada en la solicitud de Foundry que deba recibir tus dados.
-
-RollSight pausó esta tirada tras cinco minutos. Elige Usar esta tirada para continuar o complétala manualmente en Foundry.
+Las nuevas solicitudes reciben dados automáticamente. Si hay varias abiertas, la más reciente recibe primero; las anteriores se reanudan cuando se cierra.
 
 ## Recibir dados de RollSight
 

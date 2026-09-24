@@ -14,9 +14,7 @@ Mulai lemparan di Foundry, lalu kirim dadu fisik dari aplikasi desktop. Perminta
 
 Isi juga permintaan manual bawaan. Foundry mempertahankan kontrol normal dan menghitung pengubah.
 
-Pilih Gunakan lemparan ini pada permintaan Foundry yang harus menerima dadu Anda.
-
-RollSight menjeda lemparan ini setelah lima menit. Pilih Gunakan lemparan ini untuk melanjutkan, atau selesaikan secara manual di Foundry.
+Permintaan lemparan baru menerima dadu secara otomatis. Jika beberapa permintaan terbuka, yang terbaru menerima lebih dahulu; permintaan sebelumnya dilanjutkan saat permintaan terbaru ditutup.
 
 ## Terima dadu RollSight
 

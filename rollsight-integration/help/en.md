@@ -14,9 +14,7 @@ Start your roll in Foundry, then send physical dice from the desktop app. Remote
 
 Also fill native Manual prompts. Foundry keeps its normal controls and evaluates modifiers.
 
-Choose Use this roll on the Foundry prompt that should receive your dice.
-
-RollSight paused this roll after five minutes. Choose Use this roll to resume, or complete it manually in Foundry.
+New roll requests automatically receive dice. If several prompts are open, the newest receives dice first; earlier prompts resume when it closes.
 
 ## Receive RollSight dice
 

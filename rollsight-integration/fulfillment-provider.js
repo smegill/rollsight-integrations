@@ -58,3 +58,28 @@ export function resolverMethods(resolver, acceptManual = true) {
     return new Set([...resolver.fulfillable.values()].map(d => d.method)
         .filter(m => m === 'rollsight' || (acceptManual && m === 'manual')));
 }
+
+/** Describe only unfilled physical dice; Foundry owns modifiers and arithmetic. */
+export function requestedPhysicalDice(resolver, acceptManual = true) {
+    const counts = new Map();
+    const add = (denomination, count) => {
+        if (count > 0 && /^d\d+$/i.test(denomination)) counts.set(denomination, (counts.get(denomination) ?? 0) + count);
+    };
+    const allowed = method => method === 'rollsight' || (acceptManual && method === 'manual');
+    const root = resolver.element?.nodeType ? resolver.element : resolver.element?.[0];
+    const inputs = root?.querySelectorAll?.('label[data-method][data-denomination] > input');
+    if (inputs?.length) {
+        for (const input of inputs) {
+            const label = input.closest('label');
+            if (!input.disabled && input.value === '' && allowed(label.dataset.method)) add(label.dataset.denomination, 1);
+        }
+    } else {
+        for (const { term, method } of resolver.fulfillable?.values?.() ?? []) {
+            if (!term || !allowed(method)) continue;
+            const results = term.results ?? [];
+            const remaining = Math.max(term.number ?? 1, results.length) - results.filter(Boolean).length;
+            add(String(term.denomination ?? `d${term.faces}`), remaining);
+        }
+    }
+    return [...counts].map(([denomination, count]) => `${count}${denomination}`).join(' + ');
+}

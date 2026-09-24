@@ -42,5 +42,18 @@
   "ROLLSIGHT.RollRemaining": "Laisser Foundry lancer les dés restants",
   "ROLLSIGHT.DiceReady": "Les dés physiques sont configurés pour tous les dés pris en charge dans ce navigateur.",
   "ROLLSIGHT.DiceSetup": "Certains dés utilisent encore des jets numériques. Ouvrez la configuration des dés et choisissez les dés physiques RollSight par défaut ; vérifiez les réglages propres à chaque dé.",
-  "ROLLSIGHT.DiceConfigure": "Configurer les dés"
+  "ROLLSIGHT.DiceConfigure": "Configurer les dés",
+  "ROLLSIGHT.WaitingTurn": "RollSight recevra les dés ici une fois le jet le plus récent terminé.",
+  "ROLLSIGHT.ReadyToRoll": "Prêt à recevoir vos dés. Lancez-les et envoyez-les depuis RollSight.",
+  "ROLLSIGHT.ConnectTitle": "Connecter RollSight",
+  "ROLLSIGHT.Close": "Terminé",
+  "ROLLSIGHT.ConnectIntro": "Utilisez votre propre code joueur pour envoyer des dés depuis RollSight vers ce monde Foundry.",
+  "ROLLSIGHT.ConnectPaste": "Copiez ce code. Dans RollSight, choisissez Démarrer une session → Foundry et collez-le dans le champ du code joueur.",
+  "ROLLSIGHT.ConnectDiceTitle": "Choisir des dés physiques",
+  "ROLLSIGHT.ConnectDiceHelp": "Ouvrez Configuration des dés et choisissez les dés physiques RollSight par défaut. Lancez ensuite un jet dans Foundry avant de lancer vos dés.",
+  "ROLLSIGHT.ConnectReady": "Prêt à recevoir vos dés.",
+  "ROLLSIGHT.ConnectChecking": "Vérification de la connexion…",
+  "ROLLSIGHT.ConnectRetrying": "Connexion interrompue. Nouvelle tentative…",
+  "ROLLSIGHT.ConnectStopped": "La réception des dés est désactivée. Activez Recevoir les dés RollSight dans les paramètres du jeu pour vous connecter.",
+  "ROLLSIGHT.ConnectExtension": "Ce navigateur utilise l’extension RollSight. Désactivez Utiliser l’extension du navigateur dans les paramètres du jeu pour vous connecter avec un code joueur."
 }
