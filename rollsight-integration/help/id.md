@@ -42,6 +42,6 @@ RollSight tidak dapat terhubung. Periksa tautan dunia dan segarkan kode pemain d
 
 Tab lain sedang menerima dadu RollSight untuk pemain ini. Tutup tab itu, lalu segarkan koneksi ini.
 
-Dadu tidak diterima. Kirim bilangan bulat dalam rentang setiap dadu; gabungkan dadu persentil di aplikasi desktop terlebih dahulu.
+Dadu tidak diterima. Kirim bilangan bulat dalam rentang setiap dadu.
 
 RollSight tidak dapat menerapkan kiriman ini. Periksa lemparan tertunda sebelum mengirim ulang.

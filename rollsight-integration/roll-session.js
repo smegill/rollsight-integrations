@@ -79,10 +79,15 @@ export class RollSession {
     }
     fulfill(data) {
         this.expire();
-        const pairs = rollDataToFulfillmentPairs(data);
-        if (!pairs.length) { this.notify('InvalidDice'); return { blocked: true, consumed: false }; }
         const request = this.requests.get(this.selected);
         if (data.request_id && data.request_id !== request?.id) return { blocked: true, consumed: false };
+        const expected = request?.resolver?.fulfillable instanceof Map
+            && [...request.resolver.fulfillable.values()].some(entry => {
+                const term = entry?.term ?? entry;
+                return String(term?.denomination ?? `d${term?.faces ?? ''}`).toLowerCase() === 'd100';
+            });
+        const pairs = rollDataToFulfillmentPairs(data, { composePercentile: expected || (!request && !this.requests.size) });
+        if (!pairs.length) { this.notify('InvalidDice'); return { blocked: true, consumed: false }; }
         if (!request || request.paused) {
             if (this.requests.size) this.notify('ChooseRoll');
             return { blocked: this.requests.size > 0, consumed: false };

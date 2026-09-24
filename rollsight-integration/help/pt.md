@@ -42,6 +42,6 @@ O RollSight não conseguiu conectar. Verifique o vínculo do mundo e atualize se
 
 Outra aba recebe os dados do RollSight para este jogador. Feche-a e atualize esta conexão.
 
-Os dados não foram aceitos. Envie valores inteiros no intervalo de cada dado; combine primeiro os dados percentuais no aplicativo de desktop.
+Os dados não foram aceitos. Envie valores inteiros no intervalo de cada dado.
 
 O RollSight não conseguiu aplicar este envio. Verifique a rolagem pendente antes de enviar novamente.

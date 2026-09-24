@@ -1,3 +1,15 @@
+## RollSight Foundry 1.1.84
+
+- Fix player connections to Foundry servers accessed over HTTP, including matching delivery identifiers across HTTP and HTTPS clients.
+- Add Connect RollSight directly to the Settings sidebar, with a prominent player code and clear desktop setup instructions.
+- Simplify module connection actions and show Reconnect to RollSight only when recovery is needed.
+- Hide stale player codes after connection failure.
+- Support percentile dice pairs in requested d100 rolls and direct chat, including 00 + 10 = 100.
+
+Update from Foundry Setup → Add-on Modules, then reload all player browsers. Existing player codes continue to work; no desktop update or database migration is required.
+
+Validation: 41 functional tests pass. The connection-panel browser regression passed before packaging. Live validation on the reported remote server remains pending. New connection-panel translations are deferred to the planned language audit; translation completeness is not claimed for this release.
+
 ## v1.1.81 - 2026-03-31
 
 - **Two d20s, one RollSight send:** Chat shows **Advantage** / **Disadvantage** buttons; choosing one evaluates `2d20kh1` or `2d20kl1` with the physical values (replay preserved). **Legacy:** two separate unsolicited `1d20` within ~3.8s still support **Ctrl** / **Alt** on the second delivery.

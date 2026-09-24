@@ -24,7 +24,7 @@
   "ROLLSIGHT.AnotherTab": "Jendela Foundry lain sedang menerima dadu untuk pemain ini. Tutup jendela tersebut untuk menggunakan jendela ini.",
   "ROLLSIGHT.NoTabLock": "Browser ini tidak dapat mengoordinasikan tab. Gunakan hanya satu tab Foundry per pemain RollSight.",
   "ROLLSIGHT.TimedOut": "RollSight menjeda lemparan ini setelah lima menit. Pilih Gunakan lemparan ini untuk melanjutkan, atau selesaikan secara manual di Foundry.",
-  "ROLLSIGHT.InvalidDice": "Dadu tidak diterima. Kirim bilangan bulat dalam rentang setiap dadu; gabungkan dadu persentil di aplikasi desktop terlebih dahulu.",
+  "ROLLSIGHT.InvalidDice": "Dadu tidak diterima. Kirim bilangan bulat dalam rentang setiap dadu.",
   "ROLLSIGHT.ChooseRoll": "Pilih Gunakan lemparan ini pada permintaan Foundry yang harus menerima dadu Anda.",
   "ROLLSIGHT.UseThisRoll": "Gunakan lemparan ini",
   "ROLLSIGHT.StopReceiving": "Berhenti menerima dadu",

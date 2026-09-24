@@ -313,3 +313,24 @@ button.rollsight-code-refresh {
 
 .rollsight-prompt-logo { display: block; width: 9rem; max-width: 100%; height: auto; max-height: 3.5rem; object-fit: contain; margin-block-end: 0.6rem; border: 0; }
 .roll-resolver:has(.rollsight-native-prompt) .form-footer button { white-space: normal; height: auto; min-height: 2rem; overflow-wrap: anywhere; }
+
+/* The pairing panel uses native dialog focus/Escape behavior on Foundry 12–14. */
+dialog.rollsight-connection-panel {
+  color: #eee; background: #23252c; border: 1px solid #6c7180; border-radius: 14px;
+  padding: 24px; width: min(480px, calc(100vw - 32px)); max-height: calc(100vh - 32px);
+  overflow: auto; box-shadow: 0 16px 64px #0009; text-align: start;
+}
+.rollsight-connection-panel::backdrop { background: #0008; }
+.rollsight-connection-panel header { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.rollsight-connection-panel h2 { margin: 0; font-size: 24px; border: 0; }
+.rollsight-connection-panel h3 { font-size: 18px; border: 0; }
+.rollsight-connection-panel p { line-height: 1.5; margin: 12px 0; }
+.rollsight-connection-panel button { height: auto; min-height: 38px; white-space: normal; padding: 8px 14px; color: #eee; background: #343945; border: 1px solid #747c8f; border-radius: 6px; }
+.rollsight-connection-panel input { width: 100%; height: 58px; font: bold 28px monospace; letter-spacing: .15em; text-align: center; background: #13151a; color: #fff; border: 1px solid #747c8f; margin: 8px 0; }
+.rollsight-connection-panel .rollsight-connect-primary { width: 100%; background: #225e9b; border-color: #5899db; }
+.rollsight-connection-panel .rollsight-connection-status { color: #d2dce9; }
+.rollsight-connection-panel [hidden] { display: none !important; }
+.rollsight-connect-shortcut { font-weight: bold; }
+
+.rollsight-connection-panel button:disabled { opacity: .55; cursor: wait; }
+.rollsight-connection-panel button:focus-visible { outline: 2px solid #91c8ff; outline-offset: 2px; }

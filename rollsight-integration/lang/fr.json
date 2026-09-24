@@ -24,7 +24,7 @@
   "ROLLSIGHT.AnotherTab": "Une autre fenêtre Foundry reçoit les dés pour ce joueur. Fermez cette fenêtre pour utiliser celle-ci.",
   "ROLLSIGHT.NoTabLock": "Ce navigateur ne peut pas coordonner les onglets. Utilisez un seul onglet Foundry par joueur RollSight.",
   "ROLLSIGHT.TimedOut": "RollSight a suspendu ce jet après cinq minutes. Choisissez Utiliser ce jet pour reprendre, ou complétez-le manuellement dans Foundry.",
-  "ROLLSIGHT.InvalidDice": "Les dés ont été refusés. Envoyez des entiers dans la plage de chaque dé ; combinez d’abord les dés de pourcentage dans l’application de bureau.",
+  "ROLLSIGHT.InvalidDice": "Les dés ont été refusés. Envoyez des entiers dans la plage de chaque dé.",
   "ROLLSIGHT.ChooseRoll": "Choisissez Utiliser ce jet sur la demande Foundry qui doit recevoir vos dés.",
   "ROLLSIGHT.UseThisRoll": "Utiliser ce jet",
   "ROLLSIGHT.StopReceiving": "Arrêter de recevoir les dés",

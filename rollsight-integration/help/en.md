@@ -1,10 +1,10 @@
 # RollSight physical dice
 
-In Foundry, open RollSight settings and copy your player code. In Game Settings → Core → Dice, set Default Method to RollSight physical dice and save. Check any per-die overrides. Start the roll in Foundry and wait for the RollSight prompt before rolling physical dice.
+Open Connect RollSight here or in the Settings sidebar to copy your code and set up physical dice.
 
-## Link this world (GM)
+## Set up this world
 
-The GM must link this world before you can refresh your player code.
+This world is not linked yet. Ask your GM to open Connect RollSight and choose Set up this world.
 
 Copy this personal code into the desktop app. Select RollSight or Manual in Foundry Dice Configuration, then start a roll in Foundry.
 
@@ -36,12 +36,12 @@ Post plain physical dice using your current chat visibility. Start initiative, a
 
 Open the replay; select the image to view it full size.
 
-## Refresh connection
+## Reconnect to RollSight
 
-RollSight could not connect. Check the world link and refresh your player code in Module Settings.
+RollSight could not connect. Open Connect RollSight in the Settings sidebar and choose Reconnect to RollSight.
 
 Another tab is receiving RollSight dice for this player. Close it, then refresh this connection.
 
-Dice were not accepted. Send whole-number values within each die’s range; combine percentile dice in the desktop app first.
+Dice were not accepted. Send whole-number values within each die’s range.
 
 RollSight could not apply this delivery. Check the waiting roll before sending again.

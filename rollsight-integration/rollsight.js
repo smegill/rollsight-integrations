@@ -1,3 +1,5 @@
+import { openConnectionPanel } from './connection-panel.js';
+import { sha256 } from './browser-crypto.js';
 /** RollSight client integration. Foundry owns roll evaluation, permissions and visibility. */
 import { getRollClass, registerFulfillmentMethod, rollDataToFulfillmentPairs } from './fulfillment-provider.js';
 import { RollSession } from './roll-session.js';
@@ -24,11 +26,14 @@ export class RollSightIntegration {
         this.generation = 0;
         this.proofs = new Map();
     }
+    openConnection() { openConnectionPanel(); }
     setting(key) { return game.settings.get(NS, key); }
     get apiBase() { return String(this.setting('cloudRoomApiBase') || 'https://www.rollsight.com/api').replace(/\/$/, ''); }
     setStatus(key) {
         if (key !== this.status && ['CodeError', 'AnotherTab', 'NoTabLock'].includes(key)) notify(key);
         this.status = key;
+        if (key === 'CodeError') this.currentPlayerCode = '';
+        Hooks.callAll?.('rollsightConnectionChanged');
     }
     isConnected() { return this.session.active && this.status === 'Connected'; }
     init() {
@@ -64,6 +69,7 @@ export class RollSightIntegration {
     }
     disconnect() {
         this.generation++;
+        this.currentPlayerCode = '';
         this.provisionAbort?.abort();
         this.coordinator?.stop();
         this.coordinator = null;
@@ -87,10 +93,12 @@ export class RollSightIntegration {
         this.expiryTimer = setInterval(() => this.session.expire(), 1000);
         if (this.setting('desktopBridgePoll')) { this.setStatus('ExtensionReady'); return; }
         try {
+            this.setStatus('Connecting');
             const bearer = await this._autoProvisionPlayerCodeOnly();
             if (generation !== this.generation || !bearer) return;
             const scope = await this.scopeHash([game.world?.id, game.user.id, this.apiBase, bearer]);
             if (generation !== this.generation) return;
+            this.currentPlayerCode = bearer;
             this.setStatus('Connecting');
             const coordinator = this.coordinator = new ConsumerCoordinator({
                 socket: game.socket, scope, changed: leader => {
@@ -111,7 +119,7 @@ export class RollSightIntegration {
         }
     }
     async scopeHash(parts) {
-        const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(JSON.stringify(parts)));
+        const digest = await sha256(JSON.stringify(parts));
         return [...new Uint8Array(digest)].map(b => b.toString(16).padStart(2, '0')).join('');
     }
     async _autoProvisionPlayerCodeOnly() {
@@ -262,7 +270,7 @@ export class RollSightIntegration {
         else if (envelope.type === 'chat_text' && this.session.accept(meta)) await this.postChatTextFromBridge(envelope.content);
     }
     createFoundryRoll(data) {
-        const pairs = rollDataToFulfillmentPairs(data);
+        const pairs = rollDataToFulfillmentPairs(data, { composePercentile: true });
         if (!pairs.length) return null;
         // Only plain physical dice in unsolicited chat. System formulas/modifiers belong to native resolvers.
         const Roll = getRollClass();
