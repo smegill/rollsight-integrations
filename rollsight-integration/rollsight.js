@@ -65,6 +65,9 @@ export class RollSightIntegration {
         const renderReplay = (message, html) => this.renderReplay(message, html);
         Hooks.on('renderChatMessage', renderReplay);
         Hooks.on('renderChatMessageHTML', renderReplay);
+        // D&D replaces message-content after the core render hooks (skill/damage cards).
+        // Reapply after that replacement; renderReplay deduplicates surviving panels.
+        Hooks.on('dnd5e.renderChatMessage', renderReplay);
         this._startAutoWorldLink();
         void this.connect();
     }
