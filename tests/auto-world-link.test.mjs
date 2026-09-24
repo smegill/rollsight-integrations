@@ -108,13 +108,21 @@ test('failed automatic link is recoverable through the manual action', async t =
 
 test('settings reconnect during player-key fetch cannot install an old session', async t => {
     const { integration, values } = setup(t, { user: 'player', gm: false, linked: 'ABCDEFGH' });
-    let resolveFetch;
-    t.mock.method(globalThis, 'fetch', () => new Promise(resolve => { resolveFetch = resolve; }));
+    const pending = [];
+    t.mock.method(globalThis, 'fetch', (_url, options) => new Promise(resolve => {
+        pending.push({ room: JSON.parse(options.body).room_code, resolve });
+    }));
     const oldConnect = integration.connect();
     values.cloudRoomKey = 'HJKLMNPQ';
-    integration.disconnect();
-    resolveFetch({ ok: true, json: async () => ({ player_code: 'ABCDEFGH' }) });
+    integration.scheduleReconnect();
+    await flush();
+    assert.deepEqual(pending.map(request => request.room), ['ABCDEFGH', 'HJKLMNPQ']);
+    pending[0].resolve({ ok: true, json: async () => ({ player_code: 'ABCDEFGH' }) });
     await oldConnect;
     assert.equal(integration.currentPlayerCode, '');
     assert.equal(integration.coordinator, null);
+    pending[1].resolve({ ok: true, json: async () => ({ player_code: 'JKLMNPQR' }) });
+    for (let attempt = 0; attempt < 20 && !integration.coordinator; attempt++) await flush();
+    assert.equal(integration.currentPlayerCode, 'JKLMNPQR');
+    assert.ok(integration.coordinator);
 });
