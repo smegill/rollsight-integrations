@@ -2,7 +2,7 @@
   "id": "rollsight-integration",
   "title": "RollSight Real Dice Reader",
   "description": "Integrate physical dice rolls from RollSight into Foundry VTT using Dice Fulfillment for in-context rolls.",
-  "version": "1.1.86",
+  "version": "1.1.87",
   "compatibility": {
     "minimum": "12",
     "verified": "14"
@@ -25,7 +25,7 @@
   "readme": "README.md",
   "url": "https://github.com/smegill/rollsight-integrations",
   "manifest": "https://raw.githubusercontent.com/smegill/rollsight-integrations/main/rollsight-integration/module.json",
-  "download": "https://github.com/smegill/rollsight-integrations/releases/download/v1.1.86/rollsight-integration.zip",
+  "download": "https://github.com/smegill/rollsight-integrations/releases/download/v1.1.87/rollsight-integration.zip",
   "languages": [
     {
       "lang": "en",
@@ -34,42 +34,42 @@
     },
     {
       "lang": "es",
-      "name": "Español",
+      "name": "Espa\u00f1ol",
       "path": "lang/es.json"
     },
     {
       "lang": "fr",
-      "name": "Français",
+      "name": "Fran\u00e7ais",
       "path": "lang/fr.json"
     },
     {
       "lang": "pt",
-      "name": "Português",
+      "name": "Portugu\u00eas",
       "path": "lang/pt.json"
     },
     {
       "lang": "zh",
-      "name": "中文",
+      "name": "\u4e2d\u6587",
       "path": "lang/zh.json"
     },
     {
       "lang": "hi",
-      "name": "हिन्दी",
+      "name": "\u0939\u093f\u0928\u094d\u0926\u0940",
       "path": "lang/hi.json"
     },
     {
       "lang": "bn",
-      "name": "বাংলা",
+      "name": "\u09ac\u09be\u0982\u09b2\u09be",
       "path": "lang/bn.json"
     },
     {
       "lang": "ar",
-      "name": "العربية",
+      "name": "\u0627\u0644\u0639\u0631\u0628\u064a\u0629",
       "path": "lang/ar.json"
     },
     {
       "lang": "ur",
-      "name": "اردو",
+      "name": "\u0627\u0631\u062f\u0648",
       "path": "lang/ur.json"
     },
     {

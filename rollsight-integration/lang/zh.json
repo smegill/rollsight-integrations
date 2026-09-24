@@ -42,5 +42,18 @@
   "ROLLSIGHT.RollRemaining": "让 Foundry 掷出剩余骰子",
   "ROLLSIGHT.DiceReady": "此浏览器中所有支持的骰子均已设为实体骰子。",
   "ROLLSIGHT.DiceSetup": "某些骰子仍使用数字掷骰。请打开骰子配置，将 RollSight 实体骰子设为默认方式，并检查各类骰子的单独设置。",
-  "ROLLSIGHT.DiceConfigure": "配置骰子"
+  "ROLLSIGHT.DiceConfigure": "配置骰子",
+  "ROLLSIGHT.WaitingTurn": "较新的掷骰完成后，RollSight 将在此接收骰子。",
+  "ROLLSIGHT.ReadyToRoll": "已准备好接收骰子。请掷骰并从 RollSight 发送。",
+  "ROLLSIGHT.ConnectTitle": "连接 RollSight",
+  "ROLLSIGHT.Close": "完成",
+  "ROLLSIGHT.ConnectIntro": "使用您自己的玩家代码，将 RollSight 应用中的骰子发送到此 Foundry 世界。",
+  "ROLLSIGHT.ConnectPaste": "复制此代码。在 RollSight 应用中选择开始会话 → Foundry，然后将其粘贴到玩家代码字段。",
+  "ROLLSIGHT.ConnectDiceTitle": "选择实体骰子",
+  "ROLLSIGHT.ConnectDiceHelp": "打开骰子配置，将 RollSight 实体骰子设为默认选项。然后先在 Foundry 中发起掷骰，再掷出您的骰子。",
+  "ROLLSIGHT.ConnectReady": "已准备好接收您的骰子。",
+  "ROLLSIGHT.ConnectChecking": "正在检查连接…",
+  "ROLLSIGHT.ConnectRetrying": "连接中断。正在重试…",
+  "ROLLSIGHT.ConnectStopped": "接收骰子已关闭。请在游戏设置中启用接收 RollSight 骰子以连接。",
+  "ROLLSIGHT.ConnectExtension": "此浏览器使用 RollSight 扩展。请在游戏设置中关闭使用浏览器扩展，以通过玩家代码连接。"
 }

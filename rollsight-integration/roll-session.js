@@ -29,40 +29,30 @@ export class RollSession {
         if (!this.active || typeof resolver?.registerResult !== 'function' || !resolverMethods(resolver, this.acceptManual()).size) return;
         let request = this.requests.get(resolver);
         if (!request) {
-            request = { id: `${this.epoch}:${++this.serial}`, resolver, createdAt: this.now(), paused: false };
+            request = { id: `${this.epoch}:${++this.serial}`, resolver, createdAt: this.now() };
             this.requests.set(resolver, request);
-            // A second open resolver requires an explicit choice, even for identical formulas.
-            this.selected = this.requests.size === 1 ? resolver : null;
+            // New Foundry requests take priority, including attack-to-damage transitions.
+            this.selected = resolver;
+            this.changed();
         }
         return request;
     }
     remove(resolver) {
         this.requests.delete(resolver);
-        // Never move a late result automatically into the next waiting roll.
-        if (this.selected === resolver) this.selected = null;
+        if (this.selected === resolver) {
+            this.selected = [...this.requests.keys()].at(-1) ?? null;
+            // Reject throws made before this older request became active again.
+            const next = this.requests.get(this.selected);
+            if (next) next.createdAt = this.now();
+        }
         this.changed();
     }
     select(resolver) {
         const r = this.requests.get(resolver);
         if (!this.active || !r) return;
-        r.paused = false;
         r.createdAt = this.now();
         this.selected = resolver;
         this.changed();
-    }
-    pause(resolver) {
-        const r = this.requests.get(resolver);
-        if (r) r.paused = true;
-        if (this.selected === resolver) this.selected = null;
-        this.changed();
-    }
-    expire() {
-        for (const r of this.requests.values()) {
-            if (!r.paused && this.now() - r.createdAt >= 300000) {
-                this.pause(r.resolver);
-                this.notify('TimedOut');
-            }
-        }
     }
     /** Delivery IDs distinguish identical legitimate rolls; fingerprints never do. */
     accept(data) {
@@ -78,7 +68,6 @@ export class RollSession {
         return true;
     }
     fulfill(data) {
-        this.expire();
         const request = this.requests.get(this.selected);
         if (data.request_id && data.request_id !== request?.id) return { blocked: true, consumed: false };
         const expected = request?.resolver?.fulfillable instanceof Map
@@ -88,7 +77,7 @@ export class RollSession {
             });
         const pairs = rollDataToFulfillmentPairs(data, { composePercentile: expected || (!request && !this.requests.size) });
         if (!pairs.length) { this.notify('InvalidDice'); return { blocked: true, consumed: false }; }
-        if (!request || request.paused) {
+        if (!request) {
             if (this.requests.size) this.notify('ChooseRoll');
             return { blocked: this.requests.size > 0, consumed: false };
         }

@@ -42,5 +42,18 @@
   "ROLLSIGHT.RollRemaining": "বাকি পাশাগুলো Foundry-কে ফেলতে দিন",
   "ROLLSIGHT.DiceReady": "এই ব্রাউজারে সব সমর্থিত পাশার জন্য বাস্তব পাশা কনফিগার করা হয়েছে।",
   "ROLLSIGHT.DiceSetup": "কিছু পাশা এখনও ডিজিটাল রোল ব্যবহার করছে। পাশার কনফিগারেশন খুলে RollSight-এর বাস্তব পাশাকে ডিফল্ট হিসেবে বেছে নিন এবং প্রতিটি পাশার আলাদা সেটিংস পরীক্ষা করুন।",
-  "ROLLSIGHT.DiceConfigure": "পাশা কনফিগার করুন"
+  "ROLLSIGHT.DiceConfigure": "পাশা কনফিগার করুন",
+  "ROLLSIGHT.WaitingTurn": "নতুন রোলটি শেষ হলে RollSight এখানে পাশা গ্রহণ করবে।",
+  "ROLLSIGHT.ReadyToRoll": "আপনার পাশার জন্য প্রস্তুত। পাশা ছুড়ুন এবং RollSight থেকে পাঠান।",
+  "ROLLSIGHT.ConnectTitle": "RollSight সংযুক্ত করুন",
+  "ROLLSIGHT.Close": "সম্পন্ন",
+  "ROLLSIGHT.ConnectIntro": "RollSight অ্যাপ থেকে এই Foundry বিশ্বে পাশা পাঠাতে আপনার নিজস্ব খেলোয়াড় কোড ব্যবহার করুন।",
+  "ROLLSIGHT.ConnectPaste": "এই কোডটি কপি করুন। RollSight অ্যাপে সেশন শুরু করুন → Foundry বেছে নিয়ে খেলোয়াড় কোডের ঘরে পেস্ট করুন।",
+  "ROLLSIGHT.ConnectDiceTitle": "বাস্তব পাশা বাছুন",
+  "ROLLSIGHT.ConnectDiceHelp": "পাশা কনফিগারেশন খুলে RollSight বাস্তব পাশাকে ডিফল্ট হিসেবে বাছুন। তারপর পাশা ছোড়ার আগে Foundry-তে রোল শুরু করুন।",
+  "ROLLSIGHT.ConnectReady": "আপনার পাশা গ্রহণের জন্য প্রস্তুত।",
+  "ROLLSIGHT.ConnectChecking": "আপনার সংযোগ পরীক্ষা করা হচ্ছে…",
+  "ROLLSIGHT.ConnectRetrying": "সংযোগ বিচ্ছিন্ন হয়েছে। আবার চেষ্টা করা হচ্ছে…",
+  "ROLLSIGHT.ConnectStopped": "পাশা গ্রহণ বন্ধ আছে। সংযুক্ত হতে গেম সেটিংসে RollSight পাশা গ্রহণ চালু করুন।",
+  "ROLLSIGHT.ConnectExtension": "এই ব্রাউজারটি RollSight এক্সটেনশন ব্যবহার করে। খেলোয়াড় কোড দিয়ে সংযুক্ত হতে গেম সেটিংসে ব্রাউজার এক্সটেনশন ব্যবহার বন্ধ করুন।"
 }

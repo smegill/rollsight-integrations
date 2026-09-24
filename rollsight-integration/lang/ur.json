@@ -42,5 +42,18 @@
   "ROLLSIGHT.RollRemaining": "باقی پاسے Foundry کو پھینکنے دیں",
   "ROLLSIGHT.DiceReady": "اس براؤزر میں تمام معاون پاسوں کے لیے حقیقی پاسے ترتیب دے دیے گئے ہیں۔",
   "ROLLSIGHT.DiceSetup": "کچھ پاسے ابھی بھی ڈیجیٹل رول استعمال کر رہے ہیں۔ پاسوں کی ترتیبات کھولیں، RollSight کے حقیقی پاسے کو طے شدہ طریقہ منتخب کریں اور ہر پاسے کی الگ ترتیب دیکھیں۔",
-  "ROLLSIGHT.DiceConfigure": "پاسوں کی ترتیبات"
+  "ROLLSIGHT.DiceConfigure": "پاسوں کی ترتیبات",
+  "ROLLSIGHT.WaitingTurn": "نیا رول مکمل ہونے کے بعد RollSight یہاں پاسے وصول کرے گا۔",
+  "ROLLSIGHT.ReadyToRoll": "آپ کے پاسوں کے لیے تیار ہے۔ پاسے پھینکیں اور RollSight سے بھیجیں۔",
+  "ROLLSIGHT.ConnectTitle": "RollSight سے منسلک ہوں",
+  "ROLLSIGHT.Close": "مکمل",
+  "ROLLSIGHT.ConnectIntro": "RollSight ایپ سے اس Foundry دنیا میں پاسے بھیجنے کے لیے اپنا کھلاڑی کوڈ استعمال کریں۔",
+  "ROLLSIGHT.ConnectPaste": "یہ کوڈ کاپی کریں۔ RollSight ایپ میں سیشن شروع کریں → Foundry منتخب کریں اور اسے کھلاڑی کوڈ کے خانے میں پیسٹ کریں۔",
+  "ROLLSIGHT.ConnectDiceTitle": "حقیقی پاسے منتخب کریں",
+  "ROLLSIGHT.ConnectDiceHelp": "پاسوں کی ترتیب کھولیں اور RollSight کے حقیقی پاسوں کو ڈیفالٹ منتخب کریں۔ پھر اپنے پاسے پھینکنے سے پہلے Foundry میں رول شروع کریں۔",
+  "ROLLSIGHT.ConnectReady": "آپ کے پاسے وصول کرنے کے لیے تیار ہے۔",
+  "ROLLSIGHT.ConnectChecking": "آپ کا کنکشن چیک کیا جا رہا ہے…",
+  "ROLLSIGHT.ConnectRetrying": "کنکشن منقطع ہو گیا۔ دوبارہ کوشش جاری ہے…",
+  "ROLLSIGHT.ConnectStopped": "پاسے وصول کرنا بند ہے۔ منسلک ہونے کے لیے گیم کی ترتیبات میں RollSight پاسے وصول کریں فعال کریں۔",
+  "ROLLSIGHT.ConnectExtension": "یہ براؤزر RollSight ایکسٹینشن استعمال کرتا ہے۔ کھلاڑی کوڈ سے منسلک ہونے کے لیے گیم کی ترتیبات میں براؤزر ایکسٹینشن استعمال کریں بند کریں۔"
 }

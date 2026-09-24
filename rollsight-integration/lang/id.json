@@ -42,5 +42,18 @@
   "ROLLSIGHT.RollRemaining": "Biarkan Foundry melempar dadu yang tersisa",
   "ROLLSIGHT.DiceReady": "Dadu fisik telah dikonfigurasi untuk semua jenis dadu yang didukung di browser ini.",
   "ROLLSIGHT.DiceSetup": "Beberapa dadu masih menggunakan lemparan digital. Buka konfigurasi dadu dan pilih dadu fisik RollSight sebagai metode bawaan; periksa pengaturan khusus tiap jenis dadu.",
-  "ROLLSIGHT.DiceConfigure": "Konfigurasi dadu"
+  "ROLLSIGHT.DiceConfigure": "Konfigurasi dadu",
+  "ROLLSIGHT.WaitingTurn": "RollSight akan menerima dadu di sini setelah lemparan yang lebih baru selesai.",
+  "ROLLSIGHT.ReadyToRoll": "Siap menerima dadu Anda. Lempar dan kirim dari RollSight.",
+  "ROLLSIGHT.ConnectTitle": "Hubungkan RollSight",
+  "ROLLSIGHT.Close": "Selesai",
+  "ROLLSIGHT.ConnectIntro": "Gunakan kode pemain Anda sendiri untuk mengirim dadu dari aplikasi RollSight ke dunia Foundry ini.",
+  "ROLLSIGHT.ConnectPaste": "Salin kode ini. Di RollSight, pilih Mulai Sesi → Foundry dan tempelkan ke kolom kode pemain.",
+  "ROLLSIGHT.ConnectDiceTitle": "Pilih dadu fisik",
+  "ROLLSIGHT.ConnectDiceHelp": "Buka Konfigurasi Dadu dan pilih dadu fisik RollSight sebagai default. Lalu mulai lemparan di Foundry sebelum melempar dadu Anda.",
+  "ROLLSIGHT.ConnectReady": "Siap menerima dadu Anda.",
+  "ROLLSIGHT.ConnectChecking": "Memeriksa koneksi…",
+  "ROLLSIGHT.ConnectRetrying": "Koneksi terputus. Mencoba lagi…",
+  "ROLLSIGHT.ConnectStopped": "Penerimaan dadu dinonaktifkan. Aktifkan Terima dadu RollSight di Pengaturan Game untuk terhubung.",
+  "ROLLSIGHT.ConnectExtension": "Browser ini menggunakan ekstensi RollSight. Nonaktifkan Gunakan ekstensi browser di Pengaturan Game untuk terhubung dengan kode pemain."
 }

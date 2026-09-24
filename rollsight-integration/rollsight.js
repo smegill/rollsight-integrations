@@ -1,7 +1,7 @@
 import { openConnectionPanel } from './connection-panel.js';
 import { sha256 } from './browser-crypto.js';
 /** RollSight client integration. Foundry owns roll evaluation, permissions and visibility. */
-import { getRollClass, registerFulfillmentMethod, rollDataToFulfillmentPairs } from './fulfillment-provider.js';
+import { getRollClass, registerFulfillmentMethod, rollDataToFulfillmentPairs, requestedPhysicalDice } from './fulfillment-provider.js';
 import { RollSession } from './roll-session.js';
 import { CloudRelay } from './cloud-relay.js';
 import { ConsumerCoordinator, deliveryMessageId } from './consumer-coordinator.js';
@@ -78,7 +78,6 @@ export class RollSightIntegration {
         this.coordinator?.stop();
         this.coordinator = null;
         this.relay.stop();
-        clearInterval(this.expiryTimer);
         this.session.leave();
         this.proofs.clear();
         this.history.clear();
@@ -95,7 +94,6 @@ export class RollSightIntegration {
         if (!this.setting('playerActive') || !game.user) return;
         const generation = this.generation;
         this.session.join(game.user.id);
-        this.expiryTimer = setInterval(() => this.session.expire(), 1000);
         if (this.setting('desktopBridgePoll')) { this.setStatus('ExtensionReady'); return; }
         try {
             this.setStatus('Connecting');
@@ -195,7 +193,7 @@ export class RollSightIntegration {
         const root = (element?.nodeType ? element : element?.[0]) ?? resolver.element;
         if (!root?.querySelector || root.querySelector('.rollsight-native-prompt')) return;
         // Keep Foundry's native submission handler: it preserves supplied values and
-        // generates only missing dice. Do not relabel the separate pause action.
+        // generates only missing dice.
         const submit = root.querySelector('button[type="submit"]');
         if (submit) {
             const icon = submit.querySelector('i');
@@ -210,14 +208,15 @@ export class RollSightIntegration {
         logo.src = 'modules/rollsight-integration/assets/rollsight-logo.png';
         logo.alt = 'RollSight';
         box.append(logo);
+        const formula = root.ownerDocument.createElement('div');
+        formula.className = 'rollsight-request-formula';
+        formula.dir = 'ltr';
+        formula.setAttribute('aria-live', 'polite');
+        box.append(formula);
         const info = root.ownerDocument.createElement('p');
         info.className = 'rollsight-request-status';
         info.setAttribute('aria-live', 'polite');
         box.append(info);
-        for (const [label, action] of [['UseThisRoll', () => this.session.select(resolver)], ['StopReceiving', () => this.session.pause(resolver)]]) {
-            const button = root.ownerDocument.createElement('button');
-            button.type = 'button'; button.textContent = t(label); button.addEventListener('click', action); box.append(button);
-        }
         (root.querySelector('.window-content') ?? root).prepend(box);
         this.refreshPrompts();
     }
@@ -228,8 +227,10 @@ export class RollSightIntegration {
         }
         for (const [resolver, request] of this.session?.requests ?? []) {
             const root = resolver.element?.nodeType ? resolver.element : resolver.element?.[0];
+            const formula = root?.querySelector?.('.rollsight-request-formula');
+            if (formula) formula.textContent = requestedPhysicalDice(resolver, this.session.acceptManual());
             const text = root?.querySelector?.('.rollsight-request-status');
-            if (text) text.textContent = t(this.session.selected === resolver && !request.paused ? 'Waiting' : 'Paused', { formula: resolver.roll?.formula ?? '' });
+            if (text) text.textContent = t(this.session.selected === resolver ? 'ReadyToRoll' : 'WaitingTurn', { formula: resolver.roll?.formula ?? '' });
         }
     }
     handleRoll(data, current = () => true) {
@@ -248,6 +249,7 @@ export class RollSightIntegration {
                 this.proofs.set(pending.id, payloads);
             }
             const result = this.session.fulfill(data);
+            this.refreshPrompts();
             if (!result.consumed && pending && proof) {
                 if (previousProof) this.proofs.set(pending.id, previousProof);
                 else this.proofs.delete(pending.id);

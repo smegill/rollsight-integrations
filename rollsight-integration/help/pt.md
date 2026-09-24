@@ -14,9 +14,7 @@ Inicie sua rolagem no Foundry e envie dados físicos pelo aplicativo de desktop.
 
 Também preenche solicitações manuais nativas. O Foundry mantém seus controles e calcula os modificadores.
 
-Escolha Usar esta rolagem na solicitação do Foundry que deve receber seus dados.
-
-O RollSight pausou esta rolagem após cinco minutos. Escolha Usar esta rolagem para continuar ou conclua manualmente no Foundry.
+Novas solicitações recebem dados automaticamente. Se várias estiverem abertas, a mais recente recebe primeiro; as anteriores retomam quando ela é fechada.
 
 ## Receber dados do RollSight
 
