@@ -37,9 +37,21 @@ test('first active GM links once, even when not receiving dice; an existing link
     assert.equal(values.cloudRoomKey, 'ABCDEFGH');
     assert.deepEqual(writes, [['cloudRoomKey', 'ABCDEFGH']]);
     assert.equal(creates, 1);
-    integration._stopAutoWorldLink();
+    assert.equal(integration.worldLinkCoordinator, null, 'successful link releases socket and timer');
     integration._startAutoWorldLink();
     assert.equal(integration.worldLinkCoordinator, null);
+});
+
+test('world setting update stops a waiting GM tab coordinator', t => {
+    const { integration, values } = setup(t);
+    let removed = 0;
+    game.socket.off = () => { removed++; };
+    integration._startAutoWorldLink();
+    assert.ok(integration.worldLinkCoordinator?.timer);
+    values.cloudRoomKey = 'ABCDEFGH';
+    integration.scheduleReconnect();
+    assert.equal(integration.worldLinkCoordinator, null);
+    assert.equal(removed, 1);
 });
 
 test('non-GM, other active GM and extension clients never create a room', t => {

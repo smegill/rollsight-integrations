@@ -82,6 +82,7 @@ export class RollSightIntegration {
         this.setStatus('Disconnected');
     }
     scheduleReconnect() {
+        if (this.setting('cloudRoomKey')) this._stopAutoWorldLink();
         if (this.reconnectQueued) return;
         this.reconnectQueued = true;
         queueMicrotask(() => { this.reconnectQueued = false; void this.connect(); });
@@ -150,7 +151,7 @@ export class RollSightIntegration {
     async _autoProvisionRollSightCloudRelay() {
         // Also used by the elected GM at world readiness. Never create from settings rendering.
         if (!game.user.isGM) return;
-        if (this.setting('cloudRoomKey')) return;
+        if (this.setting('cloudRoomKey')) { this._stopAutoWorldLink(); return; }
         if (this.linkPromise) return this.linkPromise;
         this.linkPromise = (async () => {
             const res = await fetch(`${this.apiBase}/rollsight-room/create`, {
@@ -161,10 +162,12 @@ export class RollSightIntegration {
             const room = data.room_code || data.room_key;
             if (!shortCode(room) && !/^rs_.{13,}$/.test(room ?? '')) throw new Error('Invalid table code response');
             if (game.user.isGM && !this.setting('cloudRoomKey')) await game.settings.set(NS, 'cloudRoomKey', room);
+            if (this.setting('cloudRoomKey')) this._stopAutoWorldLink();
         })().finally(() => { this.linkPromise = null; });
         return this.linkPromise;
     }
     _startAutoWorldLink() {
+        if (this.worldLinkCoordinator) return;
         if (!game.user?.isGM || this.setting('desktopBridgePoll') || this.setting('cloudRoomKey') || !game.socket) return;
         // All GM clients see the same active-user list; only the first active GM participates.
         const activeGMs = game.users?.filter?.(user => user.active && user.isGM) ?? [game.user];
