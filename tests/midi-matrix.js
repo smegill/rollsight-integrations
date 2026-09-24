@@ -73,6 +73,17 @@ export async function runMatrix({extendedOnly=false}={}) {
             const {value}=await drive(()=>actor.rollSkill({skill},{configure:false},{create:false}),{d20:7});
             assert(rollResult(value)?.total===9,`Expected 7 + 2 = 9; got ${rollResult(value)?.total}`);
         });
+        await test('normal skill chat create carries native replay',async()=>{
+            const before=messages.length;
+            const {value}=await drive(()=>actor.rollSkill({skill:'prc'},{configure:false},{create:true}),{d20:7,proof:true});
+            const roll=rollResult(value);
+            assert(roll?.total===9,`Expected 7 + 2 = 9; got ${roll?.total}`);
+            assert(roll?.options?.rollsightReplayPayloads?.length===1,'Resolver roll lacked replay metadata');
+            const card=messages.slice(before).find(m=>m.rolls?.some(r=>r?.options?.rollsightRequestId===roll.options.rollsightRequestId));
+            assert(card,'Normal skill chat card did not retain the native roll request ID');
+            assert(card.flags['rollsight-integration']?.rollReplayPayloads?.[0]?.roll_proof_url===roll.options.rollsightReplayPayloads[0].roll_proof_url,
+                'Normal skill chat card lost replay metadata');
+        });
         await test('tool proficiency check',async()=>{
             const {value}=await drive(()=>actor.rollToolCheck({tool:'thief',ability:'dex'},{configure:false},{create:false}),{d20:7});
             assert(rollResult(value)?.total===11,`Expected 7 + 2 + 2 = 11; got ${rollResult(value)?.total}`);
@@ -192,8 +203,15 @@ export async function runMatrix({extendedOnly=false}={}) {
                 assert(rollResult(value)?.dice[0]?.results[0]?.result===15,'Physical attack value lost');
             });
             await test('D&D damage prompt without Midi',async()=>{
-                const {value}=await drive(()=>attack.rollDamage({}, {configure:false},{create:false}));
-                assert(rollResult(value)?.total===6,`Expected damage 6; got ${rollResult(value)?.total}`);
+                const before=messages.length;
+                const {value}=await drive(()=>attack.rollDamage({}, {configure:false},{create:true}),{proof:true});
+                const roll=rollResult(value);
+                assert(roll?.total===6,`Expected damage 6; got ${roll?.total}`);
+                assert(roll?.options?.rollsightReplayPayloads?.length===1,'Resolver damage roll lacked replay metadata');
+                const card=messages.slice(before).find(m=>m.rolls?.some(r=>r?.options?.rollsightRequestId===roll.options.rollsightRequestId));
+                assert(card,'Normal damage chat card did not retain the native roll request ID');
+                assert(card.flags['rollsight-integration']?.rollReplayPayloads?.[0]?.roll_proof_url===roll.options.rollsightReplayPayloads[0].roll_proof_url,
+                    'Normal damage chat card lost replay metadata');
             });
         }
         const spells=game.packs.get('dnd5e.spells');
