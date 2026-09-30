@@ -18,8 +18,8 @@ export function createCancellableResolver(Base) {
             if (this.rollsightCancelled) throw new RollSightRollCancelled();
         }
         canCancelRoll() {
-            return this.rendered && !this.rollsightCancelled
-                && !this.element?.querySelector?.('button[type="submit"]')?.disabled;
+            const submit = this.element?.querySelector?.('button[type="submit"]');
+            return this.rendered && !this.rollsightCancelled && !!submit && !submit.disabled;
         }
         cancelRoll() {
             if (!this.canCancelRoll()) return false;

@@ -133,6 +133,8 @@ test('custom resolver cancels without digital fulfillment and rejects its awaiti
     submitting.element.querySelector = () => ({ disabled: true });
     assert.equal(submitting.cancelRoll(), false);
     assert.equal(submitting.rollsightCancelled, undefined);
+    submitting.element.querySelector = () => null;
+    assert.equal(submitting.cancelRoll(), false);
     const oldConfig = globalThis.CONFIG, oldFoundry = globalThis.foundry;
     try {
         globalThis.CONFIG = { Dice: { fulfillment: { methods: {} } } };
