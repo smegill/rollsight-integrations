@@ -8,7 +8,7 @@ function newRequestId() {
     return `rs:${random}`;
 }
 
-/** Client-local ownership; no formula matching, private Roll mutation, or RNG. */
+/** Client-local ownership; no formula matching, private Roll mutation, or dice RNG. */
 export class RollSession {
     constructor({ now = Date.now, notify = () => {}, changed = () => {}, acceptManual = () => true } = {}) {
         Object.assign(this, { now, notify, changed, acceptManual });
