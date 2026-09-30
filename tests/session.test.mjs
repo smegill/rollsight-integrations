@@ -97,6 +97,22 @@ test('cancelled request rejects its late delivery and suppresses uncorrelated ch
     assert.deepEqual(session.fulfill(data('still-late', 7, { request_id: cancelled.id })), { blocked: true, consumed: false });
     assert.deepEqual(b.values, []);
 });
+test('overlapping prompts on separate clients have distinct IDs and cancellation stays local', () => {
+    const left = fixture(), right = fixture();
+    const leftResolver = left.resolver(), rightResolver = right.resolver();
+    const leftRequest = left.session.track(leftResolver);
+    const rightRequest = right.session.track(rightResolver);
+    assert.match(leftRequest.id, /^rs:/);
+    assert.match(rightRequest.id, /^rs:/);
+    assert.notEqual(leftRequest.id, rightRequest.id);
+    left.session.cancel(leftResolver);
+    assert.deepEqual(left.session.fulfill(left.data('late-left', 7, { request_id: leftRequest.id })),
+        { blocked: true, consumed: false });
+    assert.deepEqual(right.session.fulfill(right.data('wrong-client', 7, { request_id: leftRequest.id })),
+        { blocked: true, consumed: false });
+    assert.equal(right.session.fulfill(right.data('right', 7, { request_id: rightRequest.id })).consumed, true);
+    assert.deepEqual(rightResolver.values, [7]);
+});
 test('custom resolver cancels without digital fulfillment and rejects its awaiting evaluation', async () => {
     let resolve;
     class NativeResolver {

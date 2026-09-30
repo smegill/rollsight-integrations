@@ -1,5 +1,13 @@
 import { rollDataToFulfillmentPairs, resolverMethods } from './fulfillment-provider.js';
 
+function newRequestId() {
+    // Roll options and chat messages can cross client boundaries. A local
+    // epoch/serial is not unique when two players open simultaneous prompts.
+    const random = globalThis.crypto?.randomUUID?.() ?? globalThis.foundry?.utils?.randomID?.(32);
+    if (!random) throw new Error('Secure Foundry request IDs are unavailable');
+    return `rs:${random}`;
+}
+
 /** Client-local ownership; no formula matching, private Roll mutation, or RNG. */
 export class RollSession {
     constructor({ now = Date.now, notify = () => {}, changed = () => {}, acceptManual = () => true } = {}) {
@@ -9,7 +17,6 @@ export class RollSession {
         this.active = false;
         this.selected = null;
         this.epoch = 0;
-        this.serial = 0;
         this.cancelled = new Set();
     }
     join(userId) {
@@ -31,7 +38,7 @@ export class RollSession {
         if (!this.active || typeof resolver?.registerResult !== 'function' || !resolverMethods(resolver, this.acceptManual()).size) return;
         let request = this.requests.get(resolver);
         if (!request) {
-            request = { id: `${this.epoch}:${++this.serial}`, resolver, createdAt: this.now() };
+            request = { id: newRequestId(), resolver, createdAt: this.now() };
             this.requests.set(resolver, request);
             // New Foundry requests take priority, including attack-to-damage transitions.
             this.selected = resolver;
