@@ -4,7 +4,7 @@
 - Improved replay delivery when multiple players roll at the same time, with recovery from temporary connection and chat-post failures.
 - Replays that are still uploading retry their preview instead of staying stuck after a brief interruption.
 
-Update the module and RollSight desktop app to 1.2.9, then reload player browser tabs. Cancelling a roll does not reverse resources a game system already spent before opening its roll prompt.
+Update the module to 1.1.88 and RollSight desktop app to 1.2.9, then reload player browser tabs. Cancelling a roll does not reverse resources a game system already spent before opening its roll prompt.
 
 ## v1.1.87 - 2026-09-24
 
