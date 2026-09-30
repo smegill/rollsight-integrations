@@ -41,7 +41,10 @@ export class RollSightIntegration {
             if (this.session.track(resolver)) this.renderPrompt(resolver, element);
             this.refreshPrompts();
         });
-        Hooks.on('closeRollResolver', resolver => this.session.remove(resolver));
+        Hooks.on('closeRollResolver', resolver => {
+            if (resolver.rollsightCancelled) { this.cancelRequest(resolver); notify('RollCancelled'); }
+            else this.session.remove(resolver);
+        });
         Hooks.on('closeGame', () => { this._stopAutoWorldLink(); this.disconnect(); });
         window.addEventListener('pagehide', () => { this._stopAutoWorldLink(); this.disconnect(); });
         window.addEventListener('message', event => {
@@ -189,6 +192,12 @@ export class RollSightIntegration {
         this.worldLinkCoordinator?.stop();
         this.worldLinkCoordinator = null;
     }
+    cancelRequest(resolver) {
+        const request = this.session.requests.get(resolver);
+        if (!request) return;
+        this.session.cancel(resolver);
+        this.proofs.delete(request.id);
+    }
     renderPrompt(resolver, element) {
         const root = (element?.nodeType ? element : element?.[0]) ?? resolver.element;
         if (!root?.querySelector || root.querySelector('.rollsight-native-prompt')) return;
@@ -197,8 +206,8 @@ export class RollSightIntegration {
         const submit = root.querySelector('button[type="submit"]');
         if (submit) {
             const icon = submit.querySelector('i');
-            submit.replaceChildren(...(icon ? [icon] : []), root.ownerDocument.createTextNode(t('RollRemaining')));
-            submit.setAttribute('aria-label', t('RollRemaining'));
+            submit.replaceChildren(...(icon ? [icon] : []), root.ownerDocument.createTextNode(t('LetFoundryRoll')));
+            submit.setAttribute('aria-label', t('LetFoundryRoll'));
         }
         const box = root.ownerDocument.createElement('section');
         box.className = 'rollsight-native-prompt';
@@ -217,6 +226,19 @@ export class RollSightIntegration {
         info.className = 'rollsight-request-status';
         info.setAttribute('aria-live', 'polite');
         box.append(info);
+        if (typeof resolver.cancelRoll === 'function') {
+            const cancel = root.ownerDocument.createElement('button');
+            cancel.type = 'button';
+            cancel.className = 'rollsight-cancel-roll';
+            cancel.textContent = t('CancelRoll');
+            cancel.setAttribute('aria-label', t('CancelRoll'));
+            cancel.title = t('CancelRollHint');
+            cancel.addEventListener('click', () => {
+                if (!this.session.requests.has(resolver) || !resolver.cancelRoll()) return;
+                this.cancelRequest(resolver);
+            });
+            (root.querySelector('.form-footer') ?? box).append(cancel);
+        }
         (root.querySelector('.window-content') ?? root).prepend(box);
         this.refreshPrompts();
     }

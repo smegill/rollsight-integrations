@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { RollSession } from '../rollsight-integration/roll-session.js';
-import { rollDataToFulfillmentPairs, getRollClass, requestedPhysicalDice } from '../rollsight-integration/fulfillment-provider.js';
+import { rollDataToFulfillmentPairs, getRollClass, requestedPhysicalDice, createCancellableResolver, registerFulfillmentMethod, RollSightRollCancelled } from '../rollsight-integration/fulfillment-provider.js';
 import { normalizeRollProofUrl } from '../rollsight-integration/roll-proof-html.js';
 
 function fixture() {
@@ -84,6 +84,62 @@ test('closing a request never sends its correlated result to another resolver or
     const request = session.track(a); session.remove(a); session.track(b);
     assert.deepEqual(session.fulfill(data('a', 7, { request_id: request.id })), { blocked: true, consumed: false });
     assert.deepEqual(b.values, []);
+});
+test('cancelled request rejects its late delivery and suppresses uncorrelated chat fallback', () => {
+    const { session, resolver, data } = fixture();
+    const a = resolver(), b = resolver();
+    const cancelled = session.track(a);
+    session.cancel(a);
+    assert.equal(session.requests.size, 0);
+    assert.deepEqual(session.fulfill(data('late', 7, { request_id: cancelled.id })), { blocked: true, consumed: false });
+    assert.deepEqual(session.fulfill(data('unmatched')), { blocked: true, consumed: false });
+    session.track(b);
+    assert.deepEqual(session.fulfill(data('still-late', 7, { request_id: cancelled.id })), { blocked: true, consumed: false });
+    assert.deepEqual(b.values, []);
+});
+test('custom resolver cancels without digital fulfillment and rejects its awaiting evaluation', async () => {
+    let resolve;
+    class NativeResolver {
+        constructor() { this.rendered = true; this.element = { querySelector: () => ({ disabled: false }) }; this.results = []; }
+        awaitFulfillment() { return new Promise(done => { resolve = done; }); }
+        addTerm() { return new Promise(done => { resolve = done; }); }
+        async close() { await this.constructor._fulfillRoll.call(this); resolve(); }
+        static async _fulfillRoll() { this.results.push('digital'); }
+    }
+    const Cancellable = createCancellableResolver(NativeResolver);
+    const cancelled = new Cancellable();
+    const awaiting = cancelled.awaitFulfillment();
+    assert.equal(cancelled.cancelRoll(), true);
+    await assert.rejects(awaiting, RollSightRollCancelled);
+    assert.deepEqual(cancelled.results, []);
+    assert.equal(cancelled.cancelRoll(), false);
+    const electronic = new Cancellable();
+    electronic.element.querySelector = () => ({ disabled: true });
+    const completing = electronic.awaitFulfillment();
+    await electronic.close();
+    await completing;
+    assert.deepEqual(electronic.results, ['digital']);
+    const windowClose = new Cancellable();
+    const closed = windowClose.awaitFulfillment();
+    await windowClose.close();
+    await assert.rejects(closed, RollSightRollCancelled);
+    assert.deepEqual(windowClose.results, []);
+    const extra = new Cancellable();
+    const waitingExtra = extra.addTerm({});
+    assert.equal(extra.cancelRoll(), true);
+    await assert.rejects(waitingExtra, RollSightRollCancelled);
+    assert.deepEqual(extra.results, []);
+    const submitting = new Cancellable();
+    submitting.element.querySelector = () => ({ disabled: true });
+    assert.equal(submitting.cancelRoll(), false);
+    assert.equal(submitting.rollsightCancelled, undefined);
+    const oldConfig = globalThis.CONFIG, oldFoundry = globalThis.foundry;
+    try {
+        globalThis.CONFIG = { Dice: { fulfillment: { methods: {} } } };
+        globalThis.foundry = { applications: { dice: { RollResolver: NativeResolver } } };
+        registerFulfillmentMethod();
+        assert.ok(globalThis.CONFIG.Dice.fulfillment.methods.rollsight.resolver.prototype instanceof NativeResolver);
+    } finally { globalThis.CONFIG = oldConfig; globalThis.foundry = oldFoundry; }
 });
 test('open requests keep listening without an inactivity pause', () => {
     const { session, resolver, data, advance, notifications } = fixture(); const r = resolver(); session.track(r);

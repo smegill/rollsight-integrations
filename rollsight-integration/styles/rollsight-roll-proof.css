@@ -346,3 +346,5 @@ dialog.rollsight-connection-panel {
     font-variant-numeric: tabular-nums;
 }
 .rollsight-native-prompt .rollsight-request-status { text-align: center; font-weight: 400; }
+.roll-resolver:has(.rollsight-native-prompt) .form-footer { flex-wrap: wrap; }
+.roll-resolver:has(.rollsight-native-prompt) .rollsight-cancel-roll { white-space: normal; height: auto; min-height: 2rem; flex: 1 1 10rem; }

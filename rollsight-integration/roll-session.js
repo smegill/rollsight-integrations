@@ -10,6 +10,7 @@ export class RollSession {
         this.selected = null;
         this.epoch = 0;
         this.serial = 0;
+        this.cancelled = new Set();
     }
     join(userId) {
         this.leave();
@@ -22,6 +23,7 @@ export class RollSession {
         this.epoch++;
         this.active = false;
         this.requests.clear();
+        this.cancelled.clear();
         this.selected = null;
         this.changed();
     }
@@ -47,6 +49,12 @@ export class RollSession {
         }
         this.changed();
     }
+    cancel(resolver) {
+        const request = this.requests.get(resolver);
+        if (!request) return;
+        this.cancelled.add(request.id);
+        this.remove(resolver);
+    }
     select(resolver) {
         const r = this.requests.get(resolver);
         if (!this.active || !r) return;
@@ -68,6 +76,7 @@ export class RollSession {
         return true;
     }
     fulfill(data) {
+        if (data.request_id && this.cancelled.has(data.request_id)) return { blocked: true, consumed: false };
         const request = this.requests.get(this.selected);
         if (data.request_id && data.request_id !== request?.id) return { blocked: true, consumed: false };
         const expected = request?.resolver?.fulfillable instanceof Map
@@ -79,7 +88,8 @@ export class RollSession {
         if (!pairs.length) { this.notify('InvalidDice'); return { blocked: true, consumed: false }; }
         if (!request) {
             if (this.requests.size) this.notify('ChooseRoll');
-            return { blocked: this.requests.size > 0, consumed: false };
+            // Once a request was cancelled, uncorrelated late dice must not become chat.
+            return { blocked: this.requests.size > 0 || this.cancelled.size > 0, consumed: false };
         }
         const ts = data._rollsightBridgeTs ?? data.timestamp;
         if (ts != null && ts < request.createdAt) return { blocked: true, consumed: false };
