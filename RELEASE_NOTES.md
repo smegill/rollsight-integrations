@@ -1,10 +1,17 @@
+## v1.1.89 - 2026-09-30
+
+- Replays now appear in Foundry's `/stream` chat view used by OBS Utils and expand automatically for the broadcast.
+- Stream viewers can display replays without connecting as a RollSight dice sender. Hidden roll contents remain hidden.
+
+Update the Foundry module, reload the world, and refresh the OBS browser source. No RollSight desktop update is required.
+
 ## v1.1.88 - 2026-09-30
 
 - Choose **Let Foundry Roll** for electronic dice, or **Cancel Roll** to stop the requested roll.
 - Improved replay delivery when multiple players roll at the same time, with recovery from temporary connection and chat-post failures.
 - Replays that are still uploading retry their preview instead of staying stuck after a brief interruption.
 
-Update the module and RollSight desktop app to 1.2.9, then reload player browser tabs. Cancelling a roll does not reverse resources a game system already spent before opening its roll prompt.
+Update the module to 1.1.88 and RollSight desktop app to 1.2.9, then reload player browser tabs. Cancelling a roll does not reverse resources a game system already spent before opening its roll prompt.
 
 ## v1.1.87 - 2026-09-24
 
