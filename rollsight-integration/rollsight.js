@@ -5,8 +5,8 @@ import { getRollClass, registerFulfillmentMethod, rollDataToFulfillmentPairs, re
 import { RollSession } from './roll-session.js';
 import { CloudRelay } from './cloud-relay.js';
 import { ConsumerCoordinator, deliveryMessageId } from './consumer-coordinator.js';
-import { buildRollReplayInjectHtml, rollReplaySerializablePayload } from './roll-proof-html.js';
-import { bindReplayPreview } from './replay-preview.js';
+import { rollReplaySerializablePayload } from './roll-proof-html.js';
+import { registerReplayViewing } from './replay-viewer.js';
 import { correlatedReplayPayloads, mergeReplayPayloads } from './replay-correlation.js';
 
 export const NS = 'rollsight-integration';
@@ -65,12 +65,6 @@ export class RollSightIntegration {
             const payloads = this.replayPayloads(document, changes);
             if (payloads.length) changes[`flags.${NS}.rollReplayPayloads`] = payloads;
         });
-        const renderReplay = (message, html) => this.renderReplay(message, html);
-        Hooks.on('renderChatMessage', renderReplay);
-        Hooks.on('renderChatMessageHTML', renderReplay);
-        // D&D replaces message-content after the core render hooks (skill/damage cards).
-        // Reapply after that replacement; renderReplay deduplicates surviving panels.
-        Hooks.on('dnd5e.renderChatMessage', renderReplay);
         this._startAutoWorldLink();
         void this.connect();
     }
@@ -407,34 +401,15 @@ export class RollSightIntegration {
         const existing = mergeReplayPayloads(flags.rollReplayPayloads ?? [], flags.rollReplayPayload);
         return correlatedReplayPayloads(data.rolls ?? document.rolls ?? document._source?.rolls, this.proofs, existing);
     }
-    renderReplay(message, html) {
-        if (message.isContentVisible === false) return;
-        const root = html?.nodeType ? html : html?.[0];
-        if (!root?.querySelector) return;
-        const flags = message.flags?.[NS] ?? {};
-        const payloads = mergeReplayPayloads(flags.rollReplayPayloads ?? [], flags.rollReplayPayload);
-        const shown = new Set([...root.querySelectorAll('.rollsight-roll-replay-details')].map(el => el.dataset.rollsightProofUrl));
-        for (const payload of payloads) {
-            const fragment = buildRollReplayInjectHtml(payload);
-            if (!fragment) continue;
-            const template = root.ownerDocument.createElement('template');
-            template.innerHTML = fragment;
-            const details = template.content.firstElementChild;
-            if (shown.has(details.dataset.rollsightProofUrl)) continue;
-            shown.add(details.dataset.rollsightProofUrl);
-            (root.querySelector('.message-content') ?? root).append(details);
-            bindReplayPreview(details, {
-                autoExpand: this.setting('autoExpandRollReplay'),
-                intervalMs: Math.max(1, this.setting('rollReplayRefreshEverySeconds')) * 1000,
-                maxMs: Math.min(300, Math.max(1, this.setting('rollReplayRefreshMaxSeconds'))) * 1000,
-                unavailable: t('ReplayUnavailable'),
-            });
-        }
-    }
 }
 
-Hooks.once('init', registerFulfillmentMethod);
+Hooks.once('init', () => {
+    registerReplayViewing();
+    if (game.view !== 'stream') registerFulfillmentMethod();
+});
 Hooks.once('ready', () => {
+    // Spectators only render existing messages; never join the dice delivery session.
+    if (game.view === 'stream') return;
     registerFulfillmentMethod();
     game.rollsight = new RollSightIntegration();
     game.rollsight.init();
