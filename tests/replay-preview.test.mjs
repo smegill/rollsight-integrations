@@ -8,9 +8,12 @@ function fixture() {
     const timers = new Map(), probes = [];
     const image = { hidden: true, get complete() { return !this.src; } };
     const loading = { hidden: false, textContent: 'Loading replay…' };
+    const listeners = new Map();
     const details = {
         isConnected: true, dataset: { rollsightProofUrl: 'https://example.com/replay.gif' },
         querySelector: selector => selector === 'img' ? image : loading,
+        addEventListener: (name, fn) => listeners.set(name, fn),
+        removeEventListener: name => listeners.delete(name),
     };
     const stop = bindReplayPreview(details, {
         autoExpand: true, maxMs: 10000, intervalMs: 1000, unavailable: 'Unavailable',
@@ -25,7 +28,8 @@ function fixture() {
         }
     }
     advance(0);
-    return { image, loading, details, probes, timers, stop, advance };
+    return { image, loading, details, probes, timers, stop, advance,
+        reopen: () => { details.open = false; listeners.get('toggle')?.(); details.open = true; listeners.get('toggle')?.(); } };
 }
 
 test('pending replay leaves no loading DOM image to block Foundry chat scrolling', () => {
@@ -63,6 +67,19 @@ test('a hanging replay times out without delaying the roll or accepting a late l
     assert.equal(f.loading.textContent, 'Unavailable');
     assert.equal(f.image.src, undefined);
     assert.equal(f.probes[0].onload, null);
+    assert.equal(f.timers.size, 0);
+});
+
+test('reopening an unavailable replay retries after a late upload', () => {
+    const f = fixture();
+    f.advance(10000);
+    assert.equal(f.loading.textContent, 'Unavailable');
+    f.reopen();
+    f.advance(0);
+    assert.equal(f.loading.textContent, 'Loading replay…');
+    assert.equal(f.probes.length, 2);
+    f.probes[1].onload();
+    assert.equal(f.image.hidden, false);
     assert.equal(f.timers.size, 0);
 });
 

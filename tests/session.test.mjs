@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { RollSession } from '../rollsight-integration/roll-session.js';
-import { rollDataToFulfillmentPairs, getRollClass } from '../rollsight-integration/fulfillment-provider.js';
+import { rollDataToFulfillmentPairs, getRollClass, requestedPhysicalDice, createCancellableResolver, registerFulfillmentMethod, RollSightRollCancelled } from '../rollsight-integration/fulfillment-provider.js';
 import { normalizeRollProofUrl } from '../rollsight-integration/roll-proof-html.js';
 
 function fixture() {
@@ -54,14 +54,30 @@ test('identical physical values with distinct IDs both fulfill; redelivery does 
     assert.equal(session.accept(data('b')), true); session.fulfill(data('b'));
     assert.deepEqual(r.values, [7, 7]);
 });
-test('rerender is idempotent; concurrent identical formulas need explicit selection', () => {
-    const { session, resolver, data } = fixture(); const a = resolver(), b = resolver();
+test('new prompts activate automatically and rerenders do not steal selection', () => {
+    const { session, resolver, data, advance } = fixture(); const a = resolver(), b = resolver();
     const first = session.track(a); assert.equal(session.track(a), first);
-    session.track(b); assert.equal(session.selected, null);
-    assert.equal(session.fulfill(data()).consumed, false);
-    session.select(b); session.fulfill(data());
+    advance(10); session.track(b); session.track(a);
+    assert.equal(session.selected, b);
+    session.fulfill(data());
     assert.deepEqual(a.values, []); assert.deepEqual(b.values, [7]);
-    session.remove(b); assert.equal(session.selected, null);
+    const old = data(); advance(10); session.remove(b);
+    assert.equal(session.selected, a);
+    assert.equal(session.fulfill(old).consumed, false);
+    assert.equal(session.fulfill(data('next')).consumed, true);
+});
+test('a follow-up opened during fulfillment never receives surplus dice from the same throw', () => {
+    const { session, resolver, data } = fixture(); const a = resolver(), b = resolver();
+    const register = a.registerResult.bind(a);
+    a.registerResult = (...args) => {
+        const consumed = register(...args);
+        if (consumed) { session.track(b); session.remove(a); }
+        return consumed;
+    };
+    session.track(a);
+    session.fulfill(data('attack', 7, {dice: [{faces:20,results:[7,9]}]}));
+    assert.equal(session.selected,b); assert.deepEqual(b.values,[]);
+    assert.equal(session.fulfill(data('damage')).consumed,true);
 });
 test('closing a request never sends its correlated result to another resolver or chat', () => {
     const { session, resolver, data } = fixture(); const a = resolver(), b = resolver();
@@ -69,11 +85,85 @@ test('closing a request never sends its correlated result to another resolver or
     assert.deepEqual(session.fulfill(data('a', 7, { request_id: request.id })), { blocked: true, consumed: false });
     assert.deepEqual(b.values, []);
 });
-test('timeouts pause reception without closing or digitally completing the Foundry roll', () => {
+test('cancelled request rejects its late delivery and suppresses uncorrelated chat fallback', () => {
+    const { session, resolver, data } = fixture();
+    const a = resolver(), b = resolver();
+    const cancelled = session.track(a);
+    session.cancel(a);
+    assert.equal(session.requests.size, 0);
+    assert.deepEqual(session.fulfill(data('late', 7, { request_id: cancelled.id })), { blocked: true, consumed: false });
+    assert.deepEqual(session.fulfill(data('unmatched')), { blocked: true, consumed: false });
+    session.track(b);
+    assert.deepEqual(session.fulfill(data('still-late', 7, { request_id: cancelled.id })), { blocked: true, consumed: false });
+    assert.deepEqual(b.values, []);
+});
+test('overlapping prompts on separate clients have distinct IDs and cancellation stays local', () => {
+    const left = fixture(), right = fixture();
+    const leftResolver = left.resolver(), rightResolver = right.resolver();
+    const leftRequest = left.session.track(leftResolver);
+    const rightRequest = right.session.track(rightResolver);
+    assert.match(leftRequest.id, /^rs:/);
+    assert.match(rightRequest.id, /^rs:/);
+    assert.notEqual(leftRequest.id, rightRequest.id);
+    left.session.cancel(leftResolver);
+    assert.deepEqual(left.session.fulfill(left.data('late-left', 7, { request_id: leftRequest.id })),
+        { blocked: true, consumed: false });
+    assert.deepEqual(right.session.fulfill(right.data('wrong-client', 7, { request_id: leftRequest.id })),
+        { blocked: true, consumed: false });
+    assert.equal(right.session.fulfill(right.data('right', 7, { request_id: rightRequest.id })).consumed, true);
+    assert.deepEqual(rightResolver.values, [7]);
+});
+test('custom resolver cancels without digital fulfillment and rejects its awaiting evaluation', async () => {
+    let resolve;
+    class NativeResolver {
+        constructor() { this.rendered = true; this.element = { querySelector: () => ({ disabled: false }) }; this.results = []; }
+        awaitFulfillment() { return new Promise(done => { resolve = done; }); }
+        addTerm() { return new Promise(done => { resolve = done; }); }
+        async close() { await this.constructor._fulfillRoll.call(this); resolve(); }
+        static async _fulfillRoll() { this.results.push('digital'); }
+    }
+    const Cancellable = createCancellableResolver(NativeResolver);
+    const cancelled = new Cancellable();
+    const awaiting = cancelled.awaitFulfillment();
+    assert.equal(cancelled.cancelRoll(), true);
+    await assert.rejects(awaiting, RollSightRollCancelled);
+    assert.deepEqual(cancelled.results, []);
+    assert.equal(cancelled.cancelRoll(), false);
+    const electronic = new Cancellable();
+    electronic.element.querySelector = () => ({ disabled: true });
+    const completing = electronic.awaitFulfillment();
+    await electronic.close();
+    await completing;
+    assert.deepEqual(electronic.results, ['digital']);
+    const windowClose = new Cancellable();
+    const closed = windowClose.awaitFulfillment();
+    await windowClose.close();
+    await assert.rejects(closed, RollSightRollCancelled);
+    assert.deepEqual(windowClose.results, []);
+    const extra = new Cancellable();
+    const waitingExtra = extra.addTerm({});
+    assert.equal(extra.cancelRoll(), true);
+    await assert.rejects(waitingExtra, RollSightRollCancelled);
+    assert.deepEqual(extra.results, []);
+    const submitting = new Cancellable();
+    submitting.element.querySelector = () => ({ disabled: true });
+    assert.equal(submitting.cancelRoll(), false);
+    assert.equal(submitting.rollsightCancelled, undefined);
+    submitting.element.querySelector = () => null;
+    assert.equal(submitting.cancelRoll(), false);
+    const oldConfig = globalThis.CONFIG, oldFoundry = globalThis.foundry;
+    try {
+        globalThis.CONFIG = { Dice: { fulfillment: { methods: {} } } };
+        globalThis.foundry = { applications: { dice: { RollResolver: NativeResolver } } };
+        registerFulfillmentMethod();
+        assert.ok(globalThis.CONFIG.Dice.fulfillment.methods.rollsight.resolver.prototype instanceof NativeResolver);
+    } finally { globalThis.CONFIG = oldConfig; globalThis.foundry = oldFoundry; }
+});
+test('open requests keep listening without an inactivity pause', () => {
     const { session, resolver, data, advance, notifications } = fixture(); const r = resolver(); session.track(r);
-    advance(300001); session.expire(); assert.deepEqual(notifications, ['TimedOut']);
-    session.fulfill(data()); assert.deepEqual(r.values, []);
-    session.select(r); session.fulfill(data('b')); assert.deepEqual(r.values, [7]);
+    advance(300001);
+    assert.equal(session.fulfill(data()).consumed,true);
+    assert.deepEqual(r.values,[7]); assert.deepEqual(notifications,[]);
 });
 test('leave, rejoin and recipient boundaries reject old or foreign results', () => {
     const { session, data, advance } = fixture();
@@ -87,6 +177,12 @@ test('freshness gates reject expired, future and pre-request results', () => {
     advance(100); session.track(resolver()); assert.equal(session.fulfill(old).consumed, false);
     assert.equal(session.accept(data('future', 7, { timestamp: 1000000 })), false);
     assert.equal(session.accept(data('stale', 7, { timestamp: 1 })), false);
+});
+test('a live session accepts a roll after a long relay outage', () => {
+    const { session, data, advance } = fixture();
+    const delayed = data('delayed');
+    advance(300001);
+    assert.equal(session.accept(delayed), true);
 });
 test('unmatched and extra dice never spill into a different request', () => {
     const { session, data, resolver } = fixture(); const a = resolver(), b = resolver(); session.track(a); session.track(b); session.select(a);
@@ -145,4 +241,21 @@ test('excess percentile results cannot spill into another request or chat', () =
     const exhausted=session.fulfill(data);
     assert.equal(exhausted.blocked,true); assert.equal(exhausted.consumed,false);
     assert.deepEqual(values,[34]);
+});
+
+test('physical dice instruction omits modifiers, arithmetic, and digital dice', () => {
+    const r = { roll: {formula:'2d6kh1 + 1d12 + 6 + 1d4'}, fulfillable:new Map([
+        ['a',{method:'rollsight',term:{number:2,faces:6,results:[]}}],
+        ['b',{method:'manual',term:{number:1,faces:12,results:[]}}],
+        ['c',{method:'digital',term:{number:1,faces:4,results:[]}}]
+    ])};
+    assert.equal(requestedPhysicalDice(r),'2d6 + 1d12');
+    assert.equal(requestedPhysicalDice(r,false),'2d6');
+    r.fulfillable.get('a').term.results.push({result:4});
+    assert.equal(requestedPhysicalDice(r),'1d6 + 1d12');
+});
+test('rendered physical instruction counts only empty enabled input slots', () => {
+    const input = (value, disabled, denomination, method='manual') => ({value,disabled,closest:()=>({dataset:{denomination,method}})});
+    const r = { element:{nodeType:1,querySelectorAll:()=>[input('4',false,'d6'),input('',true,'d6'),input('',false,'d12'),input('',false,'d12'),input('',false,'d20','digital')]}};
+    assert.equal(requestedPhysicalDice(r),'2d12');
 });

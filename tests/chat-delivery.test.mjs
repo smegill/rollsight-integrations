@@ -44,3 +44,47 @@ test('percentile pair reaches direct chat as an evaluated d100, including 00 plu
         }
     } finally { globalThis.Roll = oldRoll; }
 });
+
+test('cancelled prompt never turns a late desktop delivery into an unsolicited chat roll', async () => {
+    const integration = new RollSightIntegration();
+    integration.setting = () => true;
+    integration.session.join('player');
+    const resolver = { registerResult() { throw new Error('late result reached resolver'); },
+        fulfillable: new Map([['die', { method: 'rollsight', term: { faces: 20 } }]]) };
+    const request = integration.session.track(resolver);
+    integration.proofs.set(request.id, ['proof']);
+    integration.cancelRequest(resolver);
+    assert.equal(integration.session.requests.size, 0);
+    assert.equal(integration.proofs.has(request.id), false);
+    integration.refreshPrompts = () => {};
+    integration.createFoundryRoll = () => { throw new Error('late result reached chat fallback'); };
+    const data = { roll_id: 'late', timestamp: Date.now(), dice: [{ shape: 'd20', value: 7 }] };
+    assert.equal(await integration.handleRoll({ ...data, request_id: request.id }), null);
+    assert.equal(await integration.handleRoll({ ...data, roll_id: 'uncorrelated-late' }), null);
+});
+
+test('failed relay chat post keeps the roll eligible for retry', async () => {
+    const integration = new RollSightIntegration();
+    integration.setting = () => true;
+    integration.refreshPrompts = () => {};
+    integration.createFoundryRoll = () => ({ formula: '1d20' });
+    integration.session.join('player');
+    let attempts = 0;
+    integration.postRoll = async () => {
+        if (++attempts === 1) throw new Error('temporary Foundry failure');
+        return { id: 'posted' };
+    };
+    const errorLog = console.error;
+    console.error = () => {};
+    try {
+        const roll = { roll_id: 'retry-roll', timestamp: Date.now(), dice: [{ shape: 'd20', value: 7 }] };
+        const envelope = { type: 'roll', timestamp: roll.timestamp, roll };
+        await assert.rejects(integration.deliver(envelope, 'room:1'), /temporary Foundry failure/);
+        assert.equal(integration.session.seen.size, 0);
+        await integration.deliver(envelope, 'room:1');
+        assert.equal(attempts, 2);
+        assert.equal(integration.history.get('retry-roll').id, 'posted');
+    } finally {
+        console.error = errorLog;
+    }
+});

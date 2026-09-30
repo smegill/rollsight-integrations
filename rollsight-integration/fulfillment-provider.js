@@ -2,9 +2,57 @@
 export const getRollClass = () => globalThis.foundry?.dice?.Roll
     ?? globalThis.foundry?.dice?.rolls?.Roll ?? globalThis.Roll;
 
+/** Foundry has no native cancel outcome: closing its resolver fills empty dice digitally.
+ * A method-owned resolver can stop evaluation by rejecting after the native close
+ * completes, while suppressing that close's digital fulfillment.
+ */
+export function createCancellableResolver(Base) {
+    if (!Base) return null;
+    return class RollSightResolver extends Base {
+        async awaitFulfillment() {
+            await super.awaitFulfillment();
+            if (this.rollsightCancelled) throw new RollSightRollCancelled();
+        }
+        async addTerm(term) {
+            await super.addTerm(term);
+            if (this.rollsightCancelled) throw new RollSightRollCancelled();
+        }
+        canCancelRoll() {
+            const submit = this.element?.querySelector?.('button[type="submit"]');
+            return this.rendered && !this.rollsightCancelled && !!submit && !submit.disabled;
+        }
+        cancelRoll() {
+            if (!this.canCancelRoll()) return false;
+            this.rollsightCancelled = true;
+            void this.close().catch(error => console.error('RollSight | Could not close cancelled resolver', error));
+            return true;
+        }
+        async close(options = {}) {
+            // The window X is also a cancellation while submission remains possible.
+            // Core closes again after evaluation, when its submitter is disabled.
+            if (this.canCancelRoll()) this.rollsightCancelled = true;
+            return super.close(options);
+        }
+        static async _fulfillRoll(...args) {
+            if (this.rollsightCancelled) return;
+            return super._fulfillRoll.call(this, ...args);
+        }
+    };
+}
+
+export class RollSightRollCancelled extends Error {
+    constructor() {
+        super(globalThis.game?.i18n?.format?.('ROLLSIGHT.RollCancelled') ?? 'Roll cancelled');
+        this.name = 'RollSightRollCancelled';
+    }
+}
+
 export function registerFulfillmentMethod() {
     const methods = globalThis.CONFIG?.Dice?.fulfillment?.methods;
-    if (methods) methods.rollsight = { label: 'ROLLSIGHT.Method', icon: '<i class="fas fa-dice"></i>', interactive: true };
+    if (methods) methods.rollsight = {
+        label: 'ROLLSIGHT.Method', icon: '<i class="fas fa-dice"></i>', interactive: true,
+        resolver: createCancellableResolver(globalThis.foundry?.applications?.dice?.RollResolver)
+    };
 }
 
 export function shapeToDenomination(shape) {

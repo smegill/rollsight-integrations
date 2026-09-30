@@ -40,3 +40,20 @@ test('delivery ownership is released only after its consumed cursor is checkpoin
     await relay.start({...options, deliveryState: busy => order.push(busy ? 'hold' : 'release')});
     assert.deepEqual(order, ['hold', 'delivered', 'checkpoint', 'release']);
 });
+
+test('failed delivery is fetched again without advancing the saved cursor', async () => {
+    const store = storage();
+    const event = { seq: 1, payload: { timestamp: 101 } };
+    let first;
+    first = new CloudRelay({ storage: store, fetcher: async () => response([event]),
+        deliver: async () => { first.stop(); throw new Error('temporary'); } });
+    await first.start(options);
+    assert.equal(store.getItem('rollsight.cursor.v2.test-player'), undefined);
+    let delivered = 0;
+    let second;
+    second = new CloudRelay({ storage: store, fetcher: async () => response([event]),
+        deliver: async () => { delivered++; }, status: key => { if (key === 'Connected') second.stop(); } });
+    await second.start(options);
+    assert.equal(delivered, 1);
+    assert.equal(store.getItem('rollsight.cursor.v2.test-player'), '1');
+});

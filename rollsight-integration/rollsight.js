@@ -41,7 +41,10 @@ export class RollSightIntegration {
             if (this.session.track(resolver)) this.renderPrompt(resolver, element);
             this.refreshPrompts();
         });
-        Hooks.on('closeRollResolver', resolver => this.session.remove(resolver));
+        Hooks.on('closeRollResolver', resolver => {
+            if (resolver.rollsightCancelled) { this.cancelRequest(resolver); notify('RollCancelled'); }
+            else this.session.remove(resolver);
+        });
         Hooks.on('closeGame', () => { this._stopAutoWorldLink(); this.disconnect(); });
         window.addEventListener('pagehide', () => { this._stopAutoWorldLink(); this.disconnect(); });
         window.addEventListener('message', event => {
@@ -189,6 +192,12 @@ export class RollSightIntegration {
         this.worldLinkCoordinator?.stop();
         this.worldLinkCoordinator = null;
     }
+    cancelRequest(resolver) {
+        const request = this.session.requests.get(resolver);
+        if (!request) return;
+        this.session.cancel(resolver);
+        this.proofs.delete(request.id);
+    }
     renderPrompt(resolver, element) {
         const root = (element?.nodeType ? element : element?.[0]) ?? resolver.element;
         if (!root?.querySelector || root.querySelector('.rollsight-native-prompt')) return;
@@ -197,8 +206,8 @@ export class RollSightIntegration {
         const submit = root.querySelector('button[type="submit"]');
         if (submit) {
             const icon = submit.querySelector('i');
-            submit.replaceChildren(...(icon ? [icon] : []), root.ownerDocument.createTextNode(t('RollRemaining')));
-            submit.setAttribute('aria-label', t('RollRemaining'));
+            submit.replaceChildren(...(icon ? [icon] : []), root.ownerDocument.createTextNode(t('LetFoundryRoll')));
+            submit.setAttribute('aria-label', t('LetFoundryRoll'));
         }
         const box = root.ownerDocument.createElement('section');
         box.className = 'rollsight-native-prompt';
@@ -217,6 +226,19 @@ export class RollSightIntegration {
         info.className = 'rollsight-request-status';
         info.setAttribute('aria-live', 'polite');
         box.append(info);
+        if (typeof resolver.cancelRoll === 'function') {
+            const cancel = root.ownerDocument.createElement('button');
+            cancel.type = 'button';
+            cancel.className = 'rollsight-cancel-roll';
+            cancel.textContent = t('CancelRoll');
+            cancel.setAttribute('aria-label', t('CancelRoll'));
+            cancel.title = t('CancelRollHint');
+            cancel.addEventListener('click', () => {
+                if (!this.session.requests.has(resolver) || !resolver.cancelRoll()) return;
+                this.cancelRequest(resolver);
+            });
+            (root.querySelector('.form-footer') ?? box).append(cancel);
+        }
         (root.querySelector('.window-content') ?? root).prepend(box);
         this.refreshPrompts();
     }
@@ -233,7 +255,7 @@ export class RollSightIntegration {
             if (text) text.textContent = t(this.session.selected === resolver ? 'ReadyToRoll' : 'WaitingTurn', { formula: resolver.roll?.formula ?? '' });
         }
     }
-    handleRoll(data, current = () => true) {
+    handleRoll(data, current = () => true, retryOnFailure = false) {
         const epoch = this.session.epoch;
         const work = this.deliveryQueue.then(async () => {
             if (!current() || epoch !== this.session.epoch || !this.session.accept(data)) return null;
@@ -282,7 +304,17 @@ export class RollSightIntegration {
             if (result.blocked || !this.setting('fallbackToChat')) return null;
             const roll = this.createFoundryRoll(data);
             if (!roll || epoch !== this.session.epoch) return null;
-            const message = await this.postRoll(roll, data);
+            let message;
+            try {
+                message = await this.postRoll(roll, data);
+            } catch (error) {
+                // Chat cards have a stable server document ID. If the server
+                // accepted a post but its response was lost, the next attempt
+                // finds the same card. Let the relay retry this event.
+                if (data.roll_id) this.session.seen.delete(`roll:${data.roll_id}`);
+                if (data._deliveryId) this.session.seen.delete(`event:${data._deliveryId}`);
+                throw error;
+            }
             if (data.roll_id && epoch === this.session.epoch) {
                 this.history.set(data.roll_id, message);
                 while (this.history.size > 500) this.history.delete(this.history.keys().next().value);
@@ -290,12 +322,12 @@ export class RollSightIntegration {
             return roll;
         });
         this.deliveryQueue = work.catch(error => { console.error('RollSight | Delivery failed', error); notify('DeliveryError'); });
-        return this.deliveryQueue;
+        return retryOnFailure ? work : this.deliveryQueue;
     }
     async deliver(envelope, deliveryId, current = () => true) {
         if (!current() || !this.session.active) return;
         const meta = { _deliveryId: deliveryId, _rollsightBridgeTs: envelope.timestamp, _rollsightRoom: envelope._rollsightRoom };
-        if (envelope.type === 'roll') await this.handleRoll({ ...envelope.roll, ...meta }, current);
+        if (envelope.type === 'roll') await this.handleRoll({ ...envelope.roll, ...meta }, current, true);
         else if (envelope.type === 'amendment' && this.session.accept(meta)) await this.handleAmendment(envelope.amendment);
         else if (envelope.type === 'chat_text' && this.session.accept(meta)) await this.postChatTextFromBridge(envelope.content);
     }

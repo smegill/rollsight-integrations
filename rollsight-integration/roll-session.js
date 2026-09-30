@@ -1,6 +1,14 @@
 import { rollDataToFulfillmentPairs, resolverMethods } from './fulfillment-provider.js';
 
-/** Client-local ownership; no formula matching, private Roll mutation, or RNG. */
+function newRequestId() {
+    // Roll options and chat messages can cross client boundaries. A local
+    // epoch/serial is not unique when two players open simultaneous prompts.
+    const random = globalThis.crypto?.randomUUID?.() ?? globalThis.foundry?.utils?.randomID?.(32);
+    if (!random) throw new Error('Secure Foundry request IDs are unavailable');
+    return `rs:${random}`;
+}
+
+/** Client-local ownership; no formula matching, private Roll mutation, or dice RNG. */
 export class RollSession {
     constructor({ now = Date.now, notify = () => {}, changed = () => {}, acceptManual = () => true } = {}) {
         Object.assign(this, { now, notify, changed, acceptManual });
@@ -9,7 +17,7 @@ export class RollSession {
         this.active = false;
         this.selected = null;
         this.epoch = 0;
-        this.serial = 0;
+        this.cancelled = new Set();
     }
     join(userId) {
         this.leave();
@@ -22,6 +30,7 @@ export class RollSession {
         this.epoch++;
         this.active = false;
         this.requests.clear();
+        this.cancelled.clear();
         this.selected = null;
         this.changed();
     }
@@ -29,7 +38,7 @@ export class RollSession {
         if (!this.active || typeof resolver?.registerResult !== 'function' || !resolverMethods(resolver, this.acceptManual()).size) return;
         let request = this.requests.get(resolver);
         if (!request) {
-            request = { id: `${this.epoch}:${++this.serial}`, resolver, createdAt: this.now() };
+            request = { id: newRequestId(), resolver, createdAt: this.now() };
             this.requests.set(resolver, request);
             // New Foundry requests take priority, including attack-to-damage transitions.
             this.selected = resolver;
@@ -47,6 +56,12 @@ export class RollSession {
         }
         this.changed();
     }
+    cancel(resolver) {
+        const request = this.requests.get(resolver);
+        if (!request) return;
+        this.cancelled.add(request.id);
+        this.remove(resolver);
+    }
     select(resolver) {
         const r = this.requests.get(resolver);
         if (!this.active || !r) return;
@@ -60,7 +75,9 @@ export class RollSession {
         const recipient = data._rollsightRoom?.recipient_user_id ?? data.recipient_user_id;
         if (recipient && recipient !== this.userId) return false;
         const ts = data._rollsightBridgeTs ?? data.timestamp;
-        if (ts != null && (!Number.isFinite(ts) || ts < this.startedAt || ts > this.now() + 5000 || this.now() - ts > 60000)) return false;
+        // The session start and future bound exclude foreign/old rolls. A live
+        // session can catch up after a long relay outage without dropping rolls.
+        if (ts != null && (!Number.isFinite(ts) || ts < this.startedAt || ts > this.now() + 5000)) return false;
         const ids = [data.roll_id && `roll:${data.roll_id}`, data._deliveryId && `event:${data._deliveryId}`].filter(Boolean);
         if (!ids.length || ids.some(id => this.seen.has(id))) return false;
         for (const id of ids) this.seen.set(id, this.now());
@@ -68,6 +85,7 @@ export class RollSession {
         return true;
     }
     fulfill(data) {
+        if (data.request_id && this.cancelled.has(data.request_id)) return { blocked: true, consumed: false };
         const request = this.requests.get(this.selected);
         if (data.request_id && data.request_id !== request?.id) return { blocked: true, consumed: false };
         const expected = request?.resolver?.fulfillable instanceof Map
@@ -79,7 +97,8 @@ export class RollSession {
         if (!pairs.length) { this.notify('InvalidDice'); return { blocked: true, consumed: false }; }
         if (!request) {
             if (this.requests.size) this.notify('ChooseRoll');
-            return { blocked: this.requests.size > 0, consumed: false };
+            // Once a request was cancelled, uncorrelated late dice must not become chat.
+            return { blocked: this.requests.size > 0 || this.cancelled.size > 0, consumed: false };
         }
         const ts = data._rollsightBridgeTs ?? data.timestamp;
         if (ts != null && ts < request.createdAt) return { blocked: true, consumed: false };

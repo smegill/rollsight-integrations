@@ -1,14 +1,22 @@
-## RollSight Foundry 1.1.84
+## v1.1.88 - 2026-09-30
 
-- Fix player connections to Foundry servers accessed over HTTP, including matching delivery identifiers across HTTP and HTTPS clients.
-- Add Connect RollSight directly to the Settings sidebar, with a prominent player code and clear desktop setup instructions.
-- Simplify module connection actions and show Reconnect to RollSight only when recovery is needed.
-- Hide stale player codes after connection failure.
-- Support percentile dice pairs in requested d100 rolls and direct chat, including 00 + 10 = 100.
+- Choose **Let Foundry Roll** for electronic dice, or **Cancel Roll** to stop the requested roll.
+- Improved replay delivery when multiple players roll at the same time, with recovery from temporary connection and chat-post failures.
+- Replays that are still uploading retry their preview instead of staying stuck after a brief interruption.
 
-Update from Foundry Setup → Add-on Modules, then reload all player browsers. Existing player codes continue to work; no desktop update or database migration is required.
+Update the module and RollSight desktop app to 1.2.9, then reload player browser tabs. Cancelling a roll does not reverse resources a game system already spent before opening its roll prompt.
 
-Validation: 41 functional tests pass. The connection-panel browser regression passed before packaging. Live validation on the reported remote server remains pending. New connection-panel translations are deferred to the planned language audit; translation completeness is not claimed for this release.
+## v1.1.87 - 2026-09-24
+
+New roll requests automatically receive physical dice, including damage rolls following an attack. The extra “Use this roll” and “Stop receiving dice” buttons have been removed.
+
+The RollSight prompt prominently shows only the physical dice still needed, without the modifiers Foundry applies. When several prompts are open, the newest receives dice first; earlier prompts resume when it closes. Extra dice from a single throw never spill into another request.
+
+Update the module in Foundry Setup, then reload the world and player browser tabs. No desktop update is required.
+
+## v1.1.82 - 2026-09-05
+
+- **Cloud room:** Long-poll `/events` (hold empty queues ~20s, reconnect immediately) instead of 500ms short-poll. Cuts idle Vercel/Supabase volume ~40×; rolls still return as soon as they are published.
 
 ## v1.1.81 - 2026-03-31
 
