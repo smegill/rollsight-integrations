@@ -255,7 +255,7 @@ export class RollSightIntegration {
             if (text) text.textContent = t(this.session.selected === resolver ? 'ReadyToRoll' : 'WaitingTurn', { formula: resolver.roll?.formula ?? '' });
         }
     }
-    handleRoll(data, current = () => true) {
+    handleRoll(data, current = () => true, retryOnFailure = false) {
         const epoch = this.session.epoch;
         const work = this.deliveryQueue.then(async () => {
             if (!current() || epoch !== this.session.epoch || !this.session.accept(data)) return null;
@@ -304,7 +304,17 @@ export class RollSightIntegration {
             if (result.blocked || !this.setting('fallbackToChat')) return null;
             const roll = this.createFoundryRoll(data);
             if (!roll || epoch !== this.session.epoch) return null;
-            const message = await this.postRoll(roll, data);
+            let message;
+            try {
+                message = await this.postRoll(roll, data);
+            } catch (error) {
+                // Chat cards have a stable server document ID. If the server
+                // accepted a post but its response was lost, the next attempt
+                // finds the same card. Let the relay retry this event.
+                if (data.roll_id) this.session.seen.delete(`roll:${data.roll_id}`);
+                if (data._deliveryId) this.session.seen.delete(`event:${data._deliveryId}`);
+                throw error;
+            }
             if (data.roll_id && epoch === this.session.epoch) {
                 this.history.set(data.roll_id, message);
                 while (this.history.size > 500) this.history.delete(this.history.keys().next().value);
@@ -312,12 +322,12 @@ export class RollSightIntegration {
             return roll;
         });
         this.deliveryQueue = work.catch(error => { console.error('RollSight | Delivery failed', error); notify('DeliveryError'); });
-        return this.deliveryQueue;
+        return retryOnFailure ? work : this.deliveryQueue;
     }
     async deliver(envelope, deliveryId, current = () => true) {
         if (!current() || !this.session.active) return;
         const meta = { _deliveryId: deliveryId, _rollsightBridgeTs: envelope.timestamp, _rollsightRoom: envelope._rollsightRoom };
-        if (envelope.type === 'roll') await this.handleRoll({ ...envelope.roll, ...meta }, current);
+        if (envelope.type === 'roll') await this.handleRoll({ ...envelope.roll, ...meta }, current, true);
         else if (envelope.type === 'amendment' && this.session.accept(meta)) await this.handleAmendment(envelope.amendment);
         else if (envelope.type === 'chat_text' && this.session.accept(meta)) await this.postChatTextFromBridge(envelope.content);
     }

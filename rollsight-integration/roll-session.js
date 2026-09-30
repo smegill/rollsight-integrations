@@ -75,7 +75,9 @@ export class RollSession {
         const recipient = data._rollsightRoom?.recipient_user_id ?? data.recipient_user_id;
         if (recipient && recipient !== this.userId) return false;
         const ts = data._rollsightBridgeTs ?? data.timestamp;
-        if (ts != null && (!Number.isFinite(ts) || ts < this.startedAt || ts > this.now() + 5000 || this.now() - ts > 60000)) return false;
+        // The session start and future bound exclude foreign/old rolls. A live
+        // session can catch up after a long relay outage without dropping rolls.
+        if (ts != null && (!Number.isFinite(ts) || ts < this.startedAt || ts > this.now() + 5000)) return false;
         const ids = [data.roll_id && `roll:${data.roll_id}`, data._deliveryId && `event:${data._deliveryId}`].filter(Boolean);
         if (!ids.length || ids.some(id => this.seen.has(id))) return false;
         for (const id of ids) this.seen.set(id, this.now());

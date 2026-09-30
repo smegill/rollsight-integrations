@@ -62,3 +62,29 @@ test('cancelled prompt never turns a late desktop delivery into an unsolicited c
     assert.equal(await integration.handleRoll({ ...data, request_id: request.id }), null);
     assert.equal(await integration.handleRoll({ ...data, roll_id: 'uncorrelated-late' }), null);
 });
+
+test('failed relay chat post keeps the roll eligible for retry', async () => {
+    const integration = new RollSightIntegration();
+    integration.setting = () => true;
+    integration.refreshPrompts = () => {};
+    integration.createFoundryRoll = () => ({ formula: '1d20' });
+    integration.session.join('player');
+    let attempts = 0;
+    integration.postRoll = async () => {
+        if (++attempts === 1) throw new Error('temporary Foundry failure');
+        return { id: 'posted' };
+    };
+    const errorLog = console.error;
+    console.error = () => {};
+    try {
+        const roll = { roll_id: 'retry-roll', timestamp: Date.now(), dice: [{ shape: 'd20', value: 7 }] };
+        const envelope = { type: 'roll', timestamp: roll.timestamp, roll };
+        await assert.rejects(integration.deliver(envelope, 'room:1'), /temporary Foundry failure/);
+        assert.equal(integration.session.seen.size, 0);
+        await integration.deliver(envelope, 'room:1');
+        assert.equal(attempts, 2);
+        assert.equal(integration.history.get('retry-roll').id, 'posted');
+    } finally {
+        console.error = errorLog;
+    }
+});

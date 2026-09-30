@@ -178,6 +178,12 @@ test('freshness gates reject expired, future and pre-request results', () => {
     assert.equal(session.accept(data('future', 7, { timestamp: 1000000 })), false);
     assert.equal(session.accept(data('stale', 7, { timestamp: 1 })), false);
 });
+test('a live session accepts a roll after a long relay outage', () => {
+    const { session, data, advance } = fixture();
+    const delayed = data('delayed');
+    advance(300001);
+    assert.equal(session.accept(delayed), true);
+});
 test('unmatched and extra dice never spill into a different request', () => {
     const { session, data, resolver } = fixture(); const a = resolver(), b = resolver(); session.track(a); session.track(b); session.select(a);
     session.fulfill(data('a', 7, { dice: [{ faces: 20, results: [7, 9] }] }));

@@ -7,20 +7,26 @@ export function bindReplayPreview(details, {
     const image = details.querySelector('img');
     const loading = details.querySelector('.rollsight-replay-loading');
     if (!image || !loading) return;
-    let timer, deadline, probe, stopped = false;
-    const started = now();
-    const stop = () => {
+    let timer, deadline, probe, stopped = false, expired = false, started = now();
+    const initialLoading = loading.textContent;
+    const clear = () => {
         stopped = true;
         cancel(timer);
         cancel(deadline);
         if (probe) probe.onload = probe.onerror = null;
     };
+    const stop = () => {
+        clear();
+        details.removeEventListener?.('toggle', reopen);
+    };
+    const expire = () => {
+        loading.textContent = unavailable;
+        expired = true;
+        clear();
+    };
     const attempt = () => {
         if (stopped || !details.isConnected) return stop();
-        if (now() - started >= maxMs) {
-            loading.textContent = unavailable;
-            return stop();
-        }
+        if (now() - started >= maxMs) return expire();
         probe = new ImageClass();
         probe.referrerPolicy = 'no-referrer';
         probe.onload = () => {
@@ -41,11 +47,18 @@ export function bindReplayPreview(details, {
         url.searchParams.set('rs', String(now()));
         probe.src = url.href;
     };
+    const reopen = () => {
+        if (!details.open || !expired || !details.isConnected) return;
+        expired = false;
+        stopped = false;
+        started = now();
+        loading.textContent = initialLoading;
+        deadline = schedule(expire, maxMs);
+        timer = schedule(attempt, 0);
+    };
+    details.addEventListener?.('toggle', reopen);
     details.open = autoExpand;
-    deadline = schedule(() => {
-        loading.textContent = unavailable;
-        stop();
-    }, maxMs);
+    deadline = schedule(expire, maxMs);
     // renderChatMessage runs before Foundry appends this card to the chat log.
     timer = schedule(attempt, 0);
     return stop;
