@@ -19,3 +19,16 @@ test('Midi card updates preserve attack replay and append damage without duplica
     assert.deepEqual(mergeReplayPayloads(undefined, [proof('a')], proof('a')), [proof('a')]);
     assert.equal(proofs.size,2); // Multiple cards may legitimately contain the same Roll.
 });
+test('overlapping players retain their own replay when proofs complete in reverse order', () => {
+    const playerA = 'rs:12345678-1234-4234-8234-123456789abc';
+    const playerB = 'rs:87654321-4321-4321-8321-cba987654321';
+    const proofs = new Map();
+    const rollsA = [{ options: { rollsightRequestId: playerA } }];
+    const rollsB = [{ options: { rollsightRequestId: playerB } }];
+    proofs.set(playerB, [proof('player-b')]);
+    assert.deepEqual(correlatedReplayPayloads(rollsA, proofs), []);
+    assert.deepEqual(correlatedReplayPayloads(rollsB, proofs), [proof('player-b')]);
+    proofs.set(playerA, [proof('player-a')]);
+    assert.deepEqual(correlatedReplayPayloads(rollsA, proofs), [proof('player-a')]);
+    assert.deepEqual(correlatedReplayPayloads(rollsB, proofs), [proof('player-b')]);
+});
