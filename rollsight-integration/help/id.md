@@ -43,3 +43,9 @@ Tab lain sedang menerima dadu RollSight untuk pemain ini. Tutup tab itu, lalu se
 Dadu tidak diterima. Kirim bilangan bulat dalam rentang setiap dadu.
 
 RollSight tidak dapat menerapkan kiriman ini. Periksa lemparan tertunda sebelum mengirim ulang.
+
+## Adegan pertempuran OBS opsional
+
+Di Pengaturan Game → RollSight, pilih **Atur adegan OBS per giliran**. Pilih pengguna Foundry yang masuk ke Browser Source OBS Utils `/stream`. Petakan aktor ke nama adegan OBS yang sudah ada dengan ejaan persis, lalu jika perlu pilih adegan untuk giliran NPC yang belum dipetakan dan akhir pertempuran. Giliran pemain yang belum dipetakan akan membiarkan adegan tetap seperti semula. Simpan, lalu aktifkan **Ganti adegan OBS setiap giliran pertempuran**. Gunakan **Jeda pergantian adegan OBS otomatis** untuk mengambil alih secara manual; simpan untuk melanjutkan dari giliran saat ini.
+
+Fitur ini menggunakan koneksi OBS Utils yang sudah ada atau izin kontrol adegan Browser Source OBS. Anda tidak memerlukan kata sandi OBS kedua atau pembaruan aplikasi desktop. Gunakan satu sumber pengendali dan URL Foundry yang aman (HTTPS atau localhost). Biarkan sumber tersebut tetap dimuat saat mengganti adegan OBS agar dapat terus menerima giliran. Jika OBS Utils tidak menyediakan API yang diperlukan, perbarui sebelum mengaktifkan fitur ini. Jika adegan tidak ditemukan atau koneksi OBS terputus, adegan saat ini tetap digunakan; periksa ejaan nama adegan dan koneksi OBS Utils. Uji di koleksi adegan Anda sebelum siaran langsung.

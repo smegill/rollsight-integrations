@@ -43,3 +43,9 @@ Outra aba recebe os dados do RollSight para este jogador. Feche-a e atualize est
 Os dados não foram aceitos. Envie valores inteiros no intervalo de cada dado.
 
 O RollSight não conseguiu aplicar este envio. Verifique a rolagem pendente antes de enviar novamente.
+
+## Cenas de combate opcionais do OBS
+
+Em Configurações do jogo → RollSight, escolha **Configurar cenas do OBS por turno**. Selecione o usuário do Foundry conectado à Browser Source OBS Utils `/stream`. Associe os atores aos nomes exatos das cenas existentes no OBS e, se quiser, escolha cenas para turnos de NPC sem associação e para o fim do combate. Turnos de jogadores sem associação mantêm a cena atual. Salve e ative **Alternar cenas do OBS a cada turno de combate**. Use **Pausar a troca automática de cenas do OBS** para controlar manualmente; salve para retomar no turno atual.
+
+Esse recurso usa a conexão existente do OBS Utils ou a permissão de controle de cenas da Browser Source do OBS. Não é necessária outra senha do OBS nem atualização do aplicativo de desktop. Use uma única fonte controladora e uma URL segura do Foundry (HTTPS ou localhost). Mantenha essa fonte carregada ao trocar cenas do OBS para que ela continue recebendo os turnos. Se o OBS Utils não oferecer a API necessária, atualize-o antes de ativar esse recurso. Se uma cena não existir ou a conexão do OBS cair, a cena atual será mantida; confira a grafia do nome da cena e a conexão do OBS Utils. Faça um teste na sua coleção de cenas antes de transmitir ao vivo.

@@ -8,6 +8,7 @@ import { ConsumerCoordinator, deliveryMessageId } from './consumer-coordinator.j
 import { rollReplaySerializablePayload } from './roll-proof-html.js';
 import { registerReplayViewing } from './replay-viewer.js';
 import { correlatedReplayPayloads, mergeReplayPayloads } from './replay-correlation.js';
+import { registerObsTurnAutomation } from './obs-turns.js';
 
 export const NS = 'rollsight-integration';
 export const t = (key, args = {}) => game.i18n.format(`ROLLSIGHT.${key}`, args);
@@ -404,6 +405,7 @@ export class RollSightIntegration {
 }
 
 Hooks.once('init', () => {
+    registerObsTurnAutomation();
     registerReplayViewing();
     if (game.view !== 'stream') registerFulfillmentMethod();
 });
