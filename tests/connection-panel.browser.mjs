@@ -53,6 +53,44 @@ try {
  assert.equal(await page.locator('dialog').getAttribute('dir'),'rtl');
  assert.ok(await page.locator('dialog').evaluate(el=>el.scrollWidth<=el.clientWidth));
  await page.screenshot({path:'/tmp/rollsight-connection-panel-rtl.png'});
+ await page.evaluate(()=>{
+  values.desktopBridgePoll=true;
+  game.rollsight.status='LegacyExtensionWarning';
+  window.settingWrites=[];
+  game.settings.set=async(_ns,key,value)=>{settingWrites.push([key,value]);values[key]=value};
+  game.rollsight.scheduleReconnect=()=>{game.rollsight.status='Connected';game.rollsight.currentPlayerCode='FRESHKEY';Hooks.callAll('rollsightConnectionChanged')};
+  Hooks.callAll('rollsightConnectionChanged');
+ });
+ assert.equal(await page.getByRole('button',{name:'Use cloud reception'}).isVisible(),true);
+ assert.equal(await page.locator('#rollsight-connect-code').isVisible(),false);
+ assert.match(await page.locator('.rollsight-connection-status').textContent(),/not receiving cloud dice/);
+ assert.equal(await page.evaluate(()=>values.desktopBridgePoll),true,'legacy preference remains until user acts');
+ await page.getByRole('button',{name:'Use cloud reception'}).click();
+ assert.deepEqual(await page.evaluate(()=>settingWrites),[['desktopBridgePoll',false]]);
+ assert.equal(await page.evaluate(()=>values.cloudRoomKey),'LINKED','world link is preserved');
+ assert.equal(await page.locator('#rollsight-connect-code').inputValue(),'FRESHKEY');
+ // Exercise real translated catalogs, not English text with only an RTL direction.
+ for (const language of ['fr','es','pt','zh','hi','bn','id','ar','ur']) {
+  const catalog=JSON.parse(await readFile(new URL(`lang/${language}.json`,moduleRoot)));
+  await page.keyboard.press('Escape');
+  await page.locator('dialog').waitFor({state:'detached'});
+  await page.evaluate(({language,catalog})=>{
+   game.i18n.lang=language; game.i18n.localize=key=>catalog[key]||key;
+   values.desktopBridgePoll=true; game.rollsight.status='LegacyExtensionWarning';
+   window.settingWrites=[]; panel.openConnectionPanel();
+  },{language,catalog});
+  assert.equal(await page.locator('dialog').getAttribute('dir'),['ar','ur'].includes(language)?'rtl':'ltr');
+  assert.ok(await page.locator('dialog').evaluate(el=>el.scrollWidth<=el.clientWidth),language+' horizontal overflow');
+  assert.ok(await page.locator('dialog').evaluate(el=>{const r=el.getBoundingClientRect();return r.left>=0 && r.right<=innerWidth}),language+' outside viewport');
+  const action=page.getByRole('button',{name:catalog['ROLLSIGHT.UseCloudReception'],exact:true});
+  assert.equal(await action.isVisible(),true);
+  assert.equal(await page.locator('.rollsight-connection-status').textContent(),catalog['ROLLSIGHT.LegacyExtensionWarning']);
+  if (['ar','ur','fr'].includes(language)) await page.screenshot({path:`/tmp/rollsight-connection-panel-${language}.png`});
+  await action.click();
+  assert.deepEqual(await page.evaluate(()=>settingWrites),[['desktopBridgePoll',false]]);
+  assert.equal(await page.evaluate(()=>values.cloudRoomKey),'LINKED');
+  assert.equal(await page.locator('#rollsight-connect-code').inputValue(),'FRESHKEY');
+ }
  assert.deepEqual(errors,[]);
- console.log('PASS: sidebar, copy, stale code, reconnect, GM gating, dice settings, close/Escape, duplicate render, legacy root, narrow RTL');
+ console.log('PASS: sidebar, copy, stale code, reconnect, GM gating, dice settings, legacy cloud recovery, close/Escape, duplicate render, legacy root, narrow RTL');
 } finally {await browser.close();await new Promise(resolve=>server.close(resolve));}

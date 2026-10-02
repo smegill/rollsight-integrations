@@ -7,6 +7,7 @@
             name: `ROLLSIGHT.${label}`, ...(hint ? { hint: `ROLLSIGHT.${hint}` } : {}), scope, config, type, default: value,
             onChange: () => {
                 if (["playerActive", "desktopBridgePoll", "cloudRoomKey", "cloudRoomApiBase", "replaceManualDialog"].includes(key)) game.rollsight?.scheduleReconnect();
+                if (key.startsWith('obsTurns')) Hooks.callAll?.('rollsightObsTurnsSettingsChanged');
             }
         });
         register('playerActive', Boolean, true, 'client', 'Active', 'ActiveHint');
@@ -19,10 +20,13 @@
         register('fallbackToChat', Boolean, true, 'world', 'Fallback', 'FallbackHint');
         // Preserve the persisted key, but automatic initiative assignment has been retired.
         register('applyRollsToInitiative', Boolean, false, 'world', 'Manual', null, false);
-        register('autoExpandRollReplay', Boolean, true, 'client', 'AutoReplay', null);
+        register('autoExpandRollReplay', Boolean, false, 'client', 'AutoReplay', null);
         register('rollReplayRefreshEverySeconds', Number, 5, 'client', 'RetryInterval', null);
         register('rollReplayRefreshMaxSeconds', Number, 60, 'client', 'RetryTimeout', null);
         register('debugLogging', Boolean, false, 'client', 'Debug', null);
+        register('obsTurnsEnabled', Boolean, false, 'world', 'ObsTurnsEnabled', 'ObsTurnsEnabledHint');
+        register('obsTurnsPaused', Boolean, false, 'world', 'ObsTurnsPaused', 'ObsTurnsPausedHint', false);
+        register('obsTurnsConfig', Object, { operatorUserId: '', actors: {}, npcScene: '', endScene: '' }, 'world', 'ObsTurnsConfigure', null, false);
     });
     const mount = (app, html) => {
         const root = (html?.nodeType ? html : html?.[0]) ?? app.element;

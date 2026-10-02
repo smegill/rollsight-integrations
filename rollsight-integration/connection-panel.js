@@ -27,6 +27,7 @@ export function openConnectionPanel() {
     const actions = add('div'); actions.className='rollsight-connect-actions';
     const retry=add('button','Refresh',actions); retry.type='button';
     const link=add('button','LinkWorld',actions); link.type='button';
+    const useCloud=add('button','UseCloudReception',actions); useCloud.type='button';
     add('hr');
     add('h3','ConnectDiceTitle');
     add('p','ConnectDiceHelp');
@@ -42,8 +43,10 @@ export function openConnectionPanel() {
         field.hidden=label.hidden=copy.hidden=hint.hidden=extension || !active || !linked;
         copy.disabled=busy || !code;
         const state=integration?.status || 'Disconnected';
-        const key=!active?'ConnectStopped':extension?'ConnectExtension':!linked?'NotLinked':state==='Connected'?'ConnectReady':state==='Connecting'?'ConnectChecking':state==='Reconnecting'?'ConnectRetrying':state;
+        const key=!active?'ConnectStopped':extension?'LegacyExtensionWarning':!linked?'NotLinked':state==='Connected'?'ConnectReady':state==='Connecting'?'ConnectChecking':state==='Reconnecting'?'ConnectRetrying':state;
         status.textContent=text(key);
+        useCloud.hidden=!active || !extension;
+        useCloud.disabled=busy;
         retry.hidden=!active || extension || !linked || ['Connected','Connecting','AnotherTab'].includes(state);
         retry.disabled=busy || state==='Connecting';
         link.hidden=!game.user.isGM || linked || extension || !active;
@@ -68,6 +71,11 @@ export function openConnectionPanel() {
     });
     retry.onclick=()=>run(()=>game.rollsight.connect());
     link.onclick=()=>run(async()=>{ await game.rollsight._autoProvisionRollSightCloudRelay(); await game.rollsight.connect(); });
+    useCloud.onclick=()=>run(async()=>{
+        await game.settings.set(ns,'desktopBridgePoll',false);
+        game.rollsight._startAutoWorldLink?.();
+        game.rollsight.scheduleReconnect();
+    });
     dice.onclick=()=>{
         const RollClass=globalThis.foundry?.dice?.Roll ?? globalThis.Roll;
         const menu=game.settings.menus.get(`core.${RollClass?.DICE_CONFIGURATION_SETTING || 'diceConfiguration'}`);

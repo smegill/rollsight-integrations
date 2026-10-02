@@ -43,3 +43,9 @@ Another tab is receiving RollSight dice for this player. Close it, then refresh 
 Dice were not accepted. Send whole-number values within each die’s range.
 
 RollSight could not apply this delivery. Check the waiting roll before sending again.
+
+## Optional OBS combat scenes
+
+In Game Settings → RollSight, choose **Configure OBS turn scenes**. Select the Foundry user signed into your OBS Utils `/stream` Browser Source. Map actors to exact existing OBS scene names, and optionally choose scenes for unmapped NPC turns and combat ending. Unmapped player turns leave the scene unchanged. Save, then enable **Switch OBS scenes on combat turns**. Use **Pause automatic OBS scene switching** to keep manual control; save to resume on the current turn.
+
+This uses OBS Utils’ existing connection or the OBS Browser Source scene-control permission. No second OBS password or desktop update is required. Use one controller source and a secure Foundry URL (HTTPS or localhost). Keep that source loaded when changing OBS scenes, so it can continue receiving turns. If OBS Utils does not expose the required API, update it before enabling this feature. A missing scene or disconnected OBS connection leaves the current scene in place; check the scene spelling and OBS Utils connection. Test in your scene collection before streaming live.

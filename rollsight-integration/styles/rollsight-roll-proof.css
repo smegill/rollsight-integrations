@@ -316,6 +316,7 @@ button.rollsight-code-refresh {
 
 /* The pairing panel uses native dialog focus/Escape behavior on Foundry 12–14. */
 dialog.rollsight-connection-panel {
+  box-sizing: border-box;
   color: #eee; background: #23252c; border: 1px solid #6c7180; border-radius: 14px;
   padding: 24px; width: min(480px, calc(100vw - 32px)); max-height: calc(100vh - 32px);
   overflow: auto; box-shadow: 0 16px 64px #0009; text-align: start;
@@ -348,3 +349,27 @@ dialog.rollsight-connection-panel {
 .rollsight-native-prompt .rollsight-request-status { text-align: center; font-weight: 400; }
 .roll-resolver:has(.rollsight-native-prompt) .form-footer { flex-wrap: wrap; }
 .roll-resolver:has(.rollsight-native-prompt) .rollsight-cancel-roll { white-space: normal; height: auto; min-height: 2rem; flex: 1 1 10rem; }
+
+/* Optional OBS settings reuse the dialog shell, not the large player-code field. */
+.rollsight-obs-turn-panel { box-sizing: border-box; }
+.rollsight-obs-turn-panel label { display: block; margin-block: 12px; }
+.rollsight-obs-turn-panel input[type="text"],
+.rollsight-obs-turn-panel select {
+    box-sizing: border-box; width: 100%; min-width: 0; height: auto; min-height: 38px;
+    margin-block: 6px; padding: 8px; border: 1px solid #747c8f; border-radius: 5px;
+    font: inherit; letter-spacing: normal; text-align: start;
+    background: #13151a; color: #fff;
+}
+.rollsight-obs-turn-panel input[type="checkbox"] {
+    width: 20px; height: 20px; margin-inline: 10px; vertical-align: middle;
+}
+.rollsight-obs-turn-row {
+    display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+    align-items: center; gap: 8px; margin-block: 8px;
+}
+.rollsight-obs-turn-panel header h2 { min-width: 0; overflow-wrap: anywhere; }
+@media (max-width: 520px) {
+    .rollsight-obs-turn-row { grid-template-columns: minmax(0, 1fr); gap: 2px; }
+    .rollsight-obs-turn-row button { justify-self: end; }
+    .rollsight-obs-turn-panel header { align-items: start; gap: 8px; }
+}

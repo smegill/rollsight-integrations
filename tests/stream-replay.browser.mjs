@@ -20,7 +20,8 @@ try {
         const hooks=new Map();
         window.Hooks={once:(name,fn)=>hooks.set(name,[fn]),on:(name,fn)=>hooks.set(name,[...(hooks.get(name)||[]),fn])};
         const fire=(name,...args)=>(hooks.get(name)||[]).forEach(fn=>fn(...args));
-        window.game={view:'stream',settings:{get:(_ns,key)=>({autoExpandRollReplay:false,rollReplayRefreshEverySeconds:1,rollReplayRefreshMaxSeconds:1})[key]},i18n:{format:k=>k,localize:k=>k}};
+        let autoExpandReplay=false;
+        window.game={view:'stream',modules:{get:()=>undefined},settings:{get:(_ns,key)=>({autoExpandRollReplay:autoExpandReplay,rollReplayRefreshEverySeconds:1,rollReplayRefreshMaxSeconds:1})[key]},i18n:{format:k=>k,localize:k=>k}};
         const {RollSightIntegration}=await import('/rollsight.js');
         RollSightIntegration.prototype.connect=()=>{throw new Error('Stream connected as sender');};
         RollSightIntegration.prototype._startAutoWorldLink=()=>{throw new Error('Stream linked world');};
@@ -42,10 +43,13 @@ try {
         game.view='game';const normal=document.createElement('article');normal.innerHTML='<div class="message-content"></div>';
         fire('renderChatMessageHTML',message,normal);
         const playerCollapsed=!normal.querySelector('details').open;
+        autoExpandReplay=true;const optedIn=document.createElement('article');optedIn.innerHTML='<div class="message-content"></div>';
+        fire('renderChatMessageHTML',message,optedIn);
+        const playerOptedIn=optedIn.querySelector('details').open;
         card.querySelector('.message-content').replaceChildren();
         fire('dnd5e.renderChatMessage',message,card);
-        return {beforeReady,count,expanded,noSender,hiddenCount,playerCollapsed,restored:card.querySelectorAll('details').length};
+        return {beforeReady,count,expanded,noSender,hiddenCount,playerCollapsed,playerOptedIn,restored:card.querySelectorAll('details').length};
     });
-    assert.deepEqual(result,{beforeReady:1,count:1,expanded:true,noSender:true,hiddenCount:0,playerCollapsed:true,restored:1});
-    console.log('PASS: stream initial render, no sender, visibility, deduplication, expansion, player preference and D&D replacement');
+    assert.deepEqual(result,{beforeReady:1,count:1,expanded:true,noSender:true,hiddenCount:0,playerCollapsed:true,playerOptedIn:true,restored:1});
+    console.log('PASS: stream expansion, normal-chat preference, visibility, deduplication and D&D replacement');
 } finally {await browser.close();await new Promise(resolve=>server.close(resolve));}
