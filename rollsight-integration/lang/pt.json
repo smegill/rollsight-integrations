@@ -2,8 +2,8 @@
   "ROLLSIGHT.Method": "Dados físicos do RollSight",
   "ROLLSIGHT.Active": "Receber dados do RollSight",
   "ROLLSIGHT.ActiveHint": "Desative para sair desta sessão. As rolagens pendentes continuam disponíveis no Foundry para conclusão manual.",
-  "ROLLSIGHT.Extension": "Usar a extensão do navegador",
-  "ROLLSIGHT.ExtensionHint": "Receba resultados locais pela extensão do RollSight. A recepção pela nuvem fica desativada neste modo.",
+  "ROLLSIGHT.Extension": "Modo de extensão legada do Foundry",
+  "ROLLSIGHT.ExtensionHint": "Esta configuração salva interrompe a recepção pela nuvem. O complemento de navegador atual do RollSight oferece suporte apenas ao Roll20. Abra Conectar RollSight e escolha Usar recepção pela nuvem para voltar sem alterar o vínculo do mundo.",
   "ROLLSIGHT.PlayerCode": "Seu código de jogador do RollSight",
   "ROLLSIGHT.PlayerCodeHint": "No Foundry, abra as configurações do RollSight e copie seu código de jogador. Em Configurações do jogo → Principal → Dados, defina o método padrão como dados físicos do RollSight e salve. Confira as configurações individuais de cada dado. Inicie a rolagem no Foundry e aguarde a solicitação do RollSight antes de rolar os dados físicos.",
   "ROLLSIGHT.Manual": "Aceitar dados para rolagens manuais",
@@ -83,5 +83,7 @@
   "ROLLSIGHT.ObsTurnsSaveFailed": "Não foi possível salvar as cenas do OBS por turno.",
   "ROLLSIGHT.ObsTurnsUnavailable": "A troca de cena por turno requer o OBS Utils no modo OBS na fonte /stream selecionada.",
   "ROLLSIGHT.ObsTurnsNoLock": "Este navegador não pode coordenar fontes OBS duplicadas. A troca automática por turno está desativada aqui.",
-  "ROLLSIGHT.ObsTurnsSwitchFailed": "Não foi possível trocar o OBS para a cena {scene}. Verifique o nome da cena e a conexão do OBS Utils."
+  "ROLLSIGHT.ObsTurnsSwitchFailed": "Não foi possível trocar o OBS para a cena {scene}. Verifique o nome da cena e a conexão do OBS Utils.",
+  "ROLLSIGHT.LegacyExtensionWarning": "O modo de extensão legada está ativado. Esta janela do Foundry não recebe dados pela nuvem. O complemento de navegador atual oferece suporte apenas ao Roll20. Escolha Usar recepção pela nuvem abaixo; o vínculo do mundo continuará salvo.",
+  "ROLLSIGHT.UseCloudReception": "Usar recepção pela nuvem"
 }

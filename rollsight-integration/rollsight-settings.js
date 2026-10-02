@@ -20,7 +20,7 @@
         register('fallbackToChat', Boolean, true, 'world', 'Fallback', 'FallbackHint');
         // Preserve the persisted key, but automatic initiative assignment has been retired.
         register('applyRollsToInitiative', Boolean, false, 'world', 'Manual', null, false);
-        register('autoExpandRollReplay', Boolean, true, 'client', 'AutoReplay', null);
+        register('autoExpandRollReplay', Boolean, false, 'client', 'AutoReplay', null);
         register('rollReplayRefreshEverySeconds', Number, 5, 'client', 'RetryInterval', null);
         register('rollReplayRefreshMaxSeconds', Number, 60, 'client', 'RetryTimeout', null);
         register('debugLogging', Boolean, false, 'client', 'Debug', null);

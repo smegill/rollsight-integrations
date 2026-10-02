@@ -2,8 +2,8 @@
   "ROLLSIGHT.Method": "نرد RollSight الحقيقي",
   "ROLLSIGHT.Active": "استقبال نرد RollSight",
   "ROLLSIGHT.ActiveHint": "أوقفه لمغادرة هذه الجلسة. تبقى الرميات المعلقة متاحة في Foundry لإكمالها يدويًا.",
-  "ROLLSIGHT.Extension": "استخدام إضافة المتصفح",
-  "ROLLSIGHT.ExtensionHint": "استقبل نتائج سطح المكتب المحلية عبر إضافة RollSight. يُعطّل الاستقبال السحابي في هذا الوضع.",
+  "ROLLSIGHT.Extension": "وضع إضافة Foundry القديمة",
+  "ROLLSIGHT.ExtensionHint": "يوقف هذا الإعداد المحفوظ الاستقبال السحابي. إضافة المتصفح الحالية من RollSight تدعم Roll20 فقط. افتح توصيل RollSight واختر استخدام الاستقبال السحابي للعودة دون تغيير رابط العالم.",
   "ROLLSIGHT.PlayerCode": "رمز اللاعب الخاص بك في RollSight",
   "ROLLSIGHT.PlayerCodeHint": "في Foundry، افتح إعدادات RollSight وانسخ رمز اللاعب. في إعدادات اللعبة ← الأساسي ← النرد، عيّن الطريقة الافتراضية إلى نرد RollSight الحقيقي واحفظ. تحقق من الإعدادات الخاصة بكل نوع من النرد. ابدأ الرمية في Foundry وانتظر ظهور مطالبة RollSight قبل رمي النرد الحقيقي.",
   "ROLLSIGHT.Manual": "قبول النرد للرميات اليدوية",
@@ -83,5 +83,7 @@
   "ROLLSIGHT.ObsTurnsSaveFailed": "تعذّر حفظ مشاهد أدوار OBS.",
   "ROLLSIGHT.ObsTurnsUnavailable": "يتطلب تبديل المشاهد حسب الدور تشغيل OBS Utils في وضع OBS على مصدر /stream المحدد.",
   "ROLLSIGHT.ObsTurnsNoLock": "لا يستطيع هذا المتصفح التنسيق بين مصادر OBS المكررة. أُوقف تبديل الأدوار التلقائي هنا.",
-  "ROLLSIGHT.ObsTurnsSwitchFailed": "تعذّر التبديل إلى مشهد OBS‏ {scene}. تحقق من اسم المشهد واتصال OBS Utils."
+  "ROLLSIGHT.ObsTurnsSwitchFailed": "تعذّر التبديل إلى مشهد OBS‏ {scene}. تحقق من اسم المشهد واتصال OBS Utils.",
+  "ROLLSIGHT.LegacyExtensionWarning": "وضع إضافة المتصفح القديمة مفعّل. نافذة Foundry هذه لا تستقبل رميات النرد عبر السحابة. إضافة المتصفح الحالية تدعم Roll20 فقط. اختر «استخدام الاستقبال السحابي» أدناه؛ سيظل رابط عالمك محفوظًا.",
+  "ROLLSIGHT.UseCloudReception": "استخدام الاستقبال السحابي"
 }

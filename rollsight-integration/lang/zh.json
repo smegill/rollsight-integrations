@@ -2,8 +2,8 @@
   "ROLLSIGHT.Method": "RollSight 实体骰子",
   "ROLLSIGHT.Active": "接收 RollSight 骰子",
   "ROLLSIGHT.ActiveHint": "关闭以退出此会话。待处理的掷骰仍可在 Foundry 中手动完成。",
-  "ROLLSIGHT.Extension": "使用浏览器扩展",
-  "ROLLSIGHT.ExtensionHint": "通过 RollSight 扩展接收本地桌面结果。此模式下禁用云接收。",
+  "ROLLSIGHT.Extension": "旧版 Foundry 扩展模式",
+  "ROLLSIGHT.ExtensionHint": "此已保存的设置会停止云端接收。目前的 RollSight 浏览器扩展仅支持 Roll20。若要在不更改世界链接的情况下恢复，请打开“连接 RollSight”，然后选择“使用云端接收”。",
   "ROLLSIGHT.PlayerCode": "您的 RollSight 玩家代码",
   "ROLLSIGHT.PlayerCodeHint": "在 Foundry 中打开 RollSight 设置并复制你的玩家代码。在游戏设置 → 核心 → 骰子中，将默认方式设为 RollSight 实体骰子并保存。检查各类骰子的单独设置。在 Foundry 中发起掷骰，等待 RollSight 提示出现后再掷实体骰子。",
   "ROLLSIGHT.Manual": "为手动掷骰接收骰子",
@@ -83,5 +83,7 @@
   "ROLLSIGHT.ObsTurnsSaveFailed": "无法保存 OBS 回合场景。",
   "ROLLSIGHT.ObsTurnsUnavailable": "按回合切换场景需要在所选 /stream 来源上以 OBS 模式运行 OBS Utils。",
   "ROLLSIGHT.ObsTurnsNoLock": "此浏览器无法协调重复的 OBS 来源。此处已关闭自动回合切换。",
-  "ROLLSIGHT.ObsTurnsSwitchFailed": "无法将 OBS 切换到场景 {scene}。请检查场景名称和 OBS Utils 连接。"
+  "ROLLSIGHT.ObsTurnsSwitchFailed": "无法将 OBS 切换到场景 {scene}。请检查场景名称和 OBS Utils 连接。",
+  "ROLLSIGHT.LegacyExtensionWarning": "旧版扩展模式已开启。此 Foundry 窗口未接收云端骰子结果。当前浏览器扩展仅支持 Roll20。请在下方选择“使用云端接收”；您的世界链接仍会保留。",
+  "ROLLSIGHT.UseCloudReception": "使用云端接收"
 }

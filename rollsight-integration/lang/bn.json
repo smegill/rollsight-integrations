@@ -2,8 +2,8 @@
   "ROLLSIGHT.Method": "RollSight বাস্তব পাশা",
   "ROLLSIGHT.Active": "RollSight পাশা গ্রহণ করুন",
   "ROLLSIGHT.ActiveHint": "এই সেশন ছাড়তে বন্ধ করুন। অপেক্ষমাণ রোল Foundry-তে হাতে সম্পূর্ণ করা যাবে।",
-  "ROLLSIGHT.Extension": "ব্রাউজার এক্সটেনশন ব্যবহার করুন",
-  "ROLLSIGHT.ExtensionHint": "RollSight এক্সটেনশন দিয়ে স্থানীয় ডেস্কটপ ফলাফল নিন। এই মোডে ক্লাউড গ্রহণ বন্ধ থাকে।",
+  "ROLLSIGHT.Extension": "পুরোনো Foundry এক্সটেনশন মোড",
+  "ROLLSIGHT.ExtensionHint": "এই সংরক্ষিত সেটিং ক্লাউড থেকে ফলাফল গ্রহণ বন্ধ করে। বর্তমান RollSight ব্রাউজার অ্যাড-অন শুধু Roll20 সমর্থন করে। ওয়ার্ল্ড লিংক না বদলে ফিরে যেতে RollSight সংযুক্ত করুন খুলে ক্লাউডের মাধ্যমে গ্রহণ করুন বেছে নিন।",
   "ROLLSIGHT.PlayerCode": "আপনার RollSight খেলোয়াড় কোড",
   "ROLLSIGHT.PlayerCodeHint": "Foundry-তে RollSight সেটিংস খুলে আপনার খেলোয়াড়ের কোড কপি করুন। গেম সেটিংস → মূল → পাশা থেকে ডিফল্ট পদ্ধতি হিসেবে RollSight-এর বাস্তব পাশা বেছে নিয়ে সংরক্ষণ করুন। প্রতিটি পাশার আলাদা সেটিংসও পরীক্ষা করুন। Foundry-তে রোল শুরু করুন এবং বাস্তব পাশা ফেলার আগে RollSight-এর নির্দেশ আসা পর্যন্ত অপেক্ষা করুন।",
   "ROLLSIGHT.Manual": "ম্যানুয়াল রোলে পাশা গ্রহণ করুন",
@@ -83,5 +83,7 @@
   "ROLLSIGHT.ObsTurnsSaveFailed": "OBS পালার দৃশ্য সংরক্ষণ করা যায়নি।",
   "ROLLSIGHT.ObsTurnsUnavailable": "পালাভিত্তিক OBS দৃশ্য বদলাতে নির্বাচিত /stream উৎসে OBS মোডে OBS Utils চালু থাকতে হবে।",
   "ROLLSIGHT.ObsTurnsNoLock": "এই ব্রাউজারটি একাধিক OBS উৎসের মধ্যে সমন্বয় করতে পারে না। এখানে স্বয়ংক্রিয় পালা পরিবর্তন বন্ধ।",
-  "ROLLSIGHT.ObsTurnsSwitchFailed": "OBS-কে {scene} দৃশ্যে নেওয়া যায়নি। দৃশ্যের নাম এবং OBS Utils সংযোগ পরীক্ষা করুন।"
+  "ROLLSIGHT.ObsTurnsSwitchFailed": "OBS-কে {scene} দৃশ্যে নেওয়া যায়নি। দৃশ্যের নাম এবং OBS Utils সংযোগ পরীক্ষা করুন।",
+  "ROLLSIGHT.LegacyExtensionWarning": "পুরোনো এক্সটেনশন মোড চালু আছে। এই Foundry উইন্ডোতে ক্লাউড থেকে পাশার ফল আসছে না। বর্তমান ব্রাউজার অ্যাড-অন শুধু Roll20 সমর্থন করে। নিচে ক্লাউডের মাধ্যমে গ্রহণ করুন বেছে নিন; আপনার ওয়ার্ল্ড লিংক সংরক্ষিত থাকবে।",
+  "ROLLSIGHT.UseCloudReception": "ক্লাউডের মাধ্যমে গ্রহণ করুন"
 }

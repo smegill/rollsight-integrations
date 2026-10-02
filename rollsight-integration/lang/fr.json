@@ -2,8 +2,8 @@
   "ROLLSIGHT.Method": "Dés physiques RollSight",
   "ROLLSIGHT.Active": "Recevoir les dés RollSight",
   "ROLLSIGHT.ActiveHint": "Désactivez pour quitter cette session. Les jets en attente restent disponibles dans Foundry pour une saisie manuelle.",
-  "ROLLSIGHT.Extension": "Utiliser l’extension du navigateur",
-  "ROLLSIGHT.ExtensionHint": "Recevez les résultats locaux via l’extension RollSight. La réception cloud est désactivée dans ce mode.",
+  "ROLLSIGHT.Extension": "Mode d’extension Foundry hérité",
+  "ROLLSIGHT.ExtensionHint": "Ce réglage enregistré arrête la réception cloud. Le module complémentaire de navigateur RollSight actuel ne prend en charge que Roll20. Ouvrez Connecter RollSight et choisissez Utiliser la réception cloud pour revenir à ce mode sans modifier le lien du monde.",
   "ROLLSIGHT.PlayerCode": "Votre code joueur RollSight",
   "ROLLSIGHT.PlayerCodeHint": "Dans Foundry, ouvrez les paramètres de RollSight et copiez votre code de joueur. Dans Paramètres du jeu → Général → Dés, choisissez les dés physiques RollSight comme méthode par défaut et enregistrez. Vérifiez les réglages propres à chaque dé. Lancez le jet dans Foundry et attendez l’invite RollSight avant de lancer vos dés physiques.",
   "ROLLSIGHT.Manual": "Accepter les dés pour les jets manuels",
@@ -83,5 +83,7 @@
   "ROLLSIGHT.ObsTurnsSaveFailed": "Impossible d’enregistrer les scènes OBS par tour.",
   "ROLLSIGHT.ObsTurnsUnavailable": "Le changement de scène par tour nécessite OBS Utils en mode OBS sur la source /stream sélectionnée.",
   "ROLLSIGHT.ObsTurnsNoLock": "Ce navigateur ne peut pas coordonner plusieurs sources OBS. Le changement automatique par tour est désactivé ici.",
-  "ROLLSIGHT.ObsTurnsSwitchFailed": "Impossible de passer OBS à la scène {scene}. Vérifiez son nom et la connexion OBS Utils."
+  "ROLLSIGHT.ObsTurnsSwitchFailed": "Impossible de passer OBS à la scène {scene}. Vérifiez son nom et la connexion OBS Utils.",
+  "ROLLSIGHT.LegacyExtensionWarning": "Le mode d’extension hérité est activé. Cette fenêtre Foundry ne reçoit pas les dés du cloud. Le module complémentaire de navigateur actuel ne prend en charge que Roll20. Choisissez Utiliser la réception cloud ci-dessous ; le lien du monde restera enregistré.",
+  "ROLLSIGHT.UseCloudReception": "Utiliser la réception cloud"
 }

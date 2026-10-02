@@ -31,7 +31,12 @@ export class RollSightIntegration {
     setting(key) { return game.settings.get(NS, key); }
     get apiBase() { return String(this.setting('cloudRoomApiBase') || 'https://www.rollsight.com/api').replace(/\/$/, ''); }
     setStatus(key) {
+        if (key === 'Connected') this.legacyWarningShown = false;
         if (key !== this.status && ['CodeError', 'AnotherTab', 'NoTabLock'].includes(key)) notify(key);
+        if (key === 'LegacyExtensionWarning' && !this.legacyWarningShown) {
+            this.legacyWarningShown = true;
+            notify(key);
+        }
         this.status = key;
         if (key === 'CodeError') this.currentPlayerCode = '';
         Hooks.callAll?.('rollsightConnectionChanged');
@@ -92,7 +97,7 @@ export class RollSightIntegration {
         if (!this.setting('playerActive') || !game.user) return;
         const generation = this.generation;
         this.session.join(game.user.id);
-        if (this.setting('desktopBridgePoll')) { this.setStatus('ExtensionReady'); return; }
+        if (this.setting('desktopBridgePoll')) { this.setStatus('LegacyExtensionWarning'); return; }
         try {
             this.setStatus('Connecting');
             const bearer = await this._autoProvisionPlayerCodeOnly();

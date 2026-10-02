@@ -1,3 +1,11 @@
+## v1.1.90 - 2026-10-01
+
+- A saved legacy extension setting now warns that cloud reception is paused. **Use cloud reception** restores cloud delivery without discarding the saved table link.
+- Roll replays stay collapsed by default for new client settings; viewers can expand them when needed. Existing client preferences remain in place.
+- OBS turn switching and the connection panel handle delayed timers and narrow screens more reliably.
+
+Update the Foundry module and reload the world. Refresh the OBS browser source if you use it.
+
 ## v1.1.89 - 2026-09-30
 
 - Replays now appear in Foundry's `/stream` chat view used by OBS Utils and expand automatically for the broadcast.
@@ -310,4 +318,3 @@ Update the module in Foundry Setup, then reload the world and player browser tab
 ## v1.1.57 - 2026-03-27
 
 - 4c7dec6 Cloud relay: player codes, per-player publish, idempotent Supabase SQL
-

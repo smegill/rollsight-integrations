@@ -2,8 +2,8 @@
   "ROLLSIGHT.Method": "Dados físicos de RollSight",
   "ROLLSIGHT.Active": "Recibir dados de RollSight",
   "ROLLSIGHT.ActiveHint": "Desactiva para salir de esta sesión. Las tiradas pendientes siguen disponibles en Foundry para completarlas manualmente.",
-  "ROLLSIGHT.Extension": "Usar la extensión del navegador",
-  "ROLLSIGHT.ExtensionHint": "Recibe resultados locales mediante la extensión de RollSight. La recepción en la nube se desactiva en este modo.",
+  "ROLLSIGHT.Extension": "Modo de extensión heredada de Foundry",
+  "ROLLSIGHT.ExtensionHint": "Este ajuste guardado detiene la recepción en la nube. El complemento actual del navegador de RollSight solo admite Roll20. Abre Conectar RollSight y elige Usar recepción en la nube para volver sin cambiar el vínculo del mundo.",
   "ROLLSIGHT.PlayerCode": "Tu código de jugador de RollSight",
   "ROLLSIGHT.PlayerCodeHint": "En Foundry, abre los ajustes de RollSight y copia tu código de jugador. En Ajustes del juego → Principal → Dados, establece el método predeterminado en dados físicos de RollSight y guarda. Revisa las excepciones para cada dado. Inicia la tirada en Foundry y espera a que aparezca el aviso de RollSight antes de tirar los dados físicos.",
   "ROLLSIGHT.Manual": "Aceptar dados para tiradas manuales",
@@ -83,5 +83,7 @@
   "ROLLSIGHT.ObsTurnsSaveFailed": "No se pudieron guardar las escenas de OBS por turno.",
   "ROLLSIGHT.ObsTurnsUnavailable": "Para cambiar escenas por turno, OBS Utils debe estar en modo OBS en la fuente /stream seleccionada.",
   "ROLLSIGHT.ObsTurnsNoLock": "Este navegador no puede coordinar fuentes de OBS duplicadas. Aquí se desactiva el cambio automático por turno.",
-  "ROLLSIGHT.ObsTurnsSwitchFailed": "No se pudo cambiar OBS a {scene}. Comprueba el nombre de la escena y la conexión de OBS Utils."
+  "ROLLSIGHT.ObsTurnsSwitchFailed": "No se pudo cambiar OBS a {scene}. Comprueba el nombre de la escena y la conexión de OBS Utils.",
+  "ROLLSIGHT.LegacyExtensionWarning": "El modo de extensión heredada está activado. Esta ventana de Foundry no recibe dados desde la nube. El complemento actual del navegador solo admite Roll20. Elige Usar recepción en la nube abajo; el vínculo del mundo seguirá guardado.",
+  "ROLLSIGHT.UseCloudReception": "Usar recepción en la nube"
 }

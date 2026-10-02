@@ -316,6 +316,7 @@ button.rollsight-code-refresh {
 
 /* The pairing panel uses native dialog focus/Escape behavior on Foundry 12–14. */
 dialog.rollsight-connection-panel {
+  box-sizing: border-box;
   color: #eee; background: #23252c; border: 1px solid #6c7180; border-radius: 14px;
   padding: 24px; width: min(480px, calc(100vw - 32px)); max-height: calc(100vh - 32px);
   overflow: auto; box-shadow: 0 16px 64px #0009; text-align: start;

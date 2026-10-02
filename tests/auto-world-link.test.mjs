@@ -63,6 +63,17 @@ test('non-GM, other active GM and extension clients never create a room', t => {
     }
 });
 
+test('saved legacy extension choice warns and leaves the world link untouched', async t => {
+    const { integration, values, writes } = setup(t, { extension: true, linked: 'ABCDEFGH' });
+    await integration.connect();
+    assert.equal(integration.status, 'LegacyExtensionWarning');
+    assert.equal(integration.currentPlayerCode, '');
+    assert.equal(integration.coordinator, null);
+    assert.equal(values.desktopBridgePoll, true);
+    assert.equal(values.cloudRoomKey, 'ABCDEFGH');
+    assert.deepEqual(writes, []);
+});
+
 test('two tabs for the elected GM coordinate before creating a room', async t => {
     const { integration: first, values } = setup(t);
     const second = new RollSightIntegration();

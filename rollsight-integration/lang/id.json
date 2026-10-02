@@ -2,8 +2,8 @@
   "ROLLSIGHT.Method": "Dadu fisik RollSight",
   "ROLLSIGHT.Active": "Terima dadu RollSight",
   "ROLLSIGHT.ActiveHint": "Nonaktifkan untuk meninggalkan sesi ini. Lemparan tertunda tetap tersedia di Foundry untuk diselesaikan secara manual.",
-  "ROLLSIGHT.Extension": "Gunakan ekstensi browser",
-  "ROLLSIGHT.ExtensionHint": "Terima hasil desktop lokal melalui ekstensi RollSight. Penerimaan cloud dinonaktifkan dalam mode ini.",
+  "ROLLSIGHT.Extension": "Mode ekstensi Foundry lama",
+  "ROLLSIGHT.ExtensionHint": "Pengaturan tersimpan ini menghentikan penerimaan cloud. Add-on browser RollSight saat ini hanya mendukung Roll20. Untuk kembali tanpa mengubah tautan dunia, buka Hubungkan RollSight lalu pilih Gunakan penerimaan cloud.",
   "ROLLSIGHT.PlayerCode": "Kode pemain RollSight Anda",
   "ROLLSIGHT.PlayerCodeHint": "Di Foundry, buka pengaturan RollSight dan salin kode pemain Anda. Di Pengaturan Game → Inti → Dadu, pilih dadu fisik RollSight sebagai metode bawaan lalu simpan. Periksa pengaturan khusus tiap jenis dadu. Mulai lemparan di Foundry dan tunggu petunjuk RollSight sebelum melempar dadu fisik.",
   "ROLLSIGHT.Manual": "Terima dadu untuk lemparan manual",
@@ -83,5 +83,7 @@
   "ROLLSIGHT.ObsTurnsSaveFailed": "Adegan OBS per giliran tidak dapat disimpan.",
   "ROLLSIGHT.ObsTurnsUnavailable": "Pergantian adegan per giliran memerlukan OBS Utils dalam mode OBS pada sumber /stream yang dipilih.",
   "ROLLSIGHT.ObsTurnsNoLock": "Browser ini tidak dapat mengoordinasikan sumber OBS duplikat. Pergantian otomatis per giliran dinonaktifkan di sini.",
-  "ROLLSIGHT.ObsTurnsSwitchFailed": "Tidak dapat mengalihkan OBS ke adegan {scene}. Periksa nama adegan dan koneksi OBS Utils."
+  "ROLLSIGHT.ObsTurnsSwitchFailed": "Tidak dapat mengalihkan OBS ke adegan {scene}. Periksa nama adegan dan koneksi OBS Utils.",
+  "ROLLSIGHT.LegacyExtensionWarning": "Mode ekstensi lama aktif. Jendela Foundry ini tidak menerima hasil dadu dari cloud. Pengaya peramban saat ini hanya mendukung Roll20. Pilih Gunakan penerimaan cloud di bawah; tautan world Anda tetap tersimpan.",
+  "ROLLSIGHT.UseCloudReception": "Gunakan penerimaan cloud"
 }

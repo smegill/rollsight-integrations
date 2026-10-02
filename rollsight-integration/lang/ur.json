@@ -2,8 +2,8 @@
   "ROLLSIGHT.Method": "RollSight حقیقی پاسے",
   "ROLLSIGHT.Active": "RollSight پاسے وصول کریں",
   "ROLLSIGHT.ActiveHint": "اس سیشن سے نکلنے کے لیے بند کریں۔ زیرِ انتظار رول Foundry میں دستی طور پر مکمل کیے جا سکتے ہیں۔",
-  "ROLLSIGHT.Extension": "براؤزر ایکسٹینشن استعمال کریں",
-  "ROLLSIGHT.ExtensionHint": "RollSight ایکسٹینشن کے ذریعے مقامی ڈیسک ٹاپ نتائج وصول کریں۔ اس موڈ میں کلاؤڈ وصولی بند رہتی ہے۔",
+  "ROLLSIGHT.Extension": "پرانا Foundry ایکسٹینشن موڈ",
+  "ROLLSIGHT.ExtensionHint": "یہ محفوظ کردہ ترتیب کلاؤڈ سے وصولی روک دیتی ہے۔ موجودہ RollSight براؤزر ایڈ آن صرف Roll20 کو سپورٹ کرتا ہے۔ ورلڈ لنک بدلے بغیر واپس جانے کے لیے RollSight منسلک کریں کھولیں اور کلاؤڈ سے وصولی استعمال کریں منتخب کریں۔",
   "ROLLSIGHT.PlayerCode": "آپ کا RollSight کھلاڑی کوڈ",
   "ROLLSIGHT.PlayerCodeHint": "Foundry میں RollSight کی ترتیبات کھولیں اور اپنا کھلاڑی کوڈ کاپی کریں۔ گیم کی ترتیبات ← بنیادی ← پاسے میں طے شدہ طریقہ RollSight کے حقیقی پاسے منتخب کر کے محفوظ کریں۔ ہر قسم کے پاسے کی الگ ترتیب بھی دیکھیں۔ Foundry میں رول شروع کریں اور حقیقی پاسے پھینکنے سے پہلے RollSight کا پیغام آنے کا انتظار کریں۔",
   "ROLLSIGHT.Manual": "دستی رول کے لیے پاسے قبول کریں",
@@ -83,5 +83,7 @@
   "ROLLSIGHT.ObsTurnsSaveFailed": "OBS باری کے مناظر محفوظ نہیں ہو سکے۔",
   "ROLLSIGHT.ObsTurnsUnavailable": "باری کے مطابق منظر بدلنے کے لیے منتخب /stream ماخذ پر OBS موڈ میں OBS Utils چلنا ضروری ہے۔",
   "ROLLSIGHT.ObsTurnsNoLock": "یہ براؤزر دہرائے گئے OBS ماخذوں میں ہم آہنگی نہیں کر سکتا۔ یہاں خودکار باری کی تبدیلی بند ہے۔",
-  "ROLLSIGHT.ObsTurnsSwitchFailed": "OBS کو {scene} منظر پر نہیں بدلا جا سکا۔ منظر کا نام اور OBS Utils کنکشن چیک کریں۔"
+  "ROLLSIGHT.ObsTurnsSwitchFailed": "OBS کو {scene} منظر پر نہیں بدلا جا سکا۔ منظر کا نام اور OBS Utils کنکشن چیک کریں۔",
+  "ROLLSIGHT.LegacyExtensionWarning": "پرانے براؤزر ایڈ آن کا موڈ فعال ہے۔ یہ Foundry ونڈو کلاؤڈ سے پاسوں کے نتائج وصول نہیں کر رہی۔ موجودہ براؤزر ایڈ آن صرف Roll20 کو سپورٹ کرتا ہے۔ نیچے «کلاؤڈ سے وصولی استعمال کریں» منتخب کریں؛ آپ کا ورلڈ لنک محفوظ رہے گا۔",
+  "ROLLSIGHT.UseCloudReception": "کلاؤڈ سے وصولی استعمال کریں"
 }

@@ -2,8 +2,8 @@
   "ROLLSIGHT.Method": "RollSight भौतिक पासे",
   "ROLLSIGHT.Active": "RollSight पासे प्राप्त करें",
   "ROLLSIGHT.ActiveHint": "इस सत्र से निकलने के लिए बंद करें। लंबित रोल Foundry में मैन्युअल रूप से पूरे किए जा सकते हैं।",
-  "ROLLSIGHT.Extension": "ब्राउज़र एक्सटेंशन का उपयोग करें",
-  "ROLLSIGHT.ExtensionHint": "RollSight एक्सटेंशन से स्थानीय डेस्कटॉप परिणाम प्राप्त करें। इस मोड में क्लाउड से परिणाम नहीं मिलेंगे।",
+  "ROLLSIGHT.Extension": "पुराना Foundry एक्सटेंशन मोड",
+  "ROLLSIGHT.ExtensionHint": "यह सहेजी गई सेटिंग क्लाउड से परिणाम प्राप्त करना रोक देती है। मौजूदा RollSight ब्राउज़र ऐड-ऑन केवल Roll20 को सपोर्ट करता है। वर्ल्ड लिंक बदले बिना वापस जाने के लिए RollSight कनेक्ट करें खोलें और क्लाउड से प्राप्ति इस्तेमाल करें चुनें।",
   "ROLLSIGHT.PlayerCode": "आपका RollSight खिलाड़ी कोड",
   "ROLLSIGHT.PlayerCodeHint": "Foundry में RollSight की सेटिंग खोलें और अपना खिलाड़ी कोड कॉपी करें। गेम सेटिंग → मुख्य → पासे में डिफ़ॉल्ट विधि को RollSight भौतिक पासे पर सेट करके सहेजें। हर प्रकार के पासे की अलग सेटिंग भी जाँचें। Foundry में रोल शुरू करें और भौतिक पासे फेंकने से पहले RollSight का संकेत आने दें।",
   "ROLLSIGHT.Manual": "मैन्युअल रोल के लिए पासे स्वीकार करें",
@@ -83,5 +83,7 @@
   "ROLLSIGHT.ObsTurnsSaveFailed": "OBS बारी के दृश्य सहेजे नहीं जा सके।",
   "ROLLSIGHT.ObsTurnsUnavailable": "बारी के अनुसार दृश्य बदलने के लिए चुने गए /stream स्रोत पर OBS मोड में OBS Utils चालू होना चाहिए।",
   "ROLLSIGHT.ObsTurnsNoLock": "यह ब्राउज़र कई OBS स्रोतों के बीच तालमेल नहीं कर सकता। यहाँ स्वचालित बारी परिवर्तन बंद है।",
-  "ROLLSIGHT.ObsTurnsSwitchFailed": "OBS को {scene} दृश्य पर नहीं बदला जा सका। दृश्य का नाम और OBS Utils कनेक्शन जाँचें।"
+  "ROLLSIGHT.ObsTurnsSwitchFailed": "OBS को {scene} दृश्य पर नहीं बदला जा सका। दृश्य का नाम और OBS Utils कनेक्शन जाँचें।",
+  "ROLLSIGHT.LegacyExtensionWarning": "पुराने ब्राउज़र ऐड-ऑन का मोड चालू है। यह Foundry विंडो क्लाउड से पासों के परिणाम प्राप्त नहीं कर रही है। मौजूदा ब्राउज़र ऐड-ऑन केवल Roll20 को सपोर्ट करता है। नीचे “क्लाउड से प्राप्ति इस्तेमाल करें” चुनें; आपका वर्ल्ड लिंक सहेजा रहेगा।",
+  "ROLLSIGHT.UseCloudReception": "क्लाउड से प्राप्ति इस्तेमाल करें"
 }

@@ -20,7 +20,8 @@ export function sceneForCombat(combat, config) {
 export class ObsTurnController {
     constructor({ getGame = () => game, getApi = obsApi, getSetting = currentSetting,
         notify = (key, args) => globalThis.ui?.notifications?.warn(t(key, args)),
-        setTimer = setTimeout, clearTimer = clearTimeout,
+        setTimer = (...args) => globalThis.setTimeout(...args),
+        clearTimer = timer => globalThis.clearTimeout(timer),
         locks = () => globalThis.navigator?.locks } = {}) {
         Object.assign(this, { getGame, getApi, getSetting, notify, setTimer, clearTimer, locks });
         this.lastTarget = '';
