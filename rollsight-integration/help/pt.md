@@ -61,3 +61,5 @@ Salve as cenas do OBS, ative a troca de cenas nos turnos de combate e deixe desm
 As associações, o operador e as configurações de ativação e pausa ficam salvos neste mundo do Foundry. Stream pode se conectar após o início do servidor. Ao conectar, verifica o turno atual. A fonte precisa continuar conectada enquanto a troca automática for necessária.
 
 Antes de transmitir, avance um turno em um combate de teste e confira a cena; depois teste pausa e retomada. Se faltarem cenas, confira as permissões de /stream, atualize seu cache do navegador e a lista. Após renomear cenas do OBS, selecione os novos nomes e salve novamente.
+
+O chat /stream do Foundry oculta os controles e animações de replay do RollSight, independentemente da preferência salva de expansão automática. Os resultados continuam visíveis. As URLs separadas de sobreposição OBS continuam mostrando replays e os jogadores do Foundry mantêm sua preferência.

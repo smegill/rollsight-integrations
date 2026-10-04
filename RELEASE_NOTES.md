@@ -1,3 +1,10 @@
+## v1.1.92 - 2026-10-04
+
+- Foundry `/stream` chat now hides RollSight replay labels, controls and animations, including older replay markup. Roll results remain visible.
+- Regular Foundry chat keeps each player's replay preference. Separate OBS replay overlay URLs are unchanged.
+
+Update the Foundry module and refresh the OBS `/stream` Browser Source cache. No desktop update or manual Chromium preference change is needed.
+
 ## v1.1.91 - 2026-10-04
 
 - Choose combat-turn scenes from a list fetched directly from OBS. Exact names and spaces are preserved; missing saved scenes are flagged before saving.

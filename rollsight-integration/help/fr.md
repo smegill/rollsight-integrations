@@ -61,3 +61,5 @@ Enregistrez les scènes OBS, activez le changement de scène OBS aux tours de co
 Les associations, l’opérateur et les réglages d’activation et de pause restent enregistrés dans ce monde Foundry. Stream peut se connecter après le démarrage du serveur. À la connexion, le tour actuel est vérifié. La source doit rester connectée pour le changement automatique.
 
 Avant de diffuser, avancez d’un tour dans un combat de test et vérifiez la scène, puis testez la pause et la reprise. Si des scènes manquent, vérifiez les permissions de /stream, actualisez son cache navigateur puis la liste. Après avoir renommé des scènes OBS, sélectionnez les nouveaux noms et enregistrez.
+
+Le chat Foundry /stream masque les commandes et animations de replay RollSight, quel que soit le réglage d’ouverture automatique enregistré. Les résultats restent visibles. Les URL séparées d’incrustation OBS affichent toujours les replays, et les joueurs Foundry conservent leur préférence.

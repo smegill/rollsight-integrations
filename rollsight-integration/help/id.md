@@ -61,3 +61,5 @@ Simpan adegan OBS, aktifkan pergantian adegan OBS pada giliran pertempuran, dan 
 Pemetaan, operator, serta pengaturan aktif dan jeda disimpan di dunia Foundry ini. Stream boleh terhubung setelah server dimulai. Setelah terhubung, giliran saat ini diperiksa. Sumber harus tetap terhubung selama pergantian otomatis diperlukan.
 
 Sebelum siaran, majukan giliran pertempuran uji dan periksa adegannya, lalu uji jeda dan lanjutkan. Jika adegan tidak muncul, periksa izin /stream, segarkan cache browser sumber dan daftar adegan. Setelah mengganti nama adegan OBS, pilih nama baru lalu simpan kembali.
+
+Chat /stream Foundry menyembunyikan kontrol dan animasi replay RollSight, apa pun preferensi buka otomatis yang tersimpan. Hasil lemparan tetap terlihat. URL overlay replay OBS terpisah tetap menampilkan replay, dan pemain Foundry biasa mempertahankan preferensinya.

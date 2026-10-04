@@ -61,3 +61,5 @@ Choose Save OBS scenes, enable Switch OBS scenes on combat turns, and leave Paus
 Mappings, the operator, and enabled/paused settings stay saved in this Foundry world. Stream may connect after the server starts. Once connected, it checks the current combat turn. The source must stay connected while automatic switching is needed.
 
 Before streaming, advance a test combat turn and check the scene, then test pause and resume. If scenes are missing, check permissions on the /stream source, refresh its browser cache, and refresh the scene list. After renaming OBS scenes, select the new names and save again.
+
+Foundry /stream chat hides RollSight replay controls and animations, regardless of the saved auto-expand preference. Roll results remain visible. Separate OBS replay overlay URLs still show replays, and regular Foundry players keep their own replay preference.

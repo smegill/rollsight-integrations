@@ -61,3 +61,5 @@ Guarda las escenas de OBS, activa el cambio de escenas en los turnos de combate 
 Las asignaciones, el operador y los ajustes de activación y pausa se guardan en este mundo de Foundry. Stream puede conectarse después de iniciar el servidor. Al conectarse, comprueba el turno actual. La fuente debe seguir conectada mientras se necesite el cambio automático.
 
 Antes de emitir, avanza un turno de combate de prueba y comprueba la escena; luego prueba la pausa y la reanudación. Si faltan escenas, revisa los permisos de /stream, actualiza su caché del navegador y la lista. Tras renombrar escenas de OBS, selecciona los nuevos nombres y vuelve a guardar.
+
+El chat /stream de Foundry oculta los controles y animaciones de replay de RollSight, independientemente de la preferencia guardada de expansión automática. Los resultados siguen visibles. Las URL independientes de superposición OBS siguen mostrando replays y los jugadores de Foundry conservan su preferencia.

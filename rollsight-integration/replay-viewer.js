@@ -17,6 +17,14 @@ export function renderReplay(message, html) {
     if (message.isContentVisible === false) return;
     const root = html?.nodeType ? html : html?.[0];
     if (!root?.querySelector) return;
+    // Stream chat shows roll results only; standalone OBS overlays own replays.
+    // Remove persisted legacy markup as well as skipping new previews, so no
+    // client preference or hidden settings menu is required on the OBS machine.
+    if (game.view === 'stream') {
+        root.querySelectorAll('.rollsight-roll-replay-details, .rollsight-roll-replay-wrap, .rollsight-roll-proof-block')
+            .forEach(element => element.remove());
+        return;
+    }
     const flags = message.flags?.[NS] ?? {};
     const payloads = mergeReplayPayloads(flags.rollReplayPayloads ?? [], flags.rollReplayPayload);
     const shown = new Set([...root.querySelectorAll('.rollsight-roll-replay-details')].map(el => el.dataset.rollsightProofUrl));
@@ -30,7 +38,7 @@ export function renderReplay(message, html) {
         shown.add(details.dataset.rollsightProofUrl);
         (root.querySelector('.message-content') ?? root).append(details);
         bindReplayPreview(details, {
-            autoExpand: game.view === 'stream' || setting('autoExpandRollReplay'),
+            autoExpand: setting('autoExpandRollReplay'),
             intervalMs: Math.max(1, setting('rollReplayRefreshEverySeconds')) * 1000,
             maxMs: Math.min(300, Math.max(1, setting('rollReplayRefreshMaxSeconds'))) * 1000,
             unavailable: t('ReplayUnavailable'),

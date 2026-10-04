@@ -34,7 +34,13 @@ try {
         fire('streamReady');fire('ready');
         fire('renderChatMessage',message,[card]);fire('dnd5e.renderChatMessage',message,card);
         const count=card.querySelectorAll('details').length;
-        const expanded=card.querySelector('details').open;
+        const rollPreserved=card.textContent==='17';
+        autoExpandReplay=true;
+        card.insertAdjacentHTML('beforeend','<details class="rollsight-roll-replay-details" open><summary>Replay</summary></details><div class="rollsight-roll-replay-wrap">Legacy replay</div><details class="rollsight-roll-proof-block">Old replay</details><details class="other-module"><summary>Other module</summary></details>');
+        fire('renderChatMessageHTML',message,card);
+        const legacyRemoved=card.querySelectorAll('[class^="rollsight-roll-"]').length===0;
+        const otherPreserved=!!card.querySelector('.other-module');
+        autoExpandReplay=false;
         const noSender=!game.rollsight;
         const hidden=document.createElement('article');hidden.innerHTML='<div class="message-content"></div>';
         fire('renderChatMessageHTML',{...message,isContentVisible:false},hidden);
@@ -46,10 +52,11 @@ try {
         autoExpandReplay=true;const optedIn=document.createElement('article');optedIn.innerHTML='<div class="message-content"></div>';
         fire('renderChatMessageHTML',message,optedIn);
         const playerOptedIn=optedIn.querySelector('details').open;
+        card.querySelector('.other-module').remove();
         card.querySelector('.message-content').replaceChildren();
         fire('dnd5e.renderChatMessage',message,card);
-        return {beforeReady,count,expanded,noSender,hiddenCount,playerCollapsed,playerOptedIn,restored:card.querySelectorAll('details').length};
+        return {beforeReady,count,rollPreserved,legacyRemoved,otherPreserved,noSender,hiddenCount,playerCollapsed,playerOptedIn,restored:card.querySelectorAll('details').length};
     });
-    assert.deepEqual(result,{beforeReady:1,count:1,expanded:true,noSender:true,hiddenCount:0,playerCollapsed:true,playerOptedIn:true,restored:1});
-    console.log('PASS: stream expansion, normal-chat preference, visibility, deduplication and D&D replacement');
+    assert.deepEqual(result,{beforeReady:0,count:0,rollPreserved:true,legacyRemoved:true,otherPreserved:true,noSender:true,hiddenCount:0,playerCollapsed:true,playerOptedIn:true,restored:1});
+    console.log('PASS: stream replay suppression and legacy cleanup, normal-chat preference, visibility, deduplication and D&D replacement');
 } finally {await browser.close();await new Promise(resolve=>server.close(resolve));}
