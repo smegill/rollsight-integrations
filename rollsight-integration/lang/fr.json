@@ -85,5 +85,14 @@
   "ROLLSIGHT.ObsTurnsNoLock": "Ce navigateur ne peut pas coordonner plusieurs sources OBS. Le changement automatique par tour est désactivé ici.",
   "ROLLSIGHT.ObsTurnsSwitchFailed": "Impossible de passer OBS à la scène {scene}. Vérifiez son nom et la connexion OBS Utils.",
   "ROLLSIGHT.LegacyExtensionWarning": "Le mode d’extension hérité est activé. Cette fenêtre Foundry ne reçoit pas les dés du cloud. Le module complémentaire de navigateur actuel ne prend en charge que Roll20. Choisissez Utiliser la réception cloud ci-dessous ; le lien du monde restera enregistré.",
-  "ROLLSIGHT.UseCloudReception": "Utiliser la réception cloud"
+  "ROLLSIGHT.UseCloudReception": "Utiliser la réception cloud",
+  "ROLLSIGHT.ObsScenesRefresh": "Actualiser les scènes OBS",
+  "ROLLSIGHT.ObsScenesLoading": "Lecture des scènes depuis la source de diffusion OBS…",
+  "ROLLSIGHT.ObsScenesUnavailable": "La source Stream a répondu, mais les scènes OBS sont inaccessibles. Vérifiez ses autorisations OBS ou la connexion OBS Utils.",
+  "ROLLSIGHT.ObsScenesPermission": "OBS nécessite une autorisation pour changer de scène. Accordez un accès avancé ou complet à la source navigateur /stream.",
+  "ROLLSIGHT.ObsScenesReady": "Connexion à OBS établie. {count} scènes trouvées.",
+  "ROLLSIGHT.ObsScenesNoReply": "Aucune réponse de la source Stream. Actualisez son cache navigateur dans OBS et vérifiez l’opérateur sélectionné.",
+  "ROLLSIGHT.ObsScenesNone": "Ne pas changer de scène",
+  "ROLLSIGHT.ObsScenesMissing": "Introuvable dans OBS : {scene}",
+  "ROLLSIGHT.ObsScenesFixMissing": "Choisissez une scène OBS existante pour chaque association manquante ou effacez-la avant d’enregistrer."
 }

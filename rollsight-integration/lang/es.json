@@ -85,5 +85,14 @@
   "ROLLSIGHT.ObsTurnsNoLock": "Este navegador no puede coordinar fuentes de OBS duplicadas. Aquí se desactiva el cambio automático por turno.",
   "ROLLSIGHT.ObsTurnsSwitchFailed": "No se pudo cambiar OBS a {scene}. Comprueba el nombre de la escena y la conexión de OBS Utils.",
   "ROLLSIGHT.LegacyExtensionWarning": "El modo de extensión heredada está activado. Esta ventana de Foundry no recibe dados desde la nube. El complemento actual del navegador solo admite Roll20. Elige Usar recepción en la nube abajo; el vínculo del mundo seguirá guardado.",
-  "ROLLSIGHT.UseCloudReception": "Usar recepción en la nube"
+  "ROLLSIGHT.UseCloudReception": "Usar recepción en la nube",
+  "ROLLSIGHT.ObsScenesRefresh": "Actualizar escenas de OBS",
+  "ROLLSIGHT.ObsScenesLoading": "Leyendo escenas de la fuente de transmisión de OBS…",
+  "ROLLSIGHT.ObsScenesUnavailable": "La fuente Stream respondió, pero no se puede acceder a las escenas de OBS. Revisa sus permisos de OBS o la conexión de OBS Utils.",
+  "ROLLSIGHT.ObsScenesPermission": "OBS necesita permiso para cambiar escenas. Concede acceso avanzado o completo a la fuente de navegador /stream.",
+  "ROLLSIGHT.ObsScenesReady": "Conectado a OBS. Se encontraron {count} escenas.",
+  "ROLLSIGHT.ObsScenesNoReply": "La fuente Stream no respondió. Actualiza su caché del navegador en OBS y comprueba el operador seleccionado.",
+  "ROLLSIGHT.ObsScenesNone": "No cambiar de escena",
+  "ROLLSIGHT.ObsScenesMissing": "No se encuentra en OBS: {scene}",
+  "ROLLSIGHT.ObsScenesFixMissing": "Elige una escena de OBS existente para cada asignación ausente o bórrala antes de guardar."
 }

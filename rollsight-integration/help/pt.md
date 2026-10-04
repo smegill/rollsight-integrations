@@ -44,8 +44,20 @@ Os dados não foram aceitos. Envie valores inteiros no intervalo de cada dado.
 
 O RollSight não conseguiu aplicar este envio. Verifique a rolagem pendente antes de enviar novamente.
 
-## Cenas de combate opcionais do OBS
+## Cenas automáticas do OBS nos turnos de combate
 
-Em Configurações do jogo → RollSight, escolha **Configurar cenas do OBS por turno**. Selecione o usuário do Foundry conectado à Browser Source OBS Utils `/stream`. Associe os atores aos nomes exatos das cenas existentes no OBS e, se quiser, escolha cenas para turnos de NPC sem associação e para o fim do combate. Turnos de jogadores sem associação mantêm a cena atual. Salve e ative **Alternar cenas do OBS a cada turno de combate**. Use **Pausar a troca automática de cenas do OBS** para controlar manualmente; salve para retomar no turno atual.
+Use o módulo RollSight para Foundry 1.1.91 ou posterior e ative o OBS Utils no mesmo mundo. Esses controles são separados das sobreposições de replays.
 
-Esse recurso usa a conexão existente do OBS Utils ou a permissão de controle de cenas da Browser Source do OBS. Não é necessária outra senha do OBS nem atualização do aplicativo de desktop. Use uma única fonte controladora e uma URL segura do Foundry (HTTPS ou localhost). Mantenha essa fonte carregada ao trocar cenas do OBS para que ela continue recebendo os turnos. Se o OBS Utils não oferecer a API necessária, atualize-o antes de ativar esse recurso. Se uma cena não existir ou a conexão do OBS cair, a cena atual será mantida; confira a grafia do nome da cena e a conexão do OBS Utils. Faça um teste na sua coleção de cenas antes de transmitir ao vivo.
+No OBS, crie as fontes de navegador do Foundry com o endereço do servidor fornecido pelo mestre: /game para a visão do jogo e /stream para o usuário Stream. Entre na fonte /stream com o usuário que será escolhido como operador do OBS.
+
+Em cada fonte de navegador do Foundry, abra Propriedades e defina as permissões da página como acesso avançado ou completo. /game e /stream têm permissões separadas. Atualize cada fonte após alterá-las. Links apenas de replays não precisam de permissão para controlar cenas.
+
+Mantenha o controlador /stream carregado durante as mudanças de cena. Desative o desligamento da fonte quando não estiver visível e reutilize a mesma fonte nas cenas. Essa conexão por fonte de navegador não exige WebSocket nem acesso à API do OBS Utils.
+
+Como mestre, abra Configurações do jogo → RollSight → Configurar cenas do OBS por turno. Selecione o usuário Stream como operador do OBS e atualize as cenas do OBS. Escolha cada ator e sua cena nas listas. Opcionalmente, escolha cenas para PNJs sem associação e para o fim do combate.
+
+Salve as cenas do OBS, ative a troca de cenas nos turnos de combate e deixe desmarcada a pausa da troca automática. Turnos de jogadores sem associação mantêm a cena atual.
+
+As associações, o operador e as configurações de ativação e pausa ficam salvos neste mundo do Foundry. Stream pode se conectar após o início do servidor. Ao conectar, verifica o turno atual. A fonte precisa continuar conectada enquanto a troca automática for necessária.
+
+Antes de transmitir, avance um turno em um combate de teste e confira a cena; depois teste pausa e retomada. Se faltarem cenas, confira as permissões de /stream, atualize seu cache do navegador e a lista. Após renomear cenas do OBS, selecione os novos nomes e salve novamente.

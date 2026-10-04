@@ -102,6 +102,7 @@ export class RollSightIntegration {
             this.setStatus('Connecting');
             const bearer = await this._autoProvisionPlayerCodeOnly();
             if (generation !== this.generation || !bearer) return;
+            // Only the derived scope is announced on Foundry's socket; keep relay credentials out of peer coordination.
             const scope = await this.scopeHash([game.world?.id, game.user.id, this.apiBase, bearer]);
             if (generation !== this.generation) return;
             this.currentPlayerCode = bearer;

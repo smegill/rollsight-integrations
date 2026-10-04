@@ -85,5 +85,14 @@
   "ROLLSIGHT.ObsTurnsNoLock": "Browser ini tidak dapat mengoordinasikan sumber OBS duplikat. Pergantian otomatis per giliran dinonaktifkan di sini.",
   "ROLLSIGHT.ObsTurnsSwitchFailed": "Tidak dapat mengalihkan OBS ke adegan {scene}. Periksa nama adegan dan koneksi OBS Utils.",
   "ROLLSIGHT.LegacyExtensionWarning": "Mode ekstensi lama aktif. Jendela Foundry ini tidak menerima hasil dadu dari cloud. Pengaya peramban saat ini hanya mendukung Roll20. Pilih Gunakan penerimaan cloud di bawah; tautan world Anda tetap tersimpan.",
-  "ROLLSIGHT.UseCloudReception": "Gunakan penerimaan cloud"
+  "ROLLSIGHT.UseCloudReception": "Gunakan penerimaan cloud",
+  "ROLLSIGHT.ObsScenesRefresh": "Segarkan adegan OBS",
+  "ROLLSIGHT.ObsScenesLoading": "Membaca adegan dari sumber siaran OBS…",
+  "ROLLSIGHT.ObsScenesUnavailable": "Sumber Stream merespons, tetapi adegan OBS tidak dapat diakses. Periksa izin OBS atau koneksi OBS Utils.",
+  "ROLLSIGHT.ObsScenesPermission": "OBS memerlukan izin untuk mengganti adegan. Berikan akses lanjutan atau penuh pada sumber browser /stream.",
+  "ROLLSIGHT.ObsScenesReady": "Terhubung ke OBS. Ditemukan {count} adegan.",
+  "ROLLSIGHT.ObsScenesNoReply": "Tidak ada respons dari sumber Stream. Segarkan cache browser sumber tersebut di OBS dan periksa operator yang dipilih.",
+  "ROLLSIGHT.ObsScenesNone": "Jangan ganti adegan",
+  "ROLLSIGHT.ObsScenesMissing": "Tidak ditemukan di OBS: {scene}",
+  "ROLLSIGHT.ObsScenesFixMissing": "Pilih adegan OBS yang tersedia untuk setiap pemetaan yang hilang, atau hapus pemetaan tersebut sebelum menyimpan."
 }

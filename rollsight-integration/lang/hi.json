@@ -85,5 +85,14 @@
   "ROLLSIGHT.ObsTurnsNoLock": "यह ब्राउज़र कई OBS स्रोतों के बीच तालमेल नहीं कर सकता। यहाँ स्वचालित बारी परिवर्तन बंद है।",
   "ROLLSIGHT.ObsTurnsSwitchFailed": "OBS को {scene} दृश्य पर नहीं बदला जा सका। दृश्य का नाम और OBS Utils कनेक्शन जाँचें।",
   "ROLLSIGHT.LegacyExtensionWarning": "पुराने ब्राउज़र ऐड-ऑन का मोड चालू है। यह Foundry विंडो क्लाउड से पासों के परिणाम प्राप्त नहीं कर रही है। मौजूदा ब्राउज़र ऐड-ऑन केवल Roll20 को सपोर्ट करता है। नीचे “क्लाउड से प्राप्ति इस्तेमाल करें” चुनें; आपका वर्ल्ड लिंक सहेजा रहेगा।",
-  "ROLLSIGHT.UseCloudReception": "क्लाउड से प्राप्ति इस्तेमाल करें"
+  "ROLLSIGHT.UseCloudReception": "क्लाउड से प्राप्ति इस्तेमाल करें",
+  "ROLLSIGHT.ObsScenesRefresh": "OBS दृश्य रीफ़्रेश करें",
+  "ROLLSIGHT.ObsScenesLoading": "OBS स्ट्रीम स्रोत से दृश्य पढ़े जा रहे हैं…",
+  "ROLLSIGHT.ObsScenesUnavailable": "Stream स्रोत ने जवाब दिया, लेकिन OBS दृश्यों तक पहुँच नहीं है। उसकी OBS अनुमतियाँ या OBS Utils कनेक्शन जाँचें।",
+  "ROLLSIGHT.ObsScenesPermission": "दृश्य बदलने के लिए OBS को अनुमति चाहिए। /stream ब्राउज़र स्रोत को उन्नत या पूर्ण पहुँच दें।",
+  "ROLLSIGHT.ObsScenesReady": "OBS से जुड़ गया। {count} दृश्य मिले।",
+  "ROLLSIGHT.ObsScenesNoReply": "Stream स्रोत से जवाब नहीं मिला। OBS में उसका ब्राउज़र कैश रीफ़्रेश करें और चुना गया ऑपरेटर जाँचें।",
+  "ROLLSIGHT.ObsScenesNone": "दृश्य न बदलें",
+  "ROLLSIGHT.ObsScenesMissing": "OBS में नहीं मिला: {scene}",
+  "ROLLSIGHT.ObsScenesFixMissing": "हर अनुपलब्ध मैपिंग के लिए मौजूदा OBS दृश्य चुनें या सहेजने से पहले उसे हटाएँ।"
 }

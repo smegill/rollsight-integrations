@@ -85,5 +85,14 @@
   "ROLLSIGHT.ObsTurnsSaveFailed": "Could not save OBS turn scenes.",
   "ROLLSIGHT.ObsTurnsUnavailable": "OBS turn switching needs OBS Utils in OBS mode on the selected /stream source.",
   "ROLLSIGHT.ObsTurnsNoLock": "This browser cannot coordinate duplicate OBS sources. Automatic turn switching is off here.",
-  "ROLLSIGHT.ObsTurnsSwitchFailed": "Could not switch OBS to {scene}. Check the scene name and OBS Utils connection."
+  "ROLLSIGHT.ObsTurnsSwitchFailed": "Could not switch OBS to {scene}. Check the scene name and OBS Utils connection.",
+  "ROLLSIGHT.ObsScenesRefresh": "Refresh OBS scenes",
+  "ROLLSIGHT.ObsScenesLoading": "Reading scenes from the OBS stream source…",
+  "ROLLSIGHT.ObsScenesUnavailable": "The Stream source responded, but OBS scene access is unavailable. Check its OBS permissions or OBS Utils connection.",
+  "ROLLSIGHT.ObsScenesPermission": "OBS needs permission to change scenes. Give the /stream Browser Source Advanced or Full access.",
+  "ROLLSIGHT.ObsScenesReady": "Connected to OBS. Found {count} scenes.",
+  "ROLLSIGHT.ObsScenesNoReply": "No reply from the Stream source. Refresh its browser cache in OBS and check the selected operator.",
+  "ROLLSIGHT.ObsScenesNone": "No scene change",
+  "ROLLSIGHT.ObsScenesMissing": "Not found in OBS: {scene}",
+  "ROLLSIGHT.ObsScenesFixMissing": "Choose an existing OBS scene for each missing mapping, or clear it before saving."
 }

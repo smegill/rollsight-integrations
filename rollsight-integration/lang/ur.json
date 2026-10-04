@@ -85,5 +85,14 @@
   "ROLLSIGHT.ObsTurnsNoLock": "یہ براؤزر دہرائے گئے OBS ماخذوں میں ہم آہنگی نہیں کر سکتا۔ یہاں خودکار باری کی تبدیلی بند ہے۔",
   "ROLLSIGHT.ObsTurnsSwitchFailed": "OBS کو {scene} منظر پر نہیں بدلا جا سکا۔ منظر کا نام اور OBS Utils کنکشن چیک کریں۔",
   "ROLLSIGHT.LegacyExtensionWarning": "پرانے براؤزر ایڈ آن کا موڈ فعال ہے۔ یہ Foundry ونڈو کلاؤڈ سے پاسوں کے نتائج وصول نہیں کر رہی۔ موجودہ براؤزر ایڈ آن صرف Roll20 کو سپورٹ کرتا ہے۔ نیچے «کلاؤڈ سے وصولی استعمال کریں» منتخب کریں؛ آپ کا ورلڈ لنک محفوظ رہے گا۔",
-  "ROLLSIGHT.UseCloudReception": "کلاؤڈ سے وصولی استعمال کریں"
+  "ROLLSIGHT.UseCloudReception": "کلاؤڈ سے وصولی استعمال کریں",
+  "ROLLSIGHT.ObsScenesRefresh": "OBS مناظر تازہ کریں",
+  "ROLLSIGHT.ObsScenesLoading": "OBS اسٹریم ماخذ سے مناظر پڑھے جا رہے ہیں…",
+  "ROLLSIGHT.ObsScenesUnavailable": "Stream ماخذ نے جواب دیا، لیکن OBS مناظر تک رسائی دستیاب نہیں۔ اس کی OBS اجازتیں یا OBS Utils کنکشن دیکھیں۔",
+  "ROLLSIGHT.ObsScenesPermission": "مناظر بدلنے کے لیے OBS کو اجازت درکار ہے۔ /stream براؤزر ماخذ کو اعلیٰ یا مکمل رسائی دیں۔",
+  "ROLLSIGHT.ObsScenesReady": "OBS سے جڑ گیا۔ {count} مناظر ملے۔",
+  "ROLLSIGHT.ObsScenesNoReply": "Stream ماخذ سے جواب نہیں آیا۔ OBS میں اس کا براؤزر کیش تازہ کریں اور منتخب آپریٹر دیکھیں۔",
+  "ROLLSIGHT.ObsScenesNone": "منظر نہ بدلیں",
+  "ROLLSIGHT.ObsScenesMissing": "OBS میں نہیں ملا: {scene}",
+  "ROLLSIGHT.ObsScenesFixMissing": "ہر ناموجود نقشہ بندی کے لیے OBS کا موجودہ منظر منتخب کریں، یا محفوظ کرنے سے پہلے اسے ہٹا دیں۔"
 }

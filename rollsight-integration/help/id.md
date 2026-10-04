@@ -44,8 +44,20 @@ Dadu tidak diterima. Kirim bilangan bulat dalam rentang setiap dadu.
 
 RollSight tidak dapat menerapkan kiriman ini. Periksa lemparan tertunda sebelum mengirim ulang.
 
-## Adegan pertempuran OBS opsional
+## Adegan OBS otomatis pada giliran pertempuran
 
-Di Pengaturan Game → RollSight, pilih **Atur adegan OBS per giliran**. Pilih pengguna Foundry yang masuk ke Browser Source OBS Utils `/stream`. Petakan aktor ke nama adegan OBS yang sudah ada dengan ejaan persis, lalu jika perlu pilih adegan untuk giliran NPC yang belum dipetakan dan akhir pertempuran. Giliran pemain yang belum dipetakan akan membiarkan adegan tetap seperti semula. Simpan, lalu aktifkan **Ganti adegan OBS setiap giliran pertempuran**. Gunakan **Jeda pergantian adegan OBS otomatis** untuk mengambil alih secara manual; simpan untuk melanjutkan dari giliran saat ini.
+Gunakan modul RollSight Foundry 1.1.91 atau lebih baru dan aktifkan OBS Utils di dunia yang sama. Kontrol ini terpisah dari overlay replay.
 
-Fitur ini menggunakan koneksi OBS Utils yang sudah ada atau izin kontrol adegan Browser Source OBS. Anda tidak memerlukan kata sandi OBS kedua atau pembaruan aplikasi desktop. Gunakan satu sumber pengendali dan URL Foundry yang aman (HTTPS atau localhost). Biarkan sumber tersebut tetap dimuat saat mengganti adegan OBS agar dapat terus menerima giliran. Jika OBS Utils tidak menyediakan API yang diperlukan, perbarui sebelum mengaktifkan fitur ini. Jika adegan tidak ditemukan atau koneksi OBS terputus, adegan saat ini tetap digunakan; periksa ejaan nama adegan dan koneksi OBS Utils. Uji di koleksi adegan Anda sebelum siaran langsung.
+Di OBS, buat sumber browser Foundry dengan alamat server dari GM: /game untuk tampilan permainan dan /stream untuk pengguna Stream. Masuk ke sumber /stream sebagai pengguna yang akan dipilih sebagai operator OBS.
+
+Untuk setiap sumber browser Foundry, buka Properti dan atur izin halaman ke akses lanjutan atau penuh. Izin /game dan /stream terpisah. Segarkan setiap sumber setelah mengubahnya. Tautan khusus replay tidak memerlukan izin kontrol adegan.
+
+Biarkan pengontrol /stream tetap dimuat saat berganti adegan. Matikan opsi menutup sumber saat tidak terlihat dan gunakan kembali sumber yang sama di semua adegan. Koneksi sumber browser ini tidak memerlukan WebSocket atau akses API OBS Utils.
+
+Sebagai GM, buka Pengaturan Game → RollSight → Konfigurasi adegan OBS per giliran. Pilih pengguna Stream sebagai operator OBS, lalu segarkan adegan OBS. Pilih setiap aktor dan adegan OBS dari daftar. Jika perlu, pilih adegan untuk giliran NPC tanpa pemetaan dan akhir pertempuran.
+
+Simpan adegan OBS, aktifkan pergantian adegan OBS pada giliran pertempuran, dan jangan centang jeda pergantian otomatis. Giliran pemain tanpa pemetaan mempertahankan adegan saat ini.
+
+Pemetaan, operator, serta pengaturan aktif dan jeda disimpan di dunia Foundry ini. Stream boleh terhubung setelah server dimulai. Setelah terhubung, giliran saat ini diperiksa. Sumber harus tetap terhubung selama pergantian otomatis diperlukan.
+
+Sebelum siaran, majukan giliran pertempuran uji dan periksa adegannya, lalu uji jeda dan lanjutkan. Jika adegan tidak muncul, periksa izin /stream, segarkan cache browser sumber dan daftar adegan. Setelah mengganti nama adegan OBS, pilih nama baru lalu simpan kembali.

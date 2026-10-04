@@ -44,8 +44,20 @@ Les dés ont été refusés. Envoyez des entiers dans la plage de chaque dé.
 
 RollSight n’a pas pu appliquer cet envoi. Vérifiez le jet en attente avant de renvoyer.
 
-## Scènes de combat OBS facultatives
+## Scènes OBS automatiques aux tours de combat
 
-Dans Paramètres du jeu → RollSight, choisissez **Configurer les scènes OBS par tour**. Sélectionnez l’utilisateur Foundry connecté à la source navigateur OBS Utils `/stream`. Associez les acteurs aux noms exacts de scènes OBS existantes et, si vous le souhaitez, choisissez des scènes pour les tours de PNJ sans association et la fin du combat. Les tours de joueurs sans association conservent la scène actuelle. Enregistrez, puis activez **Changer de scène OBS à chaque tour de combat**. Utilisez **Mettre en pause le changement automatique de scène OBS** pour reprendre la main ; enregistrez pour reprendre au tour actuel.
+Utilisez le module Foundry RollSight 1.1.91 ou ultérieur et activez OBS Utils dans le même monde. Ces commandes sont distinctes des incrustations de replays.
 
-Cette fonction utilise la connexion OBS Utils existante ou l’autorisation de contrôle des scènes de la source navigateur OBS. Aucun second mot de passe OBS ni mise à jour de l’application de bureau n’est nécessaire. Utilisez une seule source de contrôle et une URL Foundry sécurisée (HTTPS ou localhost). Laissez cette source chargée lorsque vous changez de scène OBS afin qu’elle continue à recevoir les tours. Si OBS Utils ne fournit pas l’API requise, mettez-le à jour avant d’activer cette fonction. Si une scène manque ou si la connexion OBS est interrompue, la scène actuelle reste affichée ; vérifiez l’orthographe du nom de scène et la connexion OBS Utils. Faites un essai dans votre collection de scènes avant toute diffusion en direct.
+Dans OBS, créez vos sources navigateur Foundry avec l’adresse du serveur fournie par le MJ : /game pour la vue de jeu et /stream pour l’utilisateur Stream. Connectez la source /stream avec l’utilisateur que vous choisirez comme opérateur OBS.
+
+Pour chaque source navigateur Foundry, ouvrez Propriétés et réglez les permissions de la page sur accès avancé ou complet. Les permissions de /game et /stream sont séparées. Actualisez chaque source après modification. Les liens de replay seuls n’ont pas besoin de contrôler les scènes.
+
+Gardez le contrôleur /stream chargé lors des changements de scène. Désactivez l’arrêt de la source lorsqu’elle n’est pas visible et réutilisez la même source dans vos scènes. Cette connexion par source navigateur ne nécessite ni WebSocket ni accès API d’OBS Utils.
+
+En tant que MJ, ouvrez Paramètres du jeu → RollSight → Configurer les scènes OBS par tour. Choisissez l’utilisateur Stream comme opérateur OBS, puis actualisez les scènes OBS. Choisissez chaque acteur et sa scène OBS dans les listes. Vous pouvez aussi choisir des scènes pour les PNJ sans association et la fin du combat.
+
+Enregistrez les scènes OBS, activez le changement de scène OBS aux tours de combat et laissez la pause du changement automatique décochée. Les tours de joueurs sans association conservent la scène actuelle.
+
+Les associations, l’opérateur et les réglages d’activation et de pause restent enregistrés dans ce monde Foundry. Stream peut se connecter après le démarrage du serveur. À la connexion, le tour actuel est vérifié. La source doit rester connectée pour le changement automatique.
+
+Avant de diffuser, avancez d’un tour dans un combat de test et vérifiez la scène, puis testez la pause et la reprise. Si des scènes manquent, vérifiez les permissions de /stream, actualisez son cache navigateur puis la liste. Après avoir renommé des scènes OBS, sélectionnez les nouveaux noms et enregistrez.

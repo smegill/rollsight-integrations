@@ -1,3 +1,11 @@
+## v1.1.91 - 2026-10-04
+
+- Choose combat-turn scenes from a list fetched directly from OBS. Exact names and spaces are preserved; missing saved scenes are flagged before saving.
+- Scene control supports local-network HTTP Foundry URLs and OBS Browser Sources with Advanced or Full access.
+- Setup guidance now explains permissions for each Foundry Browser Source, operator selection, pause/resume and settings saved between sessions.
+
+Update the module, reload the GM window, and refresh the OBS `/stream` Browser Source cache. Set Page permissions to Advanced or Full access on each Foundry Browser Source, including `/game` and `/stream`. No desktop update or OBS WebSocket setup is required for native Browser Source control.
+
 ## v1.1.90 - 2026-10-01
 
 - A saved legacy extension setting now warns that cloud reception is paused. **Use cloud reception** restores cloud delivery without discarding the saved table link.

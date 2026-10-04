@@ -1,10 +1,13 @@
+import { registerObsSceneDiscovery, requestObsScenes } from './obs-scene-discovery.js';
+import { ConsumerCoordinator } from './consumer-coordinator.js';
+
 /** Optional OBS scene automation. OBS Utils owns the OBS connection. */
 const NS = 'rollsight-integration';
 const t = (key, args = {}) => game.i18n.format(`ROLLSIGHT.${key}`, args);
 const currentConfig = () => game.settings.get(NS, 'obsTurnsConfig') || {};
 const currentSetting = key => game.settings.get(NS, key);
 const obsApi = () => game.modules.get('obs-utils')?.active && game.modules.get('obs-utils')?.api;
-const norm = value => typeof value === 'string' ? value.trim() : '';
+const norm = value => typeof value === 'string' ? value : '';
 
 /** A named target is returned only when the explicit world policy maps this turn. */
 export function sceneForCombat(combat, config) {
@@ -22,8 +25,9 @@ export class ObsTurnController {
         notify = (key, args) => globalThis.ui?.notifications?.warn(t(key, args)),
         setTimer = (...args) => globalThis.setTimeout(...args),
         clearTimer = timer => globalThis.clearTimeout(timer),
-        locks = () => globalThis.navigator?.locks } = {}) {
-        Object.assign(this, { getGame, getApi, getSetting, notify, setTimer, clearTimer, locks });
+        locks = () => globalThis.navigator?.locks,
+        makeCoordinator = options => new ConsumerCoordinator(options) } = {}) {
+        Object.assign(this, { getGame, getApi, getSetting, notify, setTimer, clearTimer, locks, makeCoordinator });
         this.lastTarget = '';
         this.pending = false;
         this.running = false;
@@ -61,6 +65,7 @@ export class ObsTurnController {
     }
     stop() {
         this.active = false;
+        this.stopCoordinator();
         if (this.socketEventsBound) {
             this.socket.off?.('disconnect', this.onSocketDisconnect);
             this.socket.off?.('connect', this.onSocketConnect);
@@ -76,6 +81,7 @@ export class ObsTurnController {
     syncOwnership() {
         if (!this.active) return;
         if (!this.eligible()) {
+            this.stopCoordinator();
             this.releaseLock?.();
             this.releaseLock = null;
             this.owner = false;
@@ -87,7 +93,7 @@ export class ObsTurnController {
         if (this.owner || this.waitingForLock) { this.reconcile(); return; }
         const locks = this.locks();
         if (typeof locks?.request !== 'function') {
-            this.warnOnce('ObsTurnsNoLock');
+            this.startCoordinator();
             return;
         }
         this.waitingForLock = true;
@@ -106,6 +112,35 @@ export class ObsTurnController {
             this.waitingForLock = false;
             if (this.active && this.eligible() && !this.owner) this.scheduleRetry();
         });
+    }
+    // LAN HTTP has no Web Locks. Reuse Foundry's existing authenticated socket
+    // and receiver election, in a separate scope from physical-dice delivery.
+    // Only eligible /stream sources join; the /game camera source never acts.
+    startCoordinator() {
+        if (this.coordinator) return;
+        const game = this.getGame();
+        const socket = game.socket;
+        if (!socket?.on || !socket?.off || !socket?.emit) {
+            this.warnOnce('ObsTurnsNoLock');
+            return;
+        }
+        const coordinator = this.makeCoordinator({
+            socket, scope: `obs-turns:${game.world?.id}:${game.user.id}`,
+            changed: leader => {
+                if (this.coordinator !== coordinator) return;
+                const owned = this.owner;
+                this.owner = leader && this.active && this.eligible();
+                if (!this.owner) this.generation = (this.generation || 0) + 1;
+                else if (!owned) { this.lastTarget = ''; this.reconcile(); }
+            },
+        });
+        this.coordinator = coordinator;
+        coordinator.start();
+    }
+    stopCoordinator() {
+        const coordinator = this.coordinator;
+        this.coordinator = null;
+        coordinator?.stop();
     }
     findCombat() {
         const combats = this.getGame().combats;
@@ -189,7 +224,7 @@ export class ObsTurnController {
             try { studio.getControlLevel(value => { this.clearTimer(timer); resolve(value); }); }
             catch (error) { this.clearTimer(timer); reject(error); }
         });
-        if (level !== 4) throw new Error('OBS browser source control level is too low');
+        if (typeof level !== 'number' || level < 4 || level > 5) throw new Error('OBS browser source control level is too low');
         if (!this.canDispatch(generation, scene)) return false;
         studio.setCurrentScene(scene);
         return true;
@@ -222,12 +257,6 @@ const add = (parent, tag, key) => {
     parent.append(element);
     return element;
 };
-const field = (parent, key, value = '') => {
-    const label = add(parent, 'label', key);
-    const input = add(label, 'input');
-    input.type = 'text'; input.value = value; input.dir = 'auto';
-    return input;
-};
 
 export function openObsTurnPanel() {
     if (!game.user?.isGM) return;
@@ -251,10 +280,49 @@ export function openObsTurnPanel() {
     for (const user of users) { const option = add(operator, 'option'); option.value = user.id; option.textContent = user.name; }
     operator.value = config.operatorUserId ?? '';
     add(dialog, 'p', 'ObsTurnsOperatorHint');
+    const refresh = add(dialog, 'button', 'ObsScenesRefresh'); refresh.type = 'button'; refresh.dataset.action = 'refresh-scenes';
+    const connection = add(dialog, 'p'); connection.setAttribute('role', 'status');
+    let availableScenes = null;
+    let queryGeneration = 0;
+    const sceneFields = [];
+    const fillScenes = select => {
+        const value = select.value || select.dataset.saved || '';
+        select.replaceChildren();
+        const blank = add(select, 'option', 'ObsScenesNone'); blank.value = '';
+        for (const name of availableScenes ?? []) { const option = add(select, 'option'); option.value = name; option.textContent = name; }
+        if (value && !availableScenes?.includes(value)) {
+            const old = add(select, 'option'); old.value = value;
+            old.textContent = availableScenes ? t('ObsScenesMissing', { scene: value }) : value;
+        }
+        select.value = value;
+        select.setAttribute('aria-invalid', String(!!value && !!availableScenes && !availableScenes.includes(value)));
+    };
+    const sceneField = (parent, value = '') => {
+        const select = add(parent, 'select'); select.dataset.scene = 'true'; select.dataset.saved = value; select.dir = 'auto';
+        sceneFields.push(select); fillScenes(select);
+        select.onchange = () => { select.dataset.saved = select.value; fillScenes(select); };
+        return select;
+    };
+    refresh.onclick = async () => {
+        const generation = ++queryGeneration;
+        const selected = operator.value;
+        if (!selected) { refresh.disabled = false; connection.textContent = t('ObsTurnsChooseOperator'); return; }
+        refresh.disabled = true; connection.textContent = t('ObsScenesLoading');
+        try {
+            const result = await requestObsScenes(selected);
+            if (!dialog.isConnected || generation !== queryGeneration || operator.value !== selected) return;
+            availableScenes = result.available ? result.scenes : null;
+            sceneFields.filter(el => el.isConnected).forEach(fillScenes);
+            connection.textContent = t(!result.available ? 'ObsScenesUnavailable' :
+                !result.canSwitch ? 'ObsScenesPermission' : 'ObsScenesReady', { count: result.scenes.length });
+        } catch (_) { if (dialog.isConnected && generation === queryGeneration) connection.textContent = t('ObsScenesNoReply'); }
+        finally { if (generation === queryGeneration) refresh.disabled = false; }
+    };
+    operator.onchange = () => { availableScenes = null; sceneFields.filter(el => el.isConnected).forEach(fillScenes); void refresh.onclick(); };
     const pauseLabel = add(dialog, 'label', 'ObsTurnsPaused');
     const paused = add(pauseLabel, 'input'); paused.type = 'checkbox'; paused.checked = currentSetting('obsTurnsPaused');
-    const npc = field(dialog, 'ObsTurnsNpcScene', config.npcScene ?? '');
-    const end = field(dialog, 'ObsTurnsEndScene', config.endScene ?? '');
+    const npc = sceneField(add(dialog, 'label', 'ObsTurnsNpcScene'), config.npcScene ?? '');
+    const end = sceneField(add(dialog, 'label', 'ObsTurnsEndScene'), config.endScene ?? '');
     add(dialog, 'h3', 'ObsTurnsMappings');
     const rows = add(dialog, 'div');
     const addRow = (id = '', scene = '') => {
@@ -263,8 +331,7 @@ export function openObsTurnPanel() {
         const blank = add(actor, 'option', 'ObsTurnsChooseActor'); blank.value = '';
         for (const item of actors) { const option = add(actor, 'option'); option.value = item.id; option.textContent = item.name; }
         actor.value = id;
-        const name = add(row, 'input'); name.type = 'text'; name.value = scene; name.dir = 'auto';
-        name.setAttribute('aria-label', t('ObsTurnsScene'));
+        const name = sceneField(row, scene); name.setAttribute('aria-label', t('ObsTurnsScene'));
         const remove = add(row, 'button', 'ObsTurnsRemove'); remove.type = 'button'; remove.onclick = () => row.remove();
     };
     for (const [id, scene] of Object.entries(config.actors ?? {})) if (actors.some(actor => actor.id === id)) addRow(id, scene);
@@ -273,16 +340,19 @@ export function openObsTurnPanel() {
     const save = add(dialog, 'button', 'ObsTurnsSave'); save.type = 'button';
     save.onclick = async () => {
         if (!operator.value) { status.textContent = t('ObsTurnsChooseOperator'); return; }
+        if (availableScenes && sceneFields.some(el => el.isConnected && el.value && !availableScenes.includes(el.value))) {
+            status.textContent = t('ObsScenesFixMissing'); return;
+        }
         const mappings = {};
         for (const row of rows.children) {
             const id = row.querySelector('select')?.value;
-            const scene = norm(row.querySelector('input')?.value);
+            const scene = row.querySelector('[data-scene]')?.value ?? '';
             if (id && scene) mappings[id] = scene;
         }
         save.disabled = true;
         try {
             await game.settings.set(NS, 'obsTurnsPaused', true);
-            await game.settings.set(NS, 'obsTurnsConfig', { operatorUserId: operator.value, actors: mappings, npcScene: norm(npc.value), endScene: norm(end.value) });
+            await game.settings.set(NS, 'obsTurnsConfig', { operatorUserId: operator.value, actors: mappings, npcScene: npc.value, endScene: end.value });
             await game.settings.set(NS, 'obsTurnsPaused', paused.checked);
             status.textContent = t('ObsTurnsSaved');
         } catch (error) {
@@ -292,6 +362,7 @@ export function openObsTurnPanel() {
     };
     dialog.addEventListener('close', () => { dialog.remove(); if (panel === dialog) panel = null; }, { once: true });
     doc.body.append(dialog); dialog.showModal();
+    if (operator.value) void refresh.onclick();
 }
 
 export function mountObsTurnShortcut(app, html) {
@@ -312,8 +383,13 @@ export function registerObsTurnAutomation() {
     Hooks.on('updateCombat', combat => controller.onCombatUpdated(combat));
     Hooks.on('deleteCombat', combat => controller.onCombatDeleted(combat));
     Hooks.on('rollsightObsTurnsSettingsChanged', () => controller.syncOwnership());
-    Hooks.once('ready', () => controller.start());
-    Hooks.once('streamReady', () => controller.start());
+    let discoveryStarted = false;
+    const start = () => {
+        if (!discoveryStarted) { registerObsSceneDiscovery(); discoveryStarted = true; }
+        controller.start();
+    };
+    Hooks.once('ready', start);
+    Hooks.once('streamReady', start);
     globalThis.window?.addEventListener('pagehide', () => controller.stop());
     return controller;
 }

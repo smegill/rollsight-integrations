@@ -85,5 +85,14 @@
   "ROLLSIGHT.ObsTurnsNoLock": "此浏览器无法协调重复的 OBS 来源。此处已关闭自动回合切换。",
   "ROLLSIGHT.ObsTurnsSwitchFailed": "无法将 OBS 切换到场景 {scene}。请检查场景名称和 OBS Utils 连接。",
   "ROLLSIGHT.LegacyExtensionWarning": "旧版扩展模式已开启。此 Foundry 窗口未接收云端骰子结果。当前浏览器扩展仅支持 Roll20。请在下方选择“使用云端接收”；您的世界链接仍会保留。",
-  "ROLLSIGHT.UseCloudReception": "使用云端接收"
+  "ROLLSIGHT.UseCloudReception": "使用云端接收",
+  "ROLLSIGHT.ObsScenesRefresh": "刷新 OBS 场景",
+  "ROLLSIGHT.ObsScenesLoading": "正在从 OBS 推流来源读取场景…",
+  "ROLLSIGHT.ObsScenesUnavailable": "Stream 来源已响应，但无法访问 OBS 场景。请检查其 OBS 权限或 OBS Utils 连接。",
+  "ROLLSIGHT.ObsScenesPermission": "OBS 需要切换场景的权限。请为 /stream 浏览器来源授予高级或完全访问权限。",
+  "ROLLSIGHT.ObsScenesReady": "已连接 OBS。找到 {count} 个场景。",
+  "ROLLSIGHT.ObsScenesNoReply": "Stream 来源未响应。请在 OBS 中刷新该来源的浏览器缓存，并检查所选操作用户。",
+  "ROLLSIGHT.ObsScenesNone": "不切换场景",
+  "ROLLSIGHT.ObsScenesMissing": "OBS 中未找到：{scene}",
+  "ROLLSIGHT.ObsScenesFixMissing": "请为每个失效映射选择现有 OBS 场景，或在保存前清除该映射。"
 }

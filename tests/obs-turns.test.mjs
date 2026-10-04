@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { ConsumerCoordinator } from '../rollsight-integration/consumer-coordinator.js';
 import { ObsTurnController, sceneForCombat } from '../rollsight-integration/obs-turns.js';
 
 const tick = () => new Promise(resolve => setImmediate(resolve));
@@ -167,4 +168,67 @@ test('Foundry socket disconnect suppresses turns and reconnect uses the current 
     f.game.socket.connected = true; events.get('connect')(); await tick(); await tick();
     assert.deepEqual(f.calls, ['PC Camera', 'GM Camera']);
     f.controller.stop(); assert.equal(events.size, 0);
+});
+
+function httpFixture() {
+    let now = 1000;
+    const listeners = new Set(), coordinators = [];
+    const sources = ['a', 'b', 'c'].map(id => {
+        const f = fixture();
+        const local = new Map();
+        f.game.socket = { connected: true,
+            on: (name, fn) => { local.set(fn, name); if (name === 'module.rollsight-integration') listeners.add(fn); },
+            off: (_name, fn) => { local.delete(fn); listeners.delete(fn); },
+            emit: (_name, data) => { for (const fn of [...listeners]) fn(data); },
+        };
+        f.game.combats.active = combat('encounter', actor('pc', true));
+        f.controller.locks = () => undefined;
+        f.controller.makeCoordinator = options => {
+            const c = new ConsumerCoordinator({ ...options, id, now: () => now, autoTick: false });
+            coordinators.push(c); return c;
+        };
+        return f;
+    });
+    return { sources, listeners, advance(ms = 500) { now += ms; coordinators.forEach(c => c.tick()); } };
+}
+
+test('LAN HTTP elects one stream, excludes game source, and hands over after close', async () => {
+    const h = httpFixture(), [a, b, game] = h.sources;
+    game.game.view = 'game';
+    h.sources.forEach(f => f.controller.start());
+    assert.equal(h.listeners.size, 2);
+    h.advance(); await tick();
+    assert.deepEqual(a.calls, ['PC Camera']); assert.deepEqual(b.calls, []); assert.deepEqual(game.calls, []);
+    a.controller.stop(); h.advance(); await tick();
+    assert.deepEqual(b.calls, ['PC Camera']);
+    b.game.combats.active.combatant.actor = actor('npc', false);
+    b.controller.onCombatUpdated(); await tick();
+    assert.equal(b.calls.at(-1), 'GM Camera');
+    h.sources.forEach(f => f.controller.stop()); assert.equal(h.listeners.size, 0);
+});
+
+test('HTTP pause and disconnect revoke ownership; resume follows current turn', async () => {
+    const h = httpFixture(), [a] = h.sources;
+    a.controller.start(); h.advance(); await tick();
+    a.settings.obsTurnsPaused = true; a.controller.syncOwnership();
+    assert.equal(h.listeners.size, 0); assert.equal(a.controller.owner, false);
+    a.game.combats.active.combatant.actor = actor('npc', false);
+    a.settings.obsTurnsPaused = false; a.controller.syncOwnership(); h.advance(); await tick();
+    assert.deepEqual(a.calls, ['PC Camera', 'GM Camera']);
+    a.game.socket.connected = false; a.controller.syncOwnership();
+    assert.equal(a.controller.owner, false); assert.equal(h.listeners.size, 0);
+    a.controller.stop();
+});
+
+for (const level of [4, 5]) test(`HTTP native OBS scene switching supports permission ${level}`, async () => {
+    const previous = globalThis.window;
+    const h = httpFixture(), [a] = h.sources;
+    const scenes = [];
+    globalThis.window = { obsstudio: { getControlLevel: callback => callback(level), setCurrentScene: name => scenes.push(name) } };
+    a.setApi({ isOBS: () => true });
+    try {
+        a.controller.start(); h.advance(); await tick(); await tick();
+        assert.deepEqual(scenes, ['PC Camera']);
+        assert.deepEqual(a.warnings, []);
+    } finally { a.controller.stop(); globalThis.window = previous; }
 });

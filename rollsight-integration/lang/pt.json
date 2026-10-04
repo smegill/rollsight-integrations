@@ -85,5 +85,14 @@
   "ROLLSIGHT.ObsTurnsNoLock": "Este navegador não pode coordenar fontes OBS duplicadas. A troca automática por turno está desativada aqui.",
   "ROLLSIGHT.ObsTurnsSwitchFailed": "Não foi possível trocar o OBS para a cena {scene}. Verifique o nome da cena e a conexão do OBS Utils.",
   "ROLLSIGHT.LegacyExtensionWarning": "O modo de extensão legada está ativado. Esta janela do Foundry não recebe dados pela nuvem. O complemento de navegador atual oferece suporte apenas ao Roll20. Escolha Usar recepção pela nuvem abaixo; o vínculo do mundo continuará salvo.",
-  "ROLLSIGHT.UseCloudReception": "Usar recepção pela nuvem"
+  "ROLLSIGHT.UseCloudReception": "Usar recepção pela nuvem",
+  "ROLLSIGHT.ObsScenesRefresh": "Atualizar cenas do OBS",
+  "ROLLSIGHT.ObsScenesLoading": "Lendo cenas da fonte de transmissão do OBS…",
+  "ROLLSIGHT.ObsScenesUnavailable": "A fonte Stream respondeu, mas as cenas do OBS estão indisponíveis. Confira as permissões do OBS ou a conexão do OBS Utils.",
+  "ROLLSIGHT.ObsScenesPermission": "O OBS precisa de permissão para trocar cenas. Conceda acesso avançado ou completo à fonte de navegador /stream.",
+  "ROLLSIGHT.ObsScenesReady": "Conectado ao OBS. {count} cenas encontradas.",
+  "ROLLSIGHT.ObsScenesNoReply": "A fonte Stream não respondeu. Atualize o cache do navegador dessa fonte no OBS e confira o operador selecionado.",
+  "ROLLSIGHT.ObsScenesNone": "Não trocar de cena",
+  "ROLLSIGHT.ObsScenesMissing": "Não encontrada no OBS: {scene}",
+  "ROLLSIGHT.ObsScenesFixMissing": "Escolha uma cena existente no OBS para cada associação ausente ou remova-a antes de salvar."
 }

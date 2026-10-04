@@ -85,5 +85,14 @@
   "ROLLSIGHT.ObsTurnsNoLock": "لا يستطيع هذا المتصفح التنسيق بين مصادر OBS المكررة. أُوقف تبديل الأدوار التلقائي هنا.",
   "ROLLSIGHT.ObsTurnsSwitchFailed": "تعذّر التبديل إلى مشهد OBS‏ {scene}. تحقق من اسم المشهد واتصال OBS Utils.",
   "ROLLSIGHT.LegacyExtensionWarning": "وضع إضافة المتصفح القديمة مفعّل. نافذة Foundry هذه لا تستقبل رميات النرد عبر السحابة. إضافة المتصفح الحالية تدعم Roll20 فقط. اختر «استخدام الاستقبال السحابي» أدناه؛ سيظل رابط عالمك محفوظًا.",
-  "ROLLSIGHT.UseCloudReception": "استخدام الاستقبال السحابي"
+  "ROLLSIGHT.UseCloudReception": "استخدام الاستقبال السحابي",
+  "ROLLSIGHT.ObsScenesRefresh": "تحديث مشاهد OBS",
+  "ROLLSIGHT.ObsScenesLoading": "جارٍ قراءة المشاهد من مصدر البث في OBS…",
+  "ROLLSIGHT.ObsScenesUnavailable": "استجاب مصدر Stream، لكن مشاهد OBS غير متاحة. تحقق من أذونات OBS أو اتصال OBS Utils.",
+  "ROLLSIGHT.ObsScenesPermission": "يحتاج OBS إلى إذن لتغيير المشاهد. امنح مصدر المتصفح /stream وصولًا متقدمًا أو كاملًا.",
+  "ROLLSIGHT.ObsScenesReady": "تم الاتصال بـ OBS. عُثر على {count} من المشاهد.",
+  "ROLLSIGHT.ObsScenesNoReply": "لم يستجب مصدر Stream. حدّث ذاكرة التخزين المؤقت لمتصفحه في OBS وتحقق من المشغّل المحدد.",
+  "ROLLSIGHT.ObsScenesNone": "عدم تغيير المشهد",
+  "ROLLSIGHT.ObsScenesMissing": "غير موجود في OBS: {scene}",
+  "ROLLSIGHT.ObsScenesFixMissing": "اختر مشهد OBS موجودًا لكل ربط مفقود، أو امسح الربط قبل الحفظ."
 }

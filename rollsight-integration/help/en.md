@@ -44,8 +44,20 @@ Dice were not accepted. Send whole-number values within each die’s range.
 
 RollSight could not apply this delivery. Check the waiting roll before sending again.
 
-## Optional OBS combat scenes
+## Automatic OBS scenes on combat turns
 
-In Game Settings → RollSight, choose **Configure OBS turn scenes**. Select the Foundry user signed into your OBS Utils `/stream` Browser Source. Map actors to exact existing OBS scene names, and optionally choose scenes for unmapped NPC turns and combat ending. Unmapped player turns leave the scene unchanged. Save, then enable **Switch OBS scenes on combat turns**. Use **Pause automatic OBS scene switching** to keep manual control; save to resume on the current turn.
+Use RollSight Foundry module 1.1.91 or newer and enable OBS Utils in the same world. These controls are separate from replay overlays.
 
-This uses OBS Utils’ existing connection or the OBS Browser Source scene-control permission. No second OBS password or desktop update is required. Use one controller source and a secure Foundry URL (HTTPS or localhost). Keep that source loaded when changing OBS scenes, so it can continue receiving turns. If OBS Utils does not expose the required API, update it before enabling this feature. A missing scene or disconnected OBS connection leaves the current scene in place; check the scene spelling and OBS Utils connection. Test in your scene collection before streaming live.
+In OBS, create your Foundry Browser Sources using the server address supplied by your GM: /game for the play view and /stream for the Stream user. Sign the /stream source into the user you will select as the OBS operator.
+
+For every Foundry Browser Source, open Properties and set Page permissions to Advanced access or Full access. Permissions apply separately to /game and /stream. Refresh each source after changing them. Replay-only links do not need scene-control permissions.
+
+Keep the /stream controller loaded across scene changes. Turn off Shut down source when not visible and reuse the same source in your scenes. With this browser-source connection, OBS Utils WebSocket and API access are not required.
+
+As GM, open Game Settings → RollSight → Configure OBS turn scenes. Select the Stream user as OBS operator, then choose Refresh OBS scenes. Choose each actor and its OBS scene from the dropdowns. Optionally select scenes for unmapped NPC turns and the end of combat.
+
+Choose Save OBS scenes, enable Switch OBS scenes on combat turns, and leave Pause automatic OBS scene switching unchecked. Unmapped player turns leave the current scene unchanged.
+
+Mappings, the operator, and enabled/paused settings stay saved in this Foundry world. Stream may connect after the server starts. Once connected, it checks the current combat turn. The source must stay connected while automatic switching is needed.
+
+Before streaming, advance a test combat turn and check the scene, then test pause and resume. If scenes are missing, check permissions on the /stream source, refresh its browser cache, and refresh the scene list. After renaming OBS scenes, select the new names and save again.

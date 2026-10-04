@@ -85,5 +85,14 @@
   "ROLLSIGHT.ObsTurnsNoLock": "এই ব্রাউজারটি একাধিক OBS উৎসের মধ্যে সমন্বয় করতে পারে না। এখানে স্বয়ংক্রিয় পালা পরিবর্তন বন্ধ।",
   "ROLLSIGHT.ObsTurnsSwitchFailed": "OBS-কে {scene} দৃশ্যে নেওয়া যায়নি। দৃশ্যের নাম এবং OBS Utils সংযোগ পরীক্ষা করুন।",
   "ROLLSIGHT.LegacyExtensionWarning": "পুরোনো এক্সটেনশন মোড চালু আছে। এই Foundry উইন্ডোতে ক্লাউড থেকে পাশার ফল আসছে না। বর্তমান ব্রাউজার অ্যাড-অন শুধু Roll20 সমর্থন করে। নিচে ক্লাউডের মাধ্যমে গ্রহণ করুন বেছে নিন; আপনার ওয়ার্ল্ড লিংক সংরক্ষিত থাকবে।",
-  "ROLLSIGHT.UseCloudReception": "ক্লাউডের মাধ্যমে গ্রহণ করুন"
+  "ROLLSIGHT.UseCloudReception": "ক্লাউডের মাধ্যমে গ্রহণ করুন",
+  "ROLLSIGHT.ObsScenesRefresh": "OBS দৃশ্য রিফ্রেশ করুন",
+  "ROLLSIGHT.ObsScenesLoading": "OBS স্ট্রিম উৎস থেকে দৃশ্য পড়া হচ্ছে…",
+  "ROLLSIGHT.ObsScenesUnavailable": "Stream উৎস সাড়া দিয়েছে, কিন্তু OBS দৃশ্যে প্রবেশাধিকার নেই। এর OBS অনুমতি বা OBS Utils সংযোগ পরীক্ষা করুন।",
+  "ROLLSIGHT.ObsScenesPermission": "দৃশ্য বদলাতে OBS-এর অনুমতি দরকার। /stream ব্রাউজার উৎসকে উন্নত বা পূর্ণ প্রবেশাধিকার দিন।",
+  "ROLLSIGHT.ObsScenesReady": "OBS-এর সাথে সংযুক্ত। {count}টি দৃশ্য পাওয়া গেছে।",
+  "ROLLSIGHT.ObsScenesNoReply": "Stream উৎস থেকে সাড়া পাওয়া যায়নি। OBS-এ এর ব্রাউজার ক্যাশ রিফ্রেশ করুন এবং নির্বাচিত অপারেটর পরীক্ষা করুন।",
+  "ROLLSIGHT.ObsScenesNone": "দৃশ্য বদলাবেন না",
+  "ROLLSIGHT.ObsScenesMissing": "OBS-এ পাওয়া যায়নি: {scene}",
+  "ROLLSIGHT.ObsScenesFixMissing": "প্রতিটি অনুপস্থিত ম্যাপিংয়ের জন্য বিদ্যমান OBS দৃশ্য বেছে নিন অথবা সংরক্ষণের আগে সেটি সরিয়ে দিন।"
 }
