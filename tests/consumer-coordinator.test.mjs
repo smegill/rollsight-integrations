@@ -63,3 +63,13 @@ test('finishing a native roll retains ownership until its cursor is shared', () 
     b.c.setBusy(false); f.advance(500);
     assert.equal(a.c.leader, true); assert.equal(a.c.cursor, 27);
 });
+
+test('explicit chat destination outranks another window waiting for sheet dice', () => {
+    const f=fixture(), a=f.client('a'), b=f.client('b');
+    a.c.setPriority(2); b.c.setPriority(3); f.advance(500);
+    assert.equal(b.c.leader,true); assert.equal(a.c.leader,false);
+    b.c.setBusy(true); b.c.setPriority(0); f.advance(500);
+    assert.equal(b.c.leader,true);
+    b.c.checkpoint(31); b.c.setBusy(false); f.advance(500);
+    assert.equal(a.c.leader,true); assert.equal(a.c.cursor,31);
+});

@@ -14,7 +14,7 @@ window.values={playerActive:true,desktopBridgePoll:false,cloudRoomKey:'TESTROOM'
 window.game={i18n:{lang:'en',localize:key: null}};
 </script></body></html>`.replace("localize:key: null",`localize:key=>(${JSON.stringify(english)})[key]||key`)
 .replace('</script>',`game.user={isGM:false}; game.settings={get:(_ns,key)=>values[key],menus:new Map([['core.diceConfiguration',{type:class{render(){window.diceOpened=true}}}]])};
-game.rollsight={status:'Connected',currentPlayerCode:'TESTCODE',connect:async()=>{game.rollsight.currentPlayerCode='FRESHKEY';game.rollsight.status='Connected';Hooks.callAll('rollsightConnectionChanged')},_autoProvisionRollSightCloudRelay:async()=>{values.cloudRoomKey='LINKED'}};
+game.rollsight={session:{active:true,destination:'automatic'},setDestination(value){this.session.destination=value;Hooks.callAll('rollsightConnectionChanged')},status:'Connected',currentPlayerCode:'TESTCODE',connect:async()=>{game.rollsight.currentPlayerCode='FRESHKEY';game.rollsight.status='Connected';Hooks.callAll('rollsightConnectionChanged')},_autoProvisionRollSightCloudRelay:async()=>{values.cloudRoomKey='LINKED'}};
 </script><script type="module">import * as panel from '/connection-panel.js';window.panel=panel;Hooks.callAll('renderSettings',{},document.querySelector('#settings'));</script>`);
 const server=createServer(async(req,res)=>{try{res.setHeader('Content-Type',req.url==='/'?'text/html':req.url.endsWith('.css')?'text/css':'text/javascript');res.end(req.url==='/'?html:await readFile(new URL('.'+req.url,moduleRoot)));}catch{res.statusCode=404;res.end();}});
 await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
@@ -24,6 +24,10 @@ try {
  await page.goto(`http://127.0.0.1:${server.address().port}/`);
  await page.getByRole('button',{name:'Connect RollSight'}).click();
  assert.equal(await page.locator('#rollsight-connect-code').inputValue(),'TESTCODE');
+ await page.locator('#rollsight-destination').selectOption('chat');
+ assert.equal(await page.evaluate(()=>game.rollsight.session.destination),'chat');
+ await page.evaluate(()=>{game.rollsight.lastDelivery='DeliveryChat';Hooks.callAll('rollsightConnectionChanged')});
+ assert.equal(await page.locator('.rollsight-delivery-status').textContent(),english['ROLLSIGHT.DeliveryChat']);
  assert.equal(await page.getByRole('button',{name:'Reconnect to RollSight',exact:true}).isVisible(),false);
  await page.getByRole('button',{name:'Copy code',exact:true}).click();
  await page.waitForFunction(()=>messages.length>0);
@@ -80,6 +84,8 @@ try {
    window.settingWrites=[]; panel.openConnectionPanel();
   },{language,catalog});
   assert.equal(await page.locator('dialog').getAttribute('dir'),['ar','ur'].includes(language)?'rtl':'ltr');
+  assert.equal(await page.locator('#rollsight-destination').inputValue(),'chat');
+  assert.equal(await page.locator('.rollsight-delivery-status').textContent(),catalog['ROLLSIGHT.DeliveryChat']);
   assert.ok(await page.locator('dialog').evaluate(el=>el.scrollWidth<=el.clientWidth),language+' horizontal overflow');
   assert.ok(await page.locator('dialog').evaluate(el=>{const r=el.getBoundingClientRect();return r.left>=0 && r.right<=innerWidth}),language+' outside viewport');
   const action=page.getByRole('button',{name:catalog['ROLLSIGHT.UseCloudReception'],exact:true});

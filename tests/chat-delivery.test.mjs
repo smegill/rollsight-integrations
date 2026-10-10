@@ -88,3 +88,81 @@ test('failed relay chat post keeps the roll eligible for retry', async () => {
         console.error = errorLog;
     }
 });
+
+function deliveryFixture() {
+    const integration = new RollSightIntegration();
+    let clock = 100000;
+    integration.session.now = () => clock;
+    integration.session.changed = () => {};
+    integration.session.join('player');
+    integration.setting = () => true;
+    integration.refreshPrompts = () => {};
+    integration.createFoundryRoll = () => ({ formula: 'physical' });
+    const posted = [];
+    integration.postRoll = async (_roll, data) => { posted.push(data.roll_id); return { id: data.roll_id }; };
+    const send = (id, dice = [{shape:'d20',value:7}], extra = {}) => integration.handleRoll({roll_id:id,timestamp:clock,dice,...extra},()=>true,true);
+    const resolver = {roll:{options:{}},fulfillable:new Map([['die',{method:'rollsight',term:{faces:20}}]]),registerResult:()=>false};
+    return {integration,posted,send,resolver,advance:ms=>clock+=ms};
+}
+
+test('fresh rolls of every supported denomination reach chat after cancellation', async () => {
+    const f=deliveryFixture(); const request=f.integration.session.track(f.resolver);
+    f.integration.session.cancel(f.resolver);
+    await f.send('old'); assert.deepEqual(f.posted,[]);
+    f.advance(3600000);
+    for (const faces of [4,6,8,10,12,20,100]) await f.send(`d${faces}`,[{shape:`d${faces}`,value:3}]);
+    await f.send('pair',[{shape:'d10p',value:60},{shape:'d10',value:4}]);
+    assert.equal(f.posted.length,8);
+    await f.send('cancelled',undefined,{request_id:request.id});
+    assert.equal(f.posted.length,8);
+    assert.equal(f.integration.lastDelivery,'DeliveryIgnored');
+});
+
+test('construction errors and vetoed chat creation remain retryable', async () => {
+    for (const failure of ['construction','veto']) {
+        const f=deliveryFixture(); let attempts=0;
+        if(failure==='construction') f.integration.createFoundryRoll=()=>{if(++attempts===1)throw Error('construction');return {};};
+        else f.integration.postRoll=async()=>++attempts===1?null:{id:'card'};
+        const old=console.error; console.error=()=>{};
+        try {
+            await assert.rejects(f.send('retry'));
+            assert.equal(f.integration.lastDelivery,'DeliveryError');
+            assert.equal(f.integration.session.seen.size,0);
+            await f.send('retry');
+            assert.equal(attempts,2);
+            assert.equal(f.integration.lastDelivery,'DeliveryChat');
+        } finally {console.error=old;}
+    }
+});
+
+test('chat only bypasses waiting resolvers without using dice or replay metadata there', async () => {
+    const f=deliveryFixture(); let applied=0; f.resolver.registerResult=()=>{applied++;return true;};
+    const request=f.integration.session.track(f.resolver);
+    f.integration.setDestination('chat'); f.advance(10);
+    await f.send('chat');
+    assert.deepEqual(f.posted,['chat']); assert.equal(applied,0);
+    assert.deepEqual(f.resolver.roll.options,{});
+    await f.send('correlated',undefined,{request_id:request.id});
+    assert.deepEqual(f.posted,['chat']);
+    f.integration.setDestination('automatic'); f.advance(10);
+    await f.send('sheet'); assert.equal(applied,1);
+    assert.equal(f.integration.lastDelivery,'DeliveryApplied');
+});
+
+test('changing destination never redirects an older delivery', async () => {
+    const f=deliveryFixture(); f.advance(10); f.integration.setDestination('chat');
+    await f.send('old',undefined,{timestamp:100000}); assert.deepEqual(f.posted,[]);
+    f.advance(10); await f.send('fresh'); assert.deepEqual(f.posted,['fresh']);
+    f.integration.session.join('player'); assert.equal(f.integration.session.destination,'automatic');
+});
+
+test('resolver failure cannot replay a partially applied die into another slot', async () => {
+    const f=deliveryFixture(); let calls=0;
+    f.resolver.registerResult=()=>{if(++calls===2)throw Error('native failure');return true;};
+    f.integration.session.track(f.resolver); const old=console.error;console.error=()=>{};
+    try {
+        await f.send('partial',[{shape:'d20',value:7},{shape:'d20',value:8}]);
+        assert.equal(f.integration.lastDelivery,'DeliveryError');
+        await f.send('partial'); assert.equal(calls,2); assert.deepEqual(f.posted,[]);
+    } finally {console.error=old;}
+});

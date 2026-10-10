@@ -42,7 +42,7 @@
   "ROLLSIGHT.LetFoundryRoll": "Foundry को पासे फेंकने दें",
   "ROLLSIGHT.CancelRoll": "रोल रद्द करें",
   "ROLLSIGHT.CancelRollHint": "केवल यह रोल रद्द होता है। Foundry इस कार्रवाई के लिए संसाधन पहले ही खर्च कर चुका हो सकता है।",
-  "ROLLSIGHT.RollCancelled": "रोल रद्द किया गया। अलग से पासे भेजने के लिए RollSight को फिर से कनेक्ट करें।",
+  "ROLLSIGHT.RollCancelled": "रोल रद्द हो गया। नए पासे अभी भी चैट में भेजे जा सकते हैं।",
   "ROLLSIGHT.RollRemaining": "बाकी पासे Foundry को फेंकने दें",
   "ROLLSIGHT.DiceReady": "इस ब्राउज़र में सभी समर्थित पासों के लिए भौतिक पासे कॉन्फ़िगर हैं।",
   "ROLLSIGHT.DiceSetup": "कुछ पासे अभी भी डिजिटल रोल का उपयोग कर रहे हैं। पासों की कॉन्फ़िगरेशन खोलकर RollSight भौतिक पासे को डिफ़ॉल्ट चुनें और हर पासे की अलग सेटिंग जाँचें।",
@@ -94,5 +94,13 @@
   "ROLLSIGHT.ObsScenesNoReply": "Stream स्रोत से जवाब नहीं मिला। OBS में उसका ब्राउज़र कैश रीफ़्रेश करें और चुना गया ऑपरेटर जाँचें।",
   "ROLLSIGHT.ObsScenesNone": "दृश्य न बदलें",
   "ROLLSIGHT.ObsScenesMissing": "OBS में नहीं मिला: {scene}",
-  "ROLLSIGHT.ObsScenesFixMissing": "हर अनुपलब्ध मैपिंग के लिए मौजूदा OBS दृश्य चुनें या सहेजने से पहले उसे हटाएँ।"
+  "ROLLSIGHT.ObsScenesFixMissing": "हर अनुपलब्ध मैपिंग के लिए मौजूदा OBS दृश्य चुनें या सहेजने से पहले उसे हटाएँ।",
+  "ROLLSIGHT.ReceiveMode": "पासे कहाँ भेजें",
+  "ROLLSIGHT.ReceiveAutomatic": "प्रतीक्षारत रोल, अन्यथा चैट",
+  "ROLLSIGHT.ReceiveChat": "केवल चैट",
+  "ROLLSIGHT.ReceiveModeHint": "केवल चैट मोड शीट के प्रतीक्षारत रोल नहीं बदलता। नए पासे भेजने से पहले चुनें। दोबारा कनेक्ट करने पर यह चयन रीसेट होता है।",
+  "ROLLSIGHT.DeliveryIdle": "इस कनेक्शन में अभी कोई रोल प्राप्त नहीं हुआ।",
+  "ROLLSIGHT.DeliveryChat": "रोल Foundry चैट में पोस्ट हो गया।",
+  "ROLLSIGHT.DeliveryApplied": "पासे प्रतीक्षारत रोल में जोड़ दिए गए। उसे पूरा करना अभी भी Foundry के नियंत्रण में है।",
+  "ROLLSIGHT.DeliveryIgnored": "रोल अनदेखा किया गया: वह पुराना, पहले से संसाधित, रद्द या इस गंतव्य के लिए अनुपयुक्त था।"
 }

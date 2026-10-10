@@ -41,6 +41,11 @@ export class RollSightIntegration {
         if (key === 'CodeError') this.currentPlayerCode = '';
         Hooks.callAll?.('rollsightConnectionChanged');
     }
+    reportDelivery(key) {
+        this.lastDelivery = key;
+        Hooks.callAll?.('rollsightConnectionChanged');
+    }
+    setDestination(destination) { this.session.setDestination(destination); }
     isConnected() { return this.session.active && this.status === 'Connected'; }
     init() {
         Hooks.on('renderRollResolver', (resolver, element) => {
@@ -82,6 +87,7 @@ export class RollSightIntegration {
         this.coordinator = null;
         this.relay.stop();
         this.session.leave();
+        this.lastDelivery = null;
         this.proofs.clear();
         this.history.clear();
         this.setStatus('Disconnected');
@@ -244,7 +250,8 @@ export class RollSightIntegration {
         this.refreshPrompts();
     }
     refreshPrompts() {
-        this.coordinator?.setPriority(this.session.selected ? 2 : this.session.requests.size ? 1 : 0);
+        this.coordinator?.setPriority(this.session.destination === 'chat' ? 3 : this.session.selected ? 2 : this.session.requests.size ? 1 : 0);
+        Hooks.callAll?.('rollsightConnectionChanged');
         if (!this.session?.active && typeof document !== 'undefined') {
             for (const el of document.querySelectorAll('.rollsight-request-status')) el.textContent = t('Disconnected');
         }
@@ -253,35 +260,49 @@ export class RollSightIntegration {
             const formula = root?.querySelector?.('.rollsight-request-formula');
             if (formula) formula.textContent = requestedPhysicalDice(resolver, this.session.acceptManual());
             const text = root?.querySelector?.('.rollsight-request-status');
-            if (text) text.textContent = t(this.session.selected === resolver ? 'ReadyToRoll' : 'WaitingTurn', { formula: resolver.roll?.formula ?? '' });
+            if (text) text.textContent = t(this.session.destination === 'chat' ? 'ReceiveChat' : this.session.selected === resolver ? 'ReadyToRoll' : 'WaitingTurn', { formula: resolver.roll?.formula ?? '' });
         }
     }
     handleRoll(data, current = () => true, retryOnFailure = false) {
         const epoch = this.session.epoch;
         const work = this.deliveryQueue.then(async () => {
-            if (!current() || epoch !== this.session.epoch || !this.session.accept(data)) return null;
-            const pending = this.session.requests.get(this.session.selected);
-            const proof = rollReplaySerializablePayload(data);
-            const previousProof = pending && this.proofs.get(pending.id);
-            const previousRequestId = pending?.resolver.roll?.options?.rollsightRequestId;
-            const previousPayloads = pending?.resolver.roll?.options?.rollsightReplayPayloads;
-            if (pending?.resolver.roll?.options && proof) {
-                pending.resolver.roll.options.rollsightRequestId = pending.id;
-                const payloads = mergeReplayPayloads(previousPayloads, previousProof, proof);
-                pending.resolver.roll.options.rollsightReplayPayloads = payloads;
-                this.proofs.set(pending.id, payloads);
-            }
-            const result = this.session.fulfill(data);
-            this.refreshPrompts();
-            if (!result.consumed && pending && proof) {
-                if (previousProof) this.proofs.set(pending.id, previousProof);
-                else this.proofs.delete(pending.id);
-                if (pending.resolver.roll?.options) {
-                    if (previousRequestId === undefined) delete pending.resolver.roll.options.rollsightRequestId;
-                    else pending.resolver.roll.options.rollsightRequestId = previousRequestId;
-                    if (previousPayloads === undefined) delete pending.resolver.roll.options.rollsightReplayPayloads;
-                    else pending.resolver.roll.options.rollsightReplayPayloads = previousPayloads;
+            if (!current() || epoch !== this.session.epoch) return null;
+            if (!this.session.accept(data)) { this.reportDelivery(this.session.lastOutcome); return null; }
+            const pending = this.session.destination === 'chat' ? null : this.session.requests.get(this.session.selected);
+            // Preparation has no resolver side effects and may safely be retried.
+            let result, resolverAttempted = false;
+            try {
+                const proof = rollReplaySerializablePayload(data);
+                const previousProof = pending && this.proofs.get(pending.id);
+                const previousRequestId = pending?.resolver.roll?.options?.rollsightRequestId;
+                const previousPayloads = pending?.resolver.roll?.options?.rollsightReplayPayloads;
+                if (pending?.resolver.roll?.options && proof) {
+                    pending.resolver.roll.options.rollsightRequestId = pending.id;
+                    const payloads = mergeReplayPayloads(previousPayloads, previousProof, proof);
+                    pending.resolver.roll.options.rollsightReplayPayloads = payloads;
+                    this.proofs.set(pending.id, payloads);
                 }
+                // Native resolvers can mutate before throwing. Never replay those dice
+                // automatically: that could fill a second slot with the same physical die.
+                resolverAttempted = !!pending;
+                result = this.session.fulfill(data);
+                this.refreshPrompts();
+                if (!result.consumed && pending && proof) {
+                    if (previousProof) this.proofs.set(pending.id, previousProof);
+                    else this.proofs.delete(pending.id);
+                    if (pending.resolver.roll?.options) {
+                        if (previousRequestId === undefined) delete pending.resolver.roll.options.rollsightRequestId;
+                        else pending.resolver.roll.options.rollsightRequestId = previousRequestId;
+                        if (previousPayloads === undefined) delete pending.resolver.roll.options.rollsightReplayPayloads;
+                        else pending.resolver.roll.options.rollsightReplayPayloads = previousPayloads;
+                    }
+                }
+            } catch (error) {
+                if (!resolverAttempted) { this.session.forget(data); throw error; }
+                this.reportDelivery('DeliveryError');
+                notify('DeliveryError');
+                console.error('RollSight | Resolver failed', error);
+                return null;
             }
             if (result.consumed) {
                 const roll = result.request.resolver.roll;
@@ -300,20 +321,26 @@ export class RollSightIntegration {
                     const submitter = element.querySelector('button[type="submit"]');
                     if (submitter && !submitter.disabled) element.requestSubmit(submitter);
                 }
+                this.reportDelivery(this.session.lastOutcome);
                 return roll;
             }
-            if (result.blocked || !this.setting('fallbackToChat')) return null;
-            const roll = this.createFoundryRoll(data);
-            if (!roll || epoch !== this.session.epoch) return null;
-            let message;
+            if (result.blocked || (this.session.destination !== 'chat' && !this.setting('fallbackToChat'))) {
+                this.reportDelivery(result.blocked ? this.session.lastOutcome : 'DeliveryIgnored');
+                return null;
+            }
+            let message, roll;
             try {
+                roll = this.createFoundryRoll(data);
+                if (!roll) { this.reportDelivery('InvalidDice'); return null; }
+                if (!current() || epoch !== this.session.epoch) { this.session.forget(data); return null; }
                 message = await this.postRoll(roll, data);
+                if (!message) throw new Error('Foundry did not create a chat message');
+                this.reportDelivery('DeliveryChat');
             } catch (error) {
                 // Chat cards have a stable server document ID. If the server
                 // accepted a post but its response was lost, the next attempt
                 // finds the same card. Let the relay retry this event.
-                if (data.roll_id) this.session.seen.delete(`roll:${data.roll_id}`);
-                if (data._deliveryId) this.session.seen.delete(`event:${data._deliveryId}`);
+                this.session.forget(data);
                 throw error;
             }
             if (data.roll_id && epoch === this.session.epoch) {
@@ -322,7 +349,7 @@ export class RollSightIntegration {
             }
             return roll;
         });
-        this.deliveryQueue = work.catch(error => { console.error('RollSight | Delivery failed', error); notify('DeliveryError'); });
+        this.deliveryQueue = work.catch(error => { this.reportDelivery('DeliveryError'); console.error('RollSight | Delivery failed', error); notify('DeliveryError'); });
         return retryOnFailure ? work : this.deliveryQueue;
     }
     async deliver(envelope, deliveryId, current = () => true) {

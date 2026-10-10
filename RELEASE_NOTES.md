@@ -1,3 +1,10 @@
+## v1.1.93 - 2026-10-10
+
+- Cancelling a physical-dice request restores the original Foundry chat card. The connection panel shows whether a roll was delivered through chat, a dice prompt, or ignored after cancellation.
+- Chat-only and repeated rolls preserve their delivery status and replay behavior across reconnects and retries.
+
+Update the Foundry module and reload the world and player tabs. This release pairs with desktop 1.2.13 for the cancellation and chat-delivery fixes.
+
 ## v1.1.92 - 2026-10-04
 
 - Foundry `/stream` chat now hides RollSight replay labels, controls and animations, including older replay markup. Roll results remain visible.

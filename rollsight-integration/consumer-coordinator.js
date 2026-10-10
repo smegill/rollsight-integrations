@@ -38,7 +38,7 @@ export class ConsumerCoordinator {
         if (data.kind === 'bye') this.peers.delete(data.id);
         else {
             if (!['hello', 'presence', 'cursor'].includes(data.kind)
-                || ![0, 1, 2, 3].includes(data.priority) || !Number.isSafeInteger(data.cursor) || data.cursor < 0) return;
+                || ![0, 1, 2, 3, 4].includes(data.priority) || !Number.isSafeInteger(data.cursor) || data.cursor < 0) return;
             this.peers.set(data.id, { id: data.id, priority: data.priority, seen: this.now() });
             this.cursor = Math.max(this.cursor, data.cursor);
             if (data.kind === 'hello') this.announce();
@@ -50,7 +50,7 @@ export class ConsumerCoordinator {
         this.priority = priority;
         if (this.active) { this.announce(); this.tick(); }
     }
-    effectivePriority() { return this.busy ? 3 : this.priority; }
+    effectivePriority() { return this.busy ? 4 : this.priority; }
     setBusy(busy) {
         this.busy = busy;
         if (this.active) { this.announce(); this.tick(); }

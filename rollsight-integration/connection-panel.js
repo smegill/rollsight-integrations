@@ -29,12 +29,26 @@ export function openConnectionPanel() {
     const link=add('button','LinkWorld',actions); link.type='button';
     const useCloud=add('button','UseCloudReception',actions); useCloud.type='button';
     add('hr');
+    const destinationLabel = add('label', 'ReceiveMode'); destinationLabel.htmlFor = 'rollsight-destination';
+    const destination = add('select'); destination.id = 'rollsight-destination';
+    for (const [value, key] of [['automatic', 'ReceiveAutomatic'], ['chat', 'ReceiveChat']]) {
+        const option = add('option', key, destination); option.value = value;
+    }
+    const destinationHint = add('p', 'ReceiveModeHint'); destinationHint.id = 'rollsight-destination-hint';
+    destination.setAttribute('aria-describedby', destinationHint.id);
+    const delivery = add('p'); delivery.className = 'rollsight-delivery-status'; delivery.setAttribute('role', 'status');
+    destination.onchange = () => game.rollsight?.setDestination(destination.value);
+    add('hr');
     add('h3','ConnectDiceTitle');
     add('p','ConnectDiceHelp');
     const dice=add('button','DiceConfigure'); dice.type='button';
     let busy=false;
     const refresh = () => {
         const integration=game.rollsight;
+        dialog.dir = ['ar','ur'].includes(game.i18n.lang) ? 'rtl' : 'ltr';
+        destination.value = integration?.session?.destination || 'automatic';
+        destination.disabled = !integration?.session?.active;
+        delivery.textContent = text(integration?.lastDelivery || 'DeliveryIdle');
         const extension=game.settings.get(ns,'desktopBridgePoll');
         const active=game.settings.get(ns,'playerActive');
         const linked=!!game.settings.get(ns,'cloudRoomKey');

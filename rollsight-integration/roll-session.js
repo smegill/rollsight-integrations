@@ -31,6 +31,9 @@ export class RollSession {
         this.active = false;
         this.requests.clear();
         this.cancelled.clear();
+        this.cancelledAt = null;
+        this.destination = 'automatic';
+        this.destinationSince = null;
         this.selected = null;
         this.changed();
     }
@@ -60,6 +63,7 @@ export class RollSession {
         const request = this.requests.get(resolver);
         if (!request) return;
         this.cancelled.add(request.id);
+        this.cancelledAt = this.now();
         this.remove(resolver);
     }
     select(resolver) {
@@ -69,8 +73,19 @@ export class RollSession {
         this.selected = resolver;
         this.changed();
     }
+    setDestination(destination) {
+        if (!['automatic', 'chat'].includes(destination) || destination === this.destination) return;
+        this.destination = destination;
+        this.destinationSince = this.now();
+        this.changed();
+    }
+    forget(data) {
+        if (data.roll_id) this.seen.delete(`roll:${data.roll_id}`);
+        if (data._deliveryId) this.seen.delete(`event:${data._deliveryId}`);
+    }
     /** Delivery IDs distinguish identical legitimate rolls; fingerprints never do. */
     accept(data) {
+        this.lastOutcome = 'DeliveryIgnored';
         if (!this.active || !data || typeof data !== 'object') return false;
         const recipient = data._rollsightRoom?.recipient_user_id ?? data.recipient_user_id;
         if (recipient && recipient !== this.userId) return false;
@@ -85,22 +100,28 @@ export class RollSession {
         return true;
     }
     fulfill(data) {
+        this.lastOutcome = 'DeliveryIgnored';
+        const ts = data._rollsightBridgeTs ?? data.timestamp;
+        // Reject old in-flight dice, not every future throw after a cancellation.
+        if (this.cancelledAt != null && !data.request_id && (!Number.isFinite(ts) || ts <= this.cancelledAt))
+            return { blocked: true, consumed: false };
+        if (this.destinationSince != null && (!Number.isFinite(ts) || ts <= this.destinationSince))
+            return { blocked: true, consumed: false };
         if (data.request_id && this.cancelled.has(data.request_id)) return { blocked: true, consumed: false };
-        const request = this.requests.get(this.selected);
+        const request = this.destination === 'chat' ? null : this.requests.get(this.selected);
         if (data.request_id && data.request_id !== request?.id) return { blocked: true, consumed: false };
         const expected = request?.resolver?.fulfillable instanceof Map
             && [...request.resolver.fulfillable.values()].some(entry => {
                 const term = entry?.term ?? entry;
                 return String(term?.denomination ?? `d${term?.faces ?? ''}`).toLowerCase() === 'd100';
             });
-        const pairs = rollDataToFulfillmentPairs(data, { composePercentile: expected || (!request && !this.requests.size) });
-        if (!pairs.length) { this.notify('InvalidDice'); return { blocked: true, consumed: false }; }
+        const pairs = rollDataToFulfillmentPairs(data, { composePercentile: expected || this.destination === 'chat' || (!request && !this.requests.size) });
+        if (!pairs.length) { this.lastOutcome = 'InvalidDice'; this.notify('InvalidDice'); return { blocked: true, consumed: false }; }
         if (!request) {
-            if (this.requests.size) this.notify('ChooseRoll');
-            // Once a request was cancelled, uncorrelated late dice must not become chat.
-            return { blocked: this.requests.size > 0 || this.cancelled.size > 0, consumed: false };
+            const blocked = this.destination !== 'chat' && this.requests.size > 0;
+            if (blocked) { this.lastOutcome = 'ChooseRoll'; this.notify('ChooseRoll'); }
+            return { blocked, consumed: false };
         }
-        const ts = data._rollsightBridgeTs ?? data.timestamp;
         if (ts != null && ts < request.createdAt) return { blocked: true, consumed: false };
         const methods = resolverMethods(request.resolver, this.acceptManual());
         let consumed = false;
@@ -113,6 +134,7 @@ export class RollSession {
                 }
             }
         }
+        this.lastOutcome = consumed ? 'DeliveryApplied' : 'NoMatch';
         if (!consumed) this.notify('NoMatch');
         return { blocked: true, consumed, request };
     }

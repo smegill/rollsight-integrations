@@ -42,7 +42,7 @@
   "ROLLSIGHT.LetFoundryRoll": "Deixar o Foundry rolar",
   "ROLLSIGHT.CancelRoll": "Cancelar rolagem",
   "ROLLSIGHT.CancelRollHint": "Cancela apenas esta rolagem. O Foundry pode já ter gasto recursos para a ação.",
-  "ROLLSIGHT.RollCancelled": "Rolagem cancelada. Para publicar dados avulsos novamente, reconecte o RollSight.",
+  "ROLLSIGHT.RollCancelled": "Rolagem cancelada. Novos dados ainda podem ser enviados ao chat.",
   "ROLLSIGHT.RollRemaining": "Deixar o Foundry rolar os dados restantes",
   "ROLLSIGHT.DiceReady": "Dados físicos configurados para todos os dados compatíveis neste navegador.",
   "ROLLSIGHT.DiceSetup": "Alguns dados ainda usam rolagens digitais. Abra a configuração de dados e selecione dados físicos do RollSight como padrão; confira as configurações individuais de cada dado.",
@@ -94,5 +94,13 @@
   "ROLLSIGHT.ObsScenesNoReply": "A fonte Stream não respondeu. Atualize o cache do navegador dessa fonte no OBS e confira o operador selecionado.",
   "ROLLSIGHT.ObsScenesNone": "Não trocar de cena",
   "ROLLSIGHT.ObsScenesMissing": "Não encontrada no OBS: {scene}",
-  "ROLLSIGHT.ObsScenesFixMissing": "Escolha uma cena existente no OBS para cada associação ausente ou remova-a antes de salvar."
+  "ROLLSIGHT.ObsScenesFixMissing": "Escolha uma cena existente no OBS para cada associação ausente ou remova-a antes de salvar.",
+  "ROLLSIGHT.ReceiveMode": "Enviar dados para",
+  "ROLLSIGHT.ReceiveAutomatic": "Rolagem pendente, senão o chat",
+  "ROLLSIGHT.ReceiveChat": "Somente chat",
+  "ROLLSIGHT.ReceiveModeHint": "Somente chat mantém intactas as rolagens pendentes da ficha. Escolha antes de enviar novos dados. A escolha é redefinida ao reconectar.",
+  "ROLLSIGHT.DeliveryIdle": "Nenhuma rolagem recebida nesta conexão ainda.",
+  "ROLLSIGHT.DeliveryChat": "Rolagem publicada no chat do Foundry.",
+  "ROLLSIGHT.DeliveryApplied": "Dados aplicados à rolagem pendente. O Foundry ainda controla a conclusão.",
+  "ROLLSIGHT.DeliveryIgnored": "Rolagem ignorada: era antiga, já processada, cancelada ou incompatível com este destino."
 }

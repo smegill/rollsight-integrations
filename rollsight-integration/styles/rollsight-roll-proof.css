@@ -373,3 +373,9 @@ dialog.rollsight-connection-panel {
     .rollsight-obs-turn-row button { justify-self: end; }
     .rollsight-obs-turn-panel header { align-items: start; gap: 8px; }
 }
+
+.rollsight-connection-panel select {
+    box-sizing: border-box; width: 100%; min-width: 0; min-height: 38px;
+    font: inherit; padding: 6px; background: #13151a; color: #fff;
+}
+.rollsight-delivery-status { overflow-wrap: anywhere; }

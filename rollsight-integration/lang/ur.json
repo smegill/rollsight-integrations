@@ -42,7 +42,7 @@
   "ROLLSIGHT.LetFoundryRoll": "Foundry کو پاسے پھینکنے دیں",
   "ROLLSIGHT.CancelRoll": "رول منسوخ کریں",
   "ROLLSIGHT.CancelRollHint": "صرف یہ رول منسوخ ہوتا ہے۔ Foundry اس کارروائی کے لیے وسائل پہلے ہی خرچ کر چکا ہو سکتا ہے۔",
-  "ROLLSIGHT.RollCancelled": "رول منسوخ ہو گیا۔ الگ پاسے دوبارہ بھیجنے کے لیے RollSight سے دوبارہ رابطہ قائم کریں۔",
+  "ROLLSIGHT.RollCancelled": "رول منسوخ ہو گیا۔ نئے پانسے اب بھی چیٹ میں بھیجے جا سکتے ہیں۔",
   "ROLLSIGHT.RollRemaining": "باقی پاسے Foundry کو پھینکنے دیں",
   "ROLLSIGHT.DiceReady": "اس براؤزر میں تمام معاون پاسوں کے لیے حقیقی پاسے ترتیب دے دیے گئے ہیں۔",
   "ROLLSIGHT.DiceSetup": "کچھ پاسے ابھی بھی ڈیجیٹل رول استعمال کر رہے ہیں۔ پاسوں کی ترتیبات کھولیں، RollSight کے حقیقی پاسے کو طے شدہ طریقہ منتخب کریں اور ہر پاسے کی الگ ترتیب دیکھیں۔",
@@ -94,5 +94,13 @@
   "ROLLSIGHT.ObsScenesNoReply": "Stream ماخذ سے جواب نہیں آیا۔ OBS میں اس کا براؤزر کیش تازہ کریں اور منتخب آپریٹر دیکھیں۔",
   "ROLLSIGHT.ObsScenesNone": "منظر نہ بدلیں",
   "ROLLSIGHT.ObsScenesMissing": "OBS میں نہیں ملا: {scene}",
-  "ROLLSIGHT.ObsScenesFixMissing": "ہر ناموجود نقشہ بندی کے لیے OBS کا موجودہ منظر منتخب کریں، یا محفوظ کرنے سے پہلے اسے ہٹا دیں۔"
+  "ROLLSIGHT.ObsScenesFixMissing": "ہر ناموجود نقشہ بندی کے لیے OBS کا موجودہ منظر منتخب کریں، یا محفوظ کرنے سے پہلے اسے ہٹا دیں۔",
+  "ROLLSIGHT.ReceiveMode": "پانسے کہاں بھیجیں",
+  "ROLLSIGHT.ReceiveAutomatic": "منتظر رول، ورنہ چیٹ",
+  "ROLLSIGHT.ReceiveChat": "صرف چیٹ",
+  "ROLLSIGHT.ReceiveModeHint": "صرف چیٹ موڈ شیٹ کے منتظر رول تبدیل نہیں کرتا۔ نئے پانسے بھیجنے سے پہلے منتخب کریں۔ دوبارہ رابطہ کرنے پر یہ انتخاب ری سیٹ ہوتا ہے۔",
+  "ROLLSIGHT.DeliveryIdle": "اس رابطے میں ابھی کوئی رول موصول نہیں ہوا۔",
+  "ROLLSIGHT.DeliveryChat": "رول Foundry چیٹ میں پوسٹ ہو گیا۔",
+  "ROLLSIGHT.DeliveryApplied": "پانسے منتظر رول میں شامل ہو گئے۔ اسے مکمل کرنے کا اختیار اب بھی Foundry کے پاس ہے۔",
+  "ROLLSIGHT.DeliveryIgnored": "رول نظر انداز ہوا: وہ پرانا، پہلے سے پراسیس شدہ، منسوخ یا اس منزل کے لیے ناموزوں تھا۔"
 }

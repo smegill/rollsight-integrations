@@ -42,7 +42,7 @@
   "ROLLSIGHT.LetFoundryRoll": "Dejar que Foundry tire",
   "ROLLSIGHT.CancelRoll": "Cancelar tirada",
   "ROLLSIGHT.CancelRollHint": "Solo cancela esta tirada. Foundry puede haber gastado recursos para la acción.",
-  "ROLLSIGHT.RollCancelled": "Tirada cancelada. Para volver a publicar dados independientes, reconecta RollSight.",
+  "ROLLSIGHT.RollCancelled": "Tirada cancelada. Puedes seguir enviando dados nuevos al chat.",
   "ROLLSIGHT.RollRemaining": "Dejar que Foundry tire los dados restantes",
   "ROLLSIGHT.DiceReady": "Los dados físicos están configurados para todos los dados compatibles en este navegador.",
   "ROLLSIGHT.DiceSetup": "Algunos dados todavía usan tiradas digitales. Abre la configuración de dados y selecciona los dados físicos de RollSight como método predeterminado; revisa las excepciones para cada dado.",
@@ -94,5 +94,13 @@
   "ROLLSIGHT.ObsScenesNoReply": "La fuente Stream no respondió. Actualiza su caché del navegador en OBS y comprueba el operador seleccionado.",
   "ROLLSIGHT.ObsScenesNone": "No cambiar de escena",
   "ROLLSIGHT.ObsScenesMissing": "No se encuentra en OBS: {scene}",
-  "ROLLSIGHT.ObsScenesFixMissing": "Elige una escena de OBS existente para cada asignación ausente o bórrala antes de guardar."
+  "ROLLSIGHT.ObsScenesFixMissing": "Elige una escena de OBS existente para cada asignación ausente o bórrala antes de guardar.",
+  "ROLLSIGHT.ReceiveMode": "Enviar dados a",
+  "ROLLSIGHT.ReceiveAutomatic": "Tirada pendiente; si no, al chat",
+  "ROLLSIGHT.ReceiveChat": "Solo al chat",
+  "ROLLSIGHT.ReceiveModeHint": "Solo al chat no modifica las tiradas pendientes de la hoja. Elige antes de enviar dados nuevos. La elección se restablece al reconectar.",
+  "ROLLSIGHT.DeliveryIdle": "Aún no se ha recibido ninguna tirada en esta conexión.",
+  "ROLLSIGHT.DeliveryChat": "Tirada publicada en el chat de Foundry.",
+  "ROLLSIGHT.DeliveryApplied": "Dados aplicados a la tirada pendiente. Foundry sigue controlando su finalización.",
+  "ROLLSIGHT.DeliveryIgnored": "Tirada ignorada: era antigua, ya se había procesado, estaba cancelada o no correspondía a este destino."
 }

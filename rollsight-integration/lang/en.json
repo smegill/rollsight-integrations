@@ -44,7 +44,7 @@
   "ROLLSIGHT.LetFoundryRoll": "Let Foundry Roll",
   "ROLLSIGHT.CancelRoll": "Cancel Roll",
   "ROLLSIGHT.CancelRollHint": "Cancels this roll only. Foundry may already have spent resources for the action.",
-  "ROLLSIGHT.RollCancelled": "Roll cancelled. To post standalone dice again, reconnect RollSight.",
+  "ROLLSIGHT.RollCancelled": "Roll cancelled. Fresh dice can still be sent to chat.",
   "ROLLSIGHT.RollRemaining": "Let Foundry roll the rest",
   "ROLLSIGHT.DiceReady": "Physical dice configured for every supported die in this browser.",
   "ROLLSIGHT.DiceSetup": "Some dice still use digital rolls. Open Dice Configuration and select RollSight physical dice as the default; check per-die overrides.",
@@ -94,5 +94,13 @@
   "ROLLSIGHT.ObsScenesNoReply": "No reply from the Stream source. Refresh its browser cache in OBS and check the selected operator.",
   "ROLLSIGHT.ObsScenesNone": "No scene change",
   "ROLLSIGHT.ObsScenesMissing": "Not found in OBS: {scene}",
-  "ROLLSIGHT.ObsScenesFixMissing": "Choose an existing OBS scene for each missing mapping, or clear it before saving."
+  "ROLLSIGHT.ObsScenesFixMissing": "Choose an existing OBS scene for each missing mapping, or clear it before saving.",
+  "ROLLSIGHT.ReceiveMode": "Send dice to",
+  "ROLLSIGHT.ReceiveAutomatic": "Waiting roll, otherwise chat",
+  "ROLLSIGHT.ReceiveChat": "Chat only",
+  "ROLLSIGHT.ReceiveModeHint": "Chat only leaves waiting sheet rolls untouched. Choose before sending fresh dice. This choice resets when you reconnect.",
+  "ROLLSIGHT.DeliveryIdle": "No delivery received in this connection yet.",
+  "ROLLSIGHT.DeliveryChat": "Roll posted to Foundry chat.",
+  "ROLLSIGHT.DeliveryApplied": "Dice applied to the waiting roll. Foundry still controls completion.",
+  "ROLLSIGHT.DeliveryIgnored": "Roll ignored: it was old, already processed, cancelled, or not eligible for this destination."
 }

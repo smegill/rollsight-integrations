@@ -42,7 +42,7 @@
   "ROLLSIGHT.LetFoundryRoll": "让 Foundry 掷骰",
   "ROLLSIGHT.CancelRoll": "取消掷骰",
   "ROLLSIGHT.CancelRollHint": "仅取消本次掷骰。Foundry 可能已为该动作消耗资源。",
-  "ROLLSIGHT.RollCancelled": "已取消掷骰。若要再次发送独立掷骰，请重新连接 RollSight。",
+  "ROLLSIGHT.RollCancelled": "掷骰已取消。仍可将新骰子发送到聊天。",
   "ROLLSIGHT.RollRemaining": "让 Foundry 掷出剩余骰子",
   "ROLLSIGHT.DiceReady": "此浏览器中所有支持的骰子均已设为实体骰子。",
   "ROLLSIGHT.DiceSetup": "某些骰子仍使用数字掷骰。请打开骰子配置，将 RollSight 实体骰子设为默认方式，并检查各类骰子的单独设置。",
@@ -94,5 +94,13 @@
   "ROLLSIGHT.ObsScenesNoReply": "Stream 来源未响应。请在 OBS 中刷新该来源的浏览器缓存，并检查所选操作用户。",
   "ROLLSIGHT.ObsScenesNone": "不切换场景",
   "ROLLSIGHT.ObsScenesMissing": "OBS 中未找到：{scene}",
-  "ROLLSIGHT.ObsScenesFixMissing": "请为每个失效映射选择现有 OBS 场景，或在保存前清除该映射。"
+  "ROLLSIGHT.ObsScenesFixMissing": "请为每个失效映射选择现有 OBS 场景，或在保存前清除该映射。",
+  "ROLLSIGHT.ReceiveMode": "骰子发送目标",
+  "ROLLSIGHT.ReceiveAutomatic": "待处理掷骰，否则发送到聊天",
+  "ROLLSIGHT.ReceiveChat": "仅聊天",
+  "ROLLSIGHT.ReceiveModeHint": "仅聊天模式不会修改角色卡中待处理的掷骰。请在发送新骰子前选择。重新连接后会重置此选择。",
+  "ROLLSIGHT.DeliveryIdle": "本次连接尚未收到掷骰。",
+  "ROLLSIGHT.DeliveryChat": "掷骰已发布到 Foundry 聊天。",
+  "ROLLSIGHT.DeliveryApplied": "骰子已填入待处理的掷骰。完成过程仍由 Foundry 控制。",
+  "ROLLSIGHT.DeliveryIgnored": "已忽略掷骰：时间过早、已处理、已取消或不适用于此目标。"
 }

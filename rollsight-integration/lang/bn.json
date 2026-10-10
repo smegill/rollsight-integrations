@@ -42,7 +42,7 @@
   "ROLLSIGHT.LetFoundryRoll": "Foundry-কে পাশা ঘোরাতে দিন",
   "ROLLSIGHT.CancelRoll": "রোল বাতিল করুন",
   "ROLLSIGHT.CancelRollHint": "শুধু এই রোলটি বাতিল হবে। এই কাজের জন্য Foundry ইতিমধ্যে সম্পদ খরচ করে থাকতে পারে।",
-  "ROLLSIGHT.RollCancelled": "রোল বাতিল হয়েছে। আবার স্বতন্ত্র পাশার ফল পাঠাতে RollSight পুনরায় সংযুক্ত করুন।",
+  "ROLLSIGHT.RollCancelled": "রোল বাতিল হয়েছে। নতুন পাশা এখনও চ্যাটে পাঠানো যাবে।",
   "ROLLSIGHT.RollRemaining": "বাকি পাশাগুলো Foundry-কে ফেলতে দিন",
   "ROLLSIGHT.DiceReady": "এই ব্রাউজারে সব সমর্থিত পাশার জন্য বাস্তব পাশা কনফিগার করা হয়েছে।",
   "ROLLSIGHT.DiceSetup": "কিছু পাশা এখনও ডিজিটাল রোল ব্যবহার করছে। পাশার কনফিগারেশন খুলে RollSight-এর বাস্তব পাশাকে ডিফল্ট হিসেবে বেছে নিন এবং প্রতিটি পাশার আলাদা সেটিংস পরীক্ষা করুন।",
@@ -94,5 +94,13 @@
   "ROLLSIGHT.ObsScenesNoReply": "Stream উৎস থেকে সাড়া পাওয়া যায়নি। OBS-এ এর ব্রাউজার ক্যাশ রিফ্রেশ করুন এবং নির্বাচিত অপারেটর পরীক্ষা করুন।",
   "ROLLSIGHT.ObsScenesNone": "দৃশ্য বদলাবেন না",
   "ROLLSIGHT.ObsScenesMissing": "OBS-এ পাওয়া যায়নি: {scene}",
-  "ROLLSIGHT.ObsScenesFixMissing": "প্রতিটি অনুপস্থিত ম্যাপিংয়ের জন্য বিদ্যমান OBS দৃশ্য বেছে নিন অথবা সংরক্ষণের আগে সেটি সরিয়ে দিন।"
+  "ROLLSIGHT.ObsScenesFixMissing": "প্রতিটি অনুপস্থিত ম্যাপিংয়ের জন্য বিদ্যমান OBS দৃশ্য বেছে নিন অথবা সংরক্ষণের আগে সেটি সরিয়ে দিন।",
+  "ROLLSIGHT.ReceiveMode": "পাশা কোথায় পাঠাবেন",
+  "ROLLSIGHT.ReceiveAutomatic": "অপেক্ষমাণ রোল, নইলে চ্যাট",
+  "ROLLSIGHT.ReceiveChat": "শুধু চ্যাট",
+  "ROLLSIGHT.ReceiveModeHint": "শুধু চ্যাট মোড শিটের অপেক্ষমাণ রোল বদলায় না। নতুন পাশা পাঠানোর আগে বেছে নিন। আবার সংযোগ করলে এই পছন্দ রিসেট হয়।",
+  "ROLLSIGHT.DeliveryIdle": "এই সংযোগে এখনও কোনো রোল আসেনি।",
+  "ROLLSIGHT.DeliveryChat": "রোল Foundry চ্যাটে প্রকাশিত হয়েছে।",
+  "ROLLSIGHT.DeliveryApplied": "পাশা অপেক্ষমাণ রোলে প্রয়োগ করা হয়েছে। সম্পূর্ণ করার নিয়ন্ত্রণ এখনও Foundry-এর হাতে।",
+  "ROLLSIGHT.DeliveryIgnored": "রোল উপেক্ষা করা হয়েছে: এটি পুরোনো, আগেই প্রক্রিয়া করা, বাতিল বা এই গন্তব্যের উপযুক্ত নয়।"
 }

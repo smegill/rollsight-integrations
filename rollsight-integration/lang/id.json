@@ -42,7 +42,7 @@
   "ROLLSIGHT.LetFoundryRoll": "Biarkan Foundry melempar dadu",
   "ROLLSIGHT.CancelRoll": "Batalkan lemparan",
   "ROLLSIGHT.CancelRollHint": "Hanya membatalkan lemparan ini. Foundry mungkin sudah menghabiskan sumber daya untuk tindakan tersebut.",
-  "ROLLSIGHT.RollCancelled": "Lemparan dibatalkan. Untuk mengirim dadu mandiri lagi, sambungkan kembali RollSight.",
+  "ROLLSIGHT.RollCancelled": "Lemparan dibatalkan. Dadu baru tetap dapat dikirim ke obrolan.",
   "ROLLSIGHT.RollRemaining": "Biarkan Foundry melempar dadu yang tersisa",
   "ROLLSIGHT.DiceReady": "Dadu fisik telah dikonfigurasi untuk semua jenis dadu yang didukung di browser ini.",
   "ROLLSIGHT.DiceSetup": "Beberapa dadu masih menggunakan lemparan digital. Buka konfigurasi dadu dan pilih dadu fisik RollSight sebagai metode bawaan; periksa pengaturan khusus tiap jenis dadu.",
@@ -94,5 +94,13 @@
   "ROLLSIGHT.ObsScenesNoReply": "Tidak ada respons dari sumber Stream. Segarkan cache browser sumber tersebut di OBS dan periksa operator yang dipilih.",
   "ROLLSIGHT.ObsScenesNone": "Jangan ganti adegan",
   "ROLLSIGHT.ObsScenesMissing": "Tidak ditemukan di OBS: {scene}",
-  "ROLLSIGHT.ObsScenesFixMissing": "Pilih adegan OBS yang tersedia untuk setiap pemetaan yang hilang, atau hapus pemetaan tersebut sebelum menyimpan."
+  "ROLLSIGHT.ObsScenesFixMissing": "Pilih adegan OBS yang tersedia untuk setiap pemetaan yang hilang, atau hapus pemetaan tersebut sebelum menyimpan.",
+  "ROLLSIGHT.ReceiveMode": "Kirim dadu ke",
+  "ROLLSIGHT.ReceiveAutomatic": "Lemparan yang menunggu, atau obrolan",
+  "ROLLSIGHT.ReceiveChat": "Obrolan saja",
+  "ROLLSIGHT.ReceiveModeHint": "Mode obrolan saja tidak mengubah lemparan lembar karakter yang menunggu. Pilih sebelum mengirim dadu baru. Pilihan ini direset saat tersambung kembali.",
+  "ROLLSIGHT.DeliveryIdle": "Belum ada lemparan diterima dalam koneksi ini.",
+  "ROLLSIGHT.DeliveryChat": "Lemparan diposting ke obrolan Foundry.",
+  "ROLLSIGHT.DeliveryApplied": "Dadu diterapkan ke lemparan yang menunggu. Foundry tetap mengendalikan penyelesaiannya.",
+  "ROLLSIGHT.DeliveryIgnored": "Lemparan diabaikan: sudah lama, sudah diproses, dibatalkan, atau tidak sesuai dengan tujuan ini."
 }

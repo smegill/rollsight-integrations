@@ -42,7 +42,7 @@
   "ROLLSIGHT.LetFoundryRoll": "Laisser Foundry lancer les dés",
   "ROLLSIGHT.CancelRoll": "Annuler le jet",
   "ROLLSIGHT.CancelRollHint": "Annule uniquement ce jet. Foundry a peut-être déjà dépensé des ressources pour cette action.",
-  "ROLLSIGHT.RollCancelled": "Jet annulé. Pour publier à nouveau des dés indépendants, reconnectez RollSight.",
+  "ROLLSIGHT.RollCancelled": "Jet annulé. Vous pouvez toujours envoyer de nouveaux dés dans le chat.",
   "ROLLSIGHT.RollRemaining": "Laisser Foundry lancer les dés restants",
   "ROLLSIGHT.DiceReady": "Les dés physiques sont configurés pour tous les dés pris en charge dans ce navigateur.",
   "ROLLSIGHT.DiceSetup": "Certains dés utilisent encore des jets numériques. Ouvrez la configuration des dés et choisissez les dés physiques RollSight par défaut ; vérifiez les réglages propres à chaque dé.",
@@ -94,5 +94,13 @@
   "ROLLSIGHT.ObsScenesNoReply": "Aucune réponse de la source Stream. Actualisez son cache navigateur dans OBS et vérifiez l’opérateur sélectionné.",
   "ROLLSIGHT.ObsScenesNone": "Ne pas changer de scène",
   "ROLLSIGHT.ObsScenesMissing": "Introuvable dans OBS : {scene}",
-  "ROLLSIGHT.ObsScenesFixMissing": "Choisissez une scène OBS existante pour chaque association manquante ou effacez-la avant d’enregistrer."
+  "ROLLSIGHT.ObsScenesFixMissing": "Choisissez une scène OBS existante pour chaque association manquante ou effacez-la avant d’enregistrer.",
+  "ROLLSIGHT.ReceiveMode": "Envoyer les dés vers",
+  "ROLLSIGHT.ReceiveAutomatic": "Jet en attente, sinon le chat",
+  "ROLLSIGHT.ReceiveChat": "Chat uniquement",
+  "ROLLSIGHT.ReceiveModeHint": "Le mode chat laisse les jets de fiche en attente intacts. Choisissez avant d’envoyer de nouveaux dés. Ce choix se réinitialise à la reconnexion.",
+  "ROLLSIGHT.DeliveryIdle": "Aucun jet reçu depuis cette connexion.",
+  "ROLLSIGHT.DeliveryChat": "Jet publié dans le chat de Foundry.",
+  "ROLLSIGHT.DeliveryApplied": "Dés appliqués au jet en attente. Foundry contrôle toujours sa finalisation.",
+  "ROLLSIGHT.DeliveryIgnored": "Jet ignoré : ancien, déjà traité, annulé ou incompatible avec cette destination."
 }

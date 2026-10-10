@@ -42,7 +42,7 @@
   "ROLLSIGHT.LetFoundryRoll": "دع Foundry يرمي النرد",
   "ROLLSIGHT.CancelRoll": "إلغاء الرمية",
   "ROLLSIGHT.CancelRollHint": "يلغي هذه الرمية فقط. ربما استهلك Foundry موارد الإجراء بالفعل.",
-  "ROLLSIGHT.RollCancelled": "أُلغيت الرمية. لإرسال رميات مستقلة مجددًا، أعد اتصال RollSight.",
+  "ROLLSIGHT.RollCancelled": "أُلغيت الرمية. لا يزال بإمكانك إرسال نرد جديد إلى الدردشة.",
   "ROLLSIGHT.RollRemaining": "دع Foundry يرمي النرد المتبقي",
   "ROLLSIGHT.DiceReady": "تم إعداد النرد الحقيقي لكل أنواع النرد المدعومة في هذا المتصفح.",
   "ROLLSIGHT.DiceSetup": "لا تزال بعض أنواع النرد تستخدم الرميات الرقمية. افتح إعدادات النرد واختر نرد RollSight الحقيقي كطريقة افتراضية، وتحقق من الإعدادات الخاصة بكل نوع.",
@@ -94,5 +94,13 @@
   "ROLLSIGHT.ObsScenesNoReply": "لم يستجب مصدر Stream. حدّث ذاكرة التخزين المؤقت لمتصفحه في OBS وتحقق من المشغّل المحدد.",
   "ROLLSIGHT.ObsScenesNone": "عدم تغيير المشهد",
   "ROLLSIGHT.ObsScenesMissing": "غير موجود في OBS: {scene}",
-  "ROLLSIGHT.ObsScenesFixMissing": "اختر مشهد OBS موجودًا لكل ربط مفقود، أو امسح الربط قبل الحفظ."
+  "ROLLSIGHT.ObsScenesFixMissing": "اختر مشهد OBS موجودًا لكل ربط مفقود، أو امسح الربط قبل الحفظ.",
+  "ROLLSIGHT.ReceiveMode": "إرسال النرد إلى",
+  "ROLLSIGHT.ReceiveAutomatic": "الرمية المنتظرة، وإلا فإلى الدردشة",
+  "ROLLSIGHT.ReceiveChat": "الدردشة فقط",
+  "ROLLSIGHT.ReceiveModeHint": "وضع الدردشة فقط لا يغيّر رميات ورقة الشخصية المنتظرة. اختر قبل إرسال نرد جديد. يُعاد ضبط هذا الاختيار عند إعادة الاتصال.",
+  "ROLLSIGHT.DeliveryIdle": "لم تصل أي رمية خلال هذا الاتصال بعد.",
+  "ROLLSIGHT.DeliveryChat": "نُشرت الرمية في دردشة Foundry.",
+  "ROLLSIGHT.DeliveryApplied": "أُضيف النرد إلى الرمية المنتظرة. لا يزال Foundry يتحكم في إكمالها.",
+  "ROLLSIGHT.DeliveryIgnored": "تم تجاهل الرمية لأنها قديمة أو عولجت سابقًا أو أُلغيت أو غير مناسبة لهذه الوجهة."
 }
