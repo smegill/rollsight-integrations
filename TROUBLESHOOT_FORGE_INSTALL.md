@@ -15,7 +15,7 @@ If Forge (or Foundry) reports **"Failed to install module: Failed to fetch packa
 After the repo is public, open the manifest URL in an incognito window. You should see JSON (the contents of `module.json`), not a login or 404 page:
 
 ```text
-https://raw.githubusercontent.com/smegill/rollsight-integrations/main/rollsight-integration/module.json
+https://raw.githubusercontent.com/RollSight/rollsight-integrations/main/rollsight-integration/module.json
 ```
 
 ---
@@ -25,7 +25,7 @@ https://raw.githubusercontent.com/smegill/rollsight-integrations/main/rollsight-
 The **download** URL in `module.json` is:
 
 ```text
-https://github.com/smegill/rollsight-integrations/releases/latest/download/rollsight-integration.zip
+https://github.com/RollSight/rollsight-integrations/releases/latest/download/rollsight-integration.zip
 ```
 
 That URL only works if:
@@ -50,7 +50,7 @@ That URL only works if:
 
 3. **Check the download URL** in an incognito window:
    ```text
-   https://github.com/smegill/rollsight-integrations/releases/latest/download/rollsight-integration.zip
+   https://github.com/RollSight/rollsight-integrations/releases/latest/download/rollsight-integration.zip
    ```
    It should download the zip, not show Not Found.
 
@@ -63,16 +63,16 @@ The **manifest** is served from the **default branch** of the repo (the raw `mod
 **Do this:**
 
 1. **Confirm the default branch on GitHub**  
-   Open the repo (e.g. `https://github.com/smegill/rollsight-integrations`). The default branch is shown near the top (often **main** or **master**).
+   Open the repo (e.g. `https://github.com/RollSight/rollsight-integrations`). The default branch is shown near the top (often **main** or **master**).
 
 2. **Use that branch in the manifest URL**  
    - If the default branch is **main**, use:
      ```text
-     https://raw.githubusercontent.com/smegill/rollsight-integrations/main/rollsight-integration/module.json
+     https://raw.githubusercontent.com/RollSight/rollsight-integrations/main/rollsight-integration/module.json
      ```
    - If the default branch is **master**, use:
      ```text
-     https://raw.githubusercontent.com/smegill/rollsight-integrations/master/rollsight-integration/module.json
+     https://raw.githubusercontent.com/RollSight/rollsight-integrations/master/rollsight-integration/module.json
      ```
    Foundry (and “Check for Updates”) use whatever manifest URL you installed from. If you originally used `main` but the repo’s default is `master` (or the other way around), the raw URL can 404 or serve an old file. **Re-install the module using the correct manifest URL** (with the right branch), then Check for Updates.
 
@@ -89,12 +89,12 @@ The **manifest** is served from the **default branch** of the repo (the raw `mod
 
 ## 4. Checklist
 
-- [ ] Repo **smegill/rollsight-integrations** is **Public**.
+- [ ] Repo **RollSight/rollsight-integrations** is **Public**.
 - [ ] You can open the **manifest** URL in incognito and see JSON:  
-  `https://raw.githubusercontent.com/smegill/rollsight-integrations/main/rollsight-integration/module.json`
+  `https://raw.githubusercontent.com/RollSight/rollsight-integrations/main/rollsight-integration/module.json`
 - [ ] At least one **Release** exists with asset **rollsight-integration.zip**.
 - [ ] You can open the **download** URL in incognito and get the zip:  
-  `https://github.com/smegill/rollsight-integrations/releases/latest/download/rollsight-integration.zip`
+  `https://github.com/RollSight/rollsight-integrations/releases/latest/download/rollsight-integration.zip`
 
 Then try **Install Module** on Forge again with the manifest URL.
 
@@ -106,7 +106,7 @@ If raw.githubusercontent.com is slow or blocked, you can use **jsDelivr** for th
 
 **Manifest URL (jsDelivr):**
 ```text
-https://cdn.jsdelivr.net/gh/smegill/rollsight-integrations@main/rollsight-integration/module.json
+https://cdn.jsdelivr.net/gh/RollSight/rollsight-integrations@main/rollsight-integration/module.json
 ```
 
 In that case, the **download** URL in `module.json` should still point to GitHub Releases (as above). Do **not** change the download URL to jsDelivr unless you host the zip there separately.

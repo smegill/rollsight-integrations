@@ -78,7 +78,7 @@ RELEASE_NOTES_TMP="$(mktemp)"
   echo ""
   echo "## Install"
   echo ""
-  echo "Manifest: https://raw.githubusercontent.com/smegill/rollsight-integrations/main/rollsight-integration/module.json"
+  echo "Manifest: https://raw.githubusercontent.com/RollSight/rollsight-integrations/main/rollsight-integration/module.json"
   echo ""
 } > "$RELEASE_NOTES_TMP"
 
@@ -111,17 +111,17 @@ fi
 if command -v gh &>/dev/null; then
   echo "Creating GitHub release v${NEW_VERSION} on rollsight-integrations..."
   gh release create "v${NEW_VERSION}" "$ZIP_PATH" \
-    --repo smegill/rollsight-integrations \
+    --repo RollSight/rollsight-integrations \
     --title "Foundry module v${NEW_VERSION}" \
     --notes-file "$RELEASE_NOTES_TMP"
   echo "Done. Foundry users can Check for Updates or install from the manifest URL."
 else
   echo "GitHub CLI (gh) not installed. Create release manually on the PUBLIC repo:"
-  echo "  1. Go to https://github.com/smegill/rollsight-integrations/releases/new"
+  echo "  1. Go to https://github.com/RollSight/rollsight-integrations/releases/new"
   echo "  2. Tag: v${NEW_VERSION}  Title: Foundry module v${NEW_VERSION}"
   echo "  3. Upload: ${ZIP_PATH}"
   echo "  4. Publish"
-  echo "  Manifest URL: https://raw.githubusercontent.com/smegill/rollsight-integrations/main/rollsight-integration/module.json"
+  echo "  Manifest URL: https://raw.githubusercontent.com/RollSight/rollsight-integrations/main/rollsight-integration/module.json"
 fi
 
 # Cleanup

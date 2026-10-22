@@ -7,10 +7,10 @@
 Use this when installing or updating the module in Foundry:
 
 ```
-https://raw.githubusercontent.com/smegill/rollsight-integrations/main/rollsight-integration/module.json
+https://raw.githubusercontent.com/RollSight/rollsight-integrations/main/rollsight-integration/module.json
 ```
 
-Foundry fetches the manifest and zip from the **public** repo `smegill/rollsight-integrations`.
+Foundry fetches the manifest and zip from the **public** repo `RollSight/rollsight-integrations`.
 
 ## How to release a new Foundry version
 
@@ -30,11 +30,11 @@ That script:
 
 **Non-interactive:** `./foundry_module/release.sh -y` skips the "Commit and push? (y/n)" prompt.
 
-**Without GitHub CLI:** After the script pushes, create a release on the **public** repo: https://github.com/smegill/rollsight-integrations/releases/new — tag `vX.Y.Z`, upload `foundry_module/rollsight-integration.zip`.
+**Without GitHub CLI:** After the script pushes, create a release on the **public** repo: https://github.com/RollSight/rollsight-integrations/releases/new — tag `vX.Y.Z`, upload `foundry_module/rollsight-integration.zip`.
 
 ## First-time setup
 
-- **Remote `rollsight-integrations`:** Add the public repo if needed: `git remote add rollsight-integrations https://github.com/smegill/rollsight-integrations.git`
+- **Remote `rollsight-integrations`:** Add the public repo if needed: `git remote add rollsight-integrations https://github.com/RollSight/rollsight-integrations.git`
 - **Public repo VTT-only (one-time):** If the public repo currently has the full dicecam tree, run the one-time steps in **foundry_module/PUBLIC_REPO_SETUP.md** so only the Foundry module (and release tooling) is on the public repo. After that, `release.sh` uses subtree push so only VTT code is pushed.
 - **GitHub CLI (`gh`):** Install and `gh auth login` so the script can create releases on the public repo. Optional; you can create releases in the browser instead.
 

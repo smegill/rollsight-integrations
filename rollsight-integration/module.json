@@ -23,9 +23,9 @@
   ],
   "socket": true,
   "readme": "README.md",
-  "url": "https://github.com/smegill/rollsight-integrations",
-  "manifest": "https://raw.githubusercontent.com/smegill/rollsight-integrations/main/rollsight-integration/module.json",
-  "download": "https://github.com/smegill/rollsight-integrations/releases/download/v1.1.93/rollsight-integration.zip",
+  "url": "https://github.com/RollSight/rollsight-integrations",
+  "manifest": "https://raw.githubusercontent.com/RollSight/rollsight-integrations/main/rollsight-integration/module.json",
+  "download": "https://github.com/RollSight/rollsight-integrations/releases/download/v1.1.93/rollsight-integration.zip",
   "languages": [
     {
       "lang": "en",

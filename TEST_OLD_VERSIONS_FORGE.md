@@ -3,7 +3,7 @@
 On Forge you install via **Manifest URL**. Foundry fetches that URL (your `module.json`), then uses the **download** URL inside it to get the zip. So to test an old version you need a manifest URL that serves that version’s `module.json` **and** that file must point at that version’s zip (not `latest`).
 
 **Current (main) install URL:**  
-`https://raw.githubusercontent.com/smegill/rollsight-integrations/main/rollsight-integration/module.json`  
+`https://raw.githubusercontent.com/RollSight/rollsight-integrations/main/rollsight-integration/module.json`  
 (The public repo only contains VTT code; see PUBLIC_REPO_SETUP.md.)
 
 ## Quick approach: versioned manifest branches
@@ -22,8 +22,8 @@ This will:
 
 - Create a branch `manifest/v1.0.81` from the commit that released 1.0.81.
 - Update `module.json` so that:
-  - **manifest** = `https://raw.githubusercontent.com/smegill/rollsight-integrations/manifest/v1.0.81/foundry_module/rollsight-integration/module.json`
-  - **download** = `https://github.com/smegill/rollsight-integrations/releases/download/v1.0.81/rollsight-integration.zip`
+  - **manifest** = `https://raw.githubusercontent.com/RollSight/rollsight-integrations/manifest/v1.0.81/foundry_module/rollsight-integration/module.json`
+  - **download** = `https://github.com/RollSight/rollsight-integrations/releases/download/v1.0.81/rollsight-integration.zip`
 - Commit the change.
 
 ### 2. Push the branch to the public repo
@@ -43,7 +43,7 @@ git push rollsight-integrations manifest/v1.0.81
 3. **Install Module** → paste this as the **Manifest URL**:
 
    ```
-   https://raw.githubusercontent.com/smegill/rollsight-integrations/manifest/v1.0.81/foundry_module/rollsight-integration/module.json
+   https://raw.githubusercontent.com/RollSight/rollsight-integrations/manifest/v1.0.81/foundry_module/rollsight-integration/module.json
    ```
 
 4. Install. Foundry will load the manifest from that branch and the zip from the **v1.0.81** release.
@@ -61,7 +61,7 @@ git push rollsight-integrations manifest/v1.0.81
   Then use this manifest URL on Forge:
 
   ```
-  https://raw.githubusercontent.com/smegill/rollsight-integrations/manifest/v1.0.82/foundry_module/rollsight-integration/module.json
+  https://raw.githubusercontent.com/RollSight/rollsight-integrations/manifest/v1.0.82/foundry_module/rollsight-integration/module.json
   ```
 
 Repeat for 1.0.83, 1.0.84, … until you see the version where things break.

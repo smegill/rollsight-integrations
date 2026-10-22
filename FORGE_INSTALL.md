@@ -8,7 +8,7 @@ The Forge does not give you filesystem access to Foundry’s `Data` folder. You 
 
 1. **Get the Manifest URL** from the module author or the project’s README. For this repo:
    ```text
-   https://raw.githubusercontent.com/smegill/rollsight-integrations/main/rollsight-integration/module.json
+   https://raw.githubusercontent.com/RollSight/rollsight-integrations/main/rollsight-integration/module.json
    ```
    Installing via this URL gives access only to the Foundry module (the release zip); it does not expose the rest of the repository.
 
@@ -40,11 +40,11 @@ For **Install Module** to work on The Forge (or any Foundry host), two things mu
 
 ### Step 1: URLs in `module.json`
 
-Foundry needs a **public** repo. This project uses **rollsight-integrations** (`smegill/rollsight-integrations`) for the manifest and releases; your main repo (rollsight) can stay private. In `foundry_module/rollsight-integration/module.json` the URLs are:
+Foundry needs a **public** repo. This project uses **rollsight-integrations** (`RollSight/rollsight-integrations`) for the manifest and releases; your main repo (rollsight) can stay private. In `foundry_module/rollsight-integration/module.json` the URLs are:
 
-- **url**: `https://github.com/smegill/rollsight-integrations`
-- **manifest**: `https://raw.githubusercontent.com/smegill/rollsight-integrations/main/rollsight-integration/module.json`
-- **download**: `https://github.com/smegill/rollsight-integrations/releases/latest/download/rollsight-integration.zip`
+- **url**: `https://github.com/RollSight/rollsight-integrations`
+- **manifest**: `https://raw.githubusercontent.com/RollSight/rollsight-integrations/main/rollsight-integration/module.json`
+- **download**: `https://github.com/RollSight/rollsight-integrations/releases/latest/download/rollsight-integration.zip`
 
 Use the branch name you actually use (e.g. `main`) in the manifest URL.
 
@@ -58,7 +58,7 @@ From the **dicecam** repo root, run:
 
 That bumps the version, builds the zip, commits, pushes to **rollsight-integrations** (public repo), optionally pushes to **origin** (private), and creates a GitHub release with the zip on the public repo (if `gh` is installed). Use `./foundry_module/release.sh -y` to skip the confirmation prompt. See **foundry_module/RELEASE.md** for details.
 
-If you don't use `gh`, after the script pushes: go to https://github.com/smegill/rollsight-integrations/releases/new, create tag `vX.Y.Z`, upload `foundry_module/rollsight-integration.zip`, publish.
+If you don't use `gh`, after the script pushes: go to https://github.com/RollSight/rollsight-integrations/releases/new, create tag `vX.Y.Z`, upload `foundry_module/rollsight-integration.zip`, publish.
 
 The **download** URL in `module.json` should match how GitHub serves the asset:
 
@@ -76,7 +76,7 @@ If you use `releases/latest/download/...`, every new release that includes `roll
 Give GMs this URL to paste in **Install Module**:
 
 ```text
-https://raw.githubusercontent.com/smegill/rollsight-integrations/main/rollsight-integration/module.json
+https://raw.githubusercontent.com/RollSight/rollsight-integrations/main/rollsight-integration/module.json
 ```
 
 Only the Foundry module (the release zip) is downloaded when they install; the rest of the repo is not exposed.
@@ -85,7 +85,7 @@ Only the Foundry module (the release zip) is downloaded when they install; the r
 
 ## Checklist (maintainers)
 
-- [ ] `module.json` has correct url/manifest/download for the public repo (smegill/rollsight-integrations).
+- [ ] `module.json` has correct url/manifest/download for the public repo (RollSight/rollsight-integrations).
 - [ ] Ran `./foundry_module/build-release-zip.sh` and have `rollsight-integration.zip`.
 - [ ] Created a GitHub Release and attached `rollsight-integration.zip`.
 - [ ] Manifest URL (raw `module.json`) is public and returns JSON.

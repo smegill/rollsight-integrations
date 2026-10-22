@@ -1,6 +1,6 @@
 # Public Repo (rollsight-integrations): VTT-Only Layout
 
-The **public** repo `smegill/rollsight-integrations` should contain **only VTT integration code** (the Foundry module and release tooling), not the full dicecam app (website, scripts, pico firmware, etc.). The full project stays in your **private** repo (rollsight/dicecam).
+The **public** repo `RollSight/rollsight-integrations` should contain **only VTT integration code** (the Foundry module and release tooling), not the full dicecam app (website, scripts, pico firmware, etc.). The full project stays in your **private** repo (rollsight/dicecam).
 
 ## How it works
 
@@ -12,7 +12,7 @@ The **public** repo `smegill/rollsight-integrations` should contain **only VTT i
 
 Pushing to the public repo is done with **git subtree push** so only `foundry_module/` is sent. The manifest URL for Foundry is:
 
-`https://raw.githubusercontent.com/smegill/rollsight-integrations/main/rollsight-integration/module.json`
+`https://raw.githubusercontent.com/RollSight/rollsight-integrations/main/rollsight-integration/module.json`
 
 (No `foundry_module/` in the path, because that folder's contents are at the public repo root.)
 

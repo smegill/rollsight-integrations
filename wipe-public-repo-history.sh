@@ -91,5 +91,5 @@ git branch -D "$PUBLIC_BRANCH" 2>/dev/null || true
 echo ""
 echo "=== Done ==="
 echo "Public repo main and all tagged releases now contain only VTT files."
-echo "Manifest URL: https://raw.githubusercontent.com/smegill/rollsight-integrations/main/rollsight-integration/module.json"
+echo "Manifest URL: https://raw.githubusercontent.com/RollSight/rollsight-integrations/main/rollsight-integration/module.json"
 echo "On GitHub: check that each Release (v1.0.81, etc.) still has its zip; re-point to the new tag if needed."

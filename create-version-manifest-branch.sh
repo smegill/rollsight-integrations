@@ -7,13 +7,13 @@
 # Then:  git push rollsight-integrations manifest/v1.0.81
 #
 # Manifest URL to use on Forge (replace 1.0.81 with your version):
-#   https://raw.githubusercontent.com/smegill/rollsight-integrations/manifest/v1.0.81/foundry_module/rollsight-integration/module.json
+#   https://raw.githubusercontent.com/RollSight/rollsight-integrations/manifest/v1.0.81/foundry_module/rollsight-integration/module.json
 
 set -e
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 MODULE_JSON="${REPO_ROOT}/foundry_module/rollsight-integration/module.json"
-GITHUB_REPO="${GITHUB_REPO:-smegill/rollsight-integrations}"
+GITHUB_REPO="${GITHUB_REPO:-RollSight/rollsight-integrations}"
 
 # Version -> commit (release commits for Foundry module)
 declare -A VERSION_COMMIT=(
